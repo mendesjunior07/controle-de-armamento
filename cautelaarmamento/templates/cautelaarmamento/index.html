@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Index</title>
+</head>
+<body>
+    <div style="display: flex;">
+        <!-- Menu Lateral -->
+        <div style="width: 200px; background-color: #f0f0f0; padding: 10px;">
+            <h2>Menu</h2>
+            <ul style="list-style-type: none; padding: 0;">
+                <li><a href="{% url 'index' %}">Início</a></li>
+                <li><a href="#">Outra Página</a></li>
+                <li><a href="#">Mais Links</a></li>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
+            </ul>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div style="margin-left: 210px; padding: 10px;">
+            <h1>Bem-vindo ao Sistema de Despacho de Armamento</h1>
+
+        </div>
+    </div>
+</body>
+</html>
