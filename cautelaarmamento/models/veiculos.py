@@ -1,0 +1,96 @@
+from django.db import models
+
+class Vtr(models.Model):
+    MARCAS = [
+        ('TOYOTA', 'Toyota'),
+        ('FORD', 'Ford'),
+        ('CHEVROLET', 'Chevrolet'),
+        ('FIAT', 'Fiat'),
+        ('VOLKSWAGEN', 'Volkswagen'),
+        ('MITSUBISHI', 'Mitsubishi'),
+        ('RENAULT', 'Renault'),
+        ('JEEP', 'Jeep'),
+        ('HYUNDAI', 'Hyundai'),
+        ('HONDA', 'Honda'),
+        ('NISSAN', 'Nissan'),
+        ('TROLLER', 'Troller'),  # Troller é usado por algumas unidades especializadas
+    ]
+    
+    SITUACOES = [
+        ('DISPONIVEL', 'Disponível'),
+        ('EM_USO', 'Em uso'),
+        ('MANUTENCAO', 'Manutenção'),
+        ('BAIXADO', 'Baixado'),
+        ('RESERVA', 'Reserva'),  # Veículo em reserva para uso futuro
+        ('EM_ABASTECIMENTO', 'Em abastecimento'),  # Veículo em processo de reabastecimento
+        ('EM_DESLOCAMENTO', 'Em deslocamento'),  # Veículo em trânsito para outra localidade
+        ('EM_OPERAÇÃO', 'Em operação'),  # Veículo em uso durante uma operação específica
+        ('RETORNO', 'Retornando'),  # Veículo retornando de uma operação ou missão
+        ('EM_REVISAO', 'Em revisão'),  # Veículo em revisão técnica programada
+        ('EM_ADAPTACAO', 'Em adaptação'),  # Veículo sendo adaptado para novo uso ou missão
+        ('DESATIVADO', 'Desativado'),  # Veículo fora de uso e aguardando destinação final
+        ('EM_TREINAMENTO', 'Em treinamento'),  # Veículo em uso para treinamento de pessoal
+        ('EM_REMOCAO', 'Em remoção'),  # Veículo sendo removido para manutenção ou outra localidade
+        ('SOB_AVALIACAO', 'Sob avaliação'),  # Veículo sob avaliação para determinar condição ou destino
+        ('EM_VISTORIA', 'Em vistoria'),  # Veículo sendo vistoriado por técnicos ou autoridades
+    ]
+    
+    marca = models.CharField(max_length=50, choices=MARCAS)
+    modelo = models.CharField(max_length=100)
+    placa = models.CharField(max_length=10, unique=False)
+    chassi = models.CharField(max_length=50, unique=True)
+    ano = models.IntegerField()
+    procedencia = models.CharField(max_length=100)
+    fornecedor = models.CharField(max_length=100)
+    aparencia_visual = models.TextField()
+    destino = models.CharField(max_length=100)
+    situacao = models.CharField(max_length=50, choices=SITUACOES)
+    localizacao = models.CharField(max_length=100)
+    observacao = models.TextField(blank=True, null=True)
+    locada = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.marca} {self.modelo} - {self.placa}'
+
+class Bicicleta(models.Model):
+    MARCAS = [
+        ('CALOI', 'Caloi'),
+        ('MONARK', 'Monark'),
+        ('HOUSTON', 'Houston'),
+        ('SCOTT', 'Scott'),
+        ('TREK', 'Trek'),
+        ('GTS', 'GTS'),
+        ('SHIMANO', 'Shimano'),
+        ('GHOST', 'Ghost'),
+    ]
+    
+    TIPOS = [
+        ('MTB', 'Mountain Bike'),
+        ('URBANA', 'Urbana'),
+        ('SPEED', 'Speed'),
+        ('BMX', 'BMX'),
+        ('ELETRICA', 'Elétrica'),
+        ('FIXA', 'Fixa'),
+        ('HÍBRIDA', 'Híbrida'),
+    ]
+
+    SITUACOES = [
+        ('DISPONIVEL', 'Disponível'),
+        ('EM_USO', 'Em uso'),
+        ('MANUTENCAO', 'Manutenção'),
+        ('BAIXADO', 'Baixado'),
+        ('RESERVA', 'Reserva'),
+    ]
+
+    marca = models.CharField(max_length=50, choices=MARCAS)
+    tipo = models.CharField(max_length=50, choices=TIPOS)
+    ano = models.IntegerField()
+    cor = models.CharField(max_length=50)
+    procedencia = models.CharField(max_length=100)
+    doc_ref = models.CharField("Documento de Referência", max_length=100)
+    situacao = models.CharField(max_length=50, choices=SITUACOES)
+    tombo = models.CharField(max_length=50, unique=True)
+    localizacao = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f'{self.marca} {self.tipo} - {self.tombo}'
