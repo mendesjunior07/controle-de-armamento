@@ -38,7 +38,7 @@ class Vtr(models.Model):
     marca = models.CharField(max_length=50, choices=MARCAS)
     modelo = models.CharField(max_length=100)
     placa = models.CharField(max_length=10, unique=False)
-    chassi = models.CharField(max_length=50, unique=True)
+    chassi = models.CharField(max_length=50, unique=False)
     ano = models.IntegerField()
     procedencia = models.CharField(max_length=100)
     fornecedor = models.CharField(max_length=100)
