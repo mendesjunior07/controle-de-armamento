@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
 /* Importa a fonte 'Poppins' do Google Fonts com pesos 400 (regular) e 600 (semibold). */
 
 ::after,
@@ -7,33 +8,45 @@
     margin: 0;
     padding: 0;
 }
+
+
 /* Define o comportamento de box-sizing como border-box para elementos pseudo (::before, ::after),
    garantindo que padding e border sejam incluídos na largura e altura do elemento. Remove também margens e paddings. */
 
 a {
     text-decoration: none;
 }
+
+
 /* Remove o sublinhado dos links (<a>). */
 
 li {
     list-style: none;
 }
+
+
 /* Remove os marcadores padrão das listas (<li>). */
 
 h1 {
     font-weight: 600;
     font-size: 1.5rem;
 }
+
+
 /* Define o peso da fonte para 600 (semibold) e o tamanho da fonte para 1.5rem nos títulos <h1>. */
 
 body {
     font-family: 'Poppins', sans-serif;
 }
+
+
 /* Aplica a fonte 'Poppins' ao corpo do documento, com fallback para sans-serif caso a fonte não seja carregada. */
 
 .wrapper {
     display: flex;
 }
+
+
 /* Define um container flexível para o wrapper, permitindo alinhamento e distribuição dos itens filhos. */
 
 .main {
@@ -43,6 +56,8 @@ body {
     transition: all 0.35s ease-in-out;
     background-color: #fafbfe;
 }
+
+
 /* Define a área principal:
    - Altura mínima de 100vh (altura total da viewport).
    - Largura total de 100%.
@@ -59,6 +74,8 @@ body {
     display: flex;
     flex-direction: column;
 }
+
+
 /* Define a barra lateral (sidebar):
    - Largura fixa e mínima de 70px.
    - Z-index alto (1000) para mantê-la sobre outros elementos.
@@ -68,9 +85,13 @@ body {
 
 #sidebar.expand {
     width: auto;
-    min-width: 260px; /* Largura mínima da sidebar quando expandida. */
-    max-width: 350px; /* Largura máxima da sidebar quando expandida. */
+    min-width: 260px;
+    /* Largura mínima da sidebar quando expandida. */
+    max-width: 350px;
+    /* Largura máxima da sidebar quando expandida. */
 }
+
+
 /* Estilo aplicado à sidebar quando está expandida:
    - Largura automática, ajustando-se ao conteúdo.
    - Largura mínima de 260px e máxima de 350px para controlar a expansão. */
@@ -81,6 +102,8 @@ body {
     border: 0;
     padding: 1rem 1.5rem;
 }
+
+
 /* Estilo para o botão de alternância:
    - Fundo transparente.
    - Cursor muda para pointer ao passar sobre o botão.
@@ -91,6 +114,8 @@ body {
     font-size: 1.5rem;
     color: #FFF;
 }
+
+
 /* Estilo para o ícone dentro do botão de alternância:
    - Tamanho da fonte 1.5rem (ajusta o tamanho do ícone).
    - Cor do ícone branca (#FFF). */
@@ -98,6 +123,8 @@ body {
 .sidebar-logo {
     margin: auto 0;
 }
+
+
 /* Centraliza verticalmente o logotipo da sidebar. */
 
 .sidebar-logo a {
@@ -105,6 +132,8 @@ body {
     font-size: 1.15rem;
     font-weight: 600;
 }
+
+
 /* Estilo para o link do logotipo:
    - Cor branca (#FFF).
    - Tamanho da fonte 1.15rem.
@@ -114,6 +143,8 @@ body {
 #sidebar:not(.expand) a.sidebar-link span {
     display: none;
 }
+
+
 /* Quando a sidebar não está expandida:
    - Esconde o logotipo e o texto dentro dos links da sidebar (span). */
 
@@ -121,6 +152,8 @@ body {
     padding: 2rem 0;
     flex: 1 1 auto;
 }
+
+
 /* Estilo para a navegação da sidebar:
    - Padding de 2rem em cima/baixo e 0 nos lados.
    - Flex-grow, flex-shrink, e flex-basis definidos para ajustar o tamanho automaticamente, ocupando o espaço disponível. */
@@ -130,12 +163,18 @@ a.sidebar-link {
     color: #FFF;
     display: block;
     font-size: 0.9rem;
-    white-space: nowrap;  /* Impede quebra de linha no texto. */
-    overflow-x: hidden;    /* Esconde qualquer conteúdo que ultrapasse horizontalmente. */
-    text-overflow: ellipsis; /* Adiciona "..." se o texto for muito longo. */
+    white-space: nowrap;
+    /* Impede quebra de linha no texto. */
+    overflow-x: hidden;
+    /* Esconde qualquer conteúdo que ultrapasse horizontalmente. */
+    text-overflow: clip;
+    /* Adiciona "..." se o texto for muito longo. */
     border-left: 3px solid transparent;
-    width: 100%;           /* O link ocupa toda a largura disponível. */
+    width: 100%;
+    /* O link ocupa toda a largura disponível. */
 }
+
+
 /* Estilo para os links da sidebar:
    - Padding interno de .625rem em cima/baixo e 1.625rem nos lados.
    - Cor branca (#FFF).
@@ -150,6 +189,8 @@ a.sidebar-link {
     font-size: 1.1rem;
     margin-right: .75rem;
 }
+
+
 /* Estilo para os ícones dentro dos links:
    - Tamanho da fonte 1.1rem (ajusta o tamanho do ícone).
    - Margem direita de .75rem para espaçar o ícone do texto. */
@@ -158,6 +199,8 @@ a.sidebar-link:hover {
     background-color: rgba(255, 255, 255, .075);
     border-left: 3px solid #3b7ddd;
 }
+
+
 /* Estilo de hover para os links da sidebar:
    - Fundo com uma leve cor branca (rgba) ao passar o mouse.
    - Borda esquerda azul (#3b7ddd). */
@@ -165,6 +208,8 @@ a.sidebar-link:hover {
 .sidebar-item {
     position: relative;
 }
+
+
 /* Define o posicionamento relativo para cada item da sidebar, permitindo que elementos filhos sejam posicionados em relação a ele. */
 
 #sidebar:not(.expand) .sidebar-item .sidebar-dropdown {
@@ -176,6 +221,8 @@ a.sidebar-link:hover {
     min-width: 15rem;
     display: none;
 }
+
+
 /* Quando a sidebar não está expandida, estilo para o dropdown da sidebar:
    - Posicionamento absoluto (em relação ao .sidebar-item).
    - Alinhamento no topo e à esquerda de 70px.
@@ -190,6 +237,8 @@ a.sidebar-link:hover {
     width: 100%;
     opacity: 1;
 }
+
+
 /* Quando a sidebar não está expandida e o item é hover:
    - Exibe o dropdown.
    - Define uma altura máxima de 15em.
@@ -208,6 +257,8 @@ a.sidebar-link:hover {
     transform: rotate(-135deg);
     transition: all .2s ease-out;
 }
+
+
 /* Quando a sidebar está expandida e o link tem collapse:
    - Adiciona uma seta indicadora após o link.
    - Define a seta com borda sólida e espessura.
@@ -219,12 +270,18 @@ a.sidebar-link:hover {
     transform: rotate(45deg);
     transition: all .2s ease-out;
 }
+
+
 /* Quando a sidebar está expandida e o link está colapsado:
    - Gira a seta para apontar para a direita (indicando colapso).
    - Aplica uma transição suave de 0.2s. */
 
+
 /* Ajustes para dropdown expandido */
+
 .sidebar-dropdown {
-    min-width: 250px;  /* Define uma largura mínima de 250px para o dropdown. */
-    max-width: 350px;  /* Define uma largura máxima de 350px para o dropdown. */
+    min-width: 250px;
+    /* Define uma largura mínima de 250px para o dropdown. */
+    max-width: 350px;
+    /* Define uma largura máxima de 350px para o dropdown. */
 }

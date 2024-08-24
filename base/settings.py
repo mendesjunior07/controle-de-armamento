@@ -59,7 +59,7 @@ ROOT_URLCONF = 'base.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'cautelaarmamento', 'templates','cautelaarmamento/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -71,6 +71,8 @@ TEMPLATES = [
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = 'base.wsgi.application'
 
@@ -127,9 +129,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static','cautelaarmamento\images'),
-]
+STATICFILES_DIRS = []
+
+
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

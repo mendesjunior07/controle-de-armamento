@@ -1,0 +1,50 @@
+{% extends 'base_html/base.html' %} {% block title %}Inventário de Armas e Equipamentos{% endblock %} {% block content %}
+<div class="main p-3">
+    <div class="text-center">
+        <h1>Inventário de Equipamentos</h1>
+        <br>
+        <table>
+            <thead>
+                <tr>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Placa</th>
+                    <th>Chassi</th>
+                    <th>Ano</th>
+                    <th>Procedência</th>
+                    <th>Fornecedor</th>
+                    <th>Aparência Visual</th>
+                    <th>Destino</th>
+                    <th>Situação</th>
+                    <th>Localização</th>
+                    <th>Observação</th>
+                    <th>Locada</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipamento in equipamentos %}
+                <tr>
+                    <td>{{ equipamento.marca }}</td>
+                    <td>{{ equipamento.modelo }}</td>
+                    <td>{{ equipamento.placa }}</td>
+                    <td>{{ equipamento.chassi }}</td>
+                    <td>{{ equipamento.ano }}</td>
+                    <td>{{ equipamento.procedencia }}</td>
+                    <td>{{ equipamento.fornecedor }}</td>
+                    <td>{{ equipamento.aparencia_visual }}</td>
+                    <td>{{ equipamento.destino }}</td>
+                    <td>{{ equipamento.situacao }}</td>
+                    <td>{{ equipamento.localizacao }}</td>
+                    <td>{{ equipamento.observacao }}</td>
+                    <td>{{ equipamento.locada }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="13">Nenhum equipamento encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
