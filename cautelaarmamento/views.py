@@ -41,9 +41,11 @@ def profile(request):
 
 @login_required
 def inventario_equipamentos(request):
+    print('olá mundo')
     equipamentos = Vtr.objects.all()
-    return render(request, 'cautelaarmamento/inventario_equipamentos.html')
-
+    print(equipamentos)
+    return render(request, 'cautelaarmamento/inventario_equipamentos.html', {'equipamentos': equipamentos})
+    
 
 @login_required
 def registro_view(request):
