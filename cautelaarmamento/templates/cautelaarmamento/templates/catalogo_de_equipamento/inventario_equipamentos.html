@@ -2,6 +2,7 @@
 <div class="main p-3">
     <div class="text-center">
         <h1>Inventário de Equipamentos</h1>
+        <h1>Viaturas e MIKES</h1>
         <br>
         <table>
             <thead>
@@ -37,6 +38,42 @@
                     <td>{{ equipamento.localizacao }}</td>
                     <td>{{ equipamento.observacao }}</td>
                     <td>{{ equipamento.locada }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="13">Nenhum equipamento encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h1>Bicicleta</h1>
+        <br>
+        <table>
+            <thead>
+                <tr>
+                    <th>Marca</th>
+                    <th>Tipo</th>
+                    <th>Ano</th>
+                    <th>Cor</th>
+                    <th>Procedência</th>
+                    <th>Docomentação Referente</th>
+                    <th>Situação</th>
+                    <th>Tombo</th>
+                    <th>Localização</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipamento in equipamentos %}
+                <tr>
+                    <td>{{ equipamento.marca }}</td>
+                    <td>{{ equipamento.tipo }}</td>
+                    <td>{{ equipamento.ano }}</td>
+                    <td>{{ equipamento.cor }}</td>
+                    <td>{{ equipamento.procedencia }}</td>
+                    <td>{{ equipamento.doc_ref }}</td>
+                    <td>{{ equipamento.situacao }}</td>
+                    <td>{{ equipamento.tombo }}</td>
+                    <td>{{ equipamento.localizacao }}</td>
                 </tr>
                 {% empty %}
                 <tr>
