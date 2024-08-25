@@ -285,3 +285,8 @@ a.sidebar-link:hover {
     max-width: 350px;
     /* Define uma largura máxima de 350px para o dropdown. */
 }
+
+#armamento.collapse {
+    display: block !important;
+    /* Garante que o Bootstrap aplique o estilo de exibição */
+}

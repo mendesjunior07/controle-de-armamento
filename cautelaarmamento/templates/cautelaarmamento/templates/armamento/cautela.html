@@ -1,0 +1,17 @@
+{% extends 'base_html/base.html' %}
+{% block title %}Index{% endblock %}
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+  <h3>NOME DO PM</h3>
+  {{ form01.as_p }}
+  
+  <h3>VTR</h3>
+  {{ form02.as_p }}
+  
+  <h3>BICICLETA</h3>
+  {{ form03.as_p }}
+  
+  <button type="submit">Enviar</button>
+</form>
+{% endblock %}

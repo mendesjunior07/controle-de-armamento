@@ -94,3 +94,18 @@ class Bicicleta(models.Model):
 
     def __str__(self):
         return f'{self.marca} {self.tipo} - {self.tombo}'
+    
+    class Moto(models.Model):
+        numero_ordem = models.AutoField(primary_key=True)  # ID automático para cada entrada
+        marca = models.CharField(max_length=50)  # Marca da moto, por exemplo, "Honda"
+        modelo = models.CharField(max_length=100)  # Modelo da moto, por exemplo, "CG 160"
+        placa = models.CharField(max_length=10)  # Placa da moto, por exemplo, "ABC-1234"
+        chassi = models.CharField(max_length=50)  # Número do chassi
+        ano = models.CharField(max_length=4)  # Ano do modelo, por exemplo, "2020"
+        proc = models.CharField(max_length=100)  # Informação do processo, se aplicável
+        fornec = models.CharField(max_length=100, blank=True, null=True)  # Fornecedor, se aplicável
+        aparencia_visual = models.CharField(max_length=50)  # Aparência visual, por exemplo, "Caracterizada"
+        destino = models.CharField(max_length=50)  # Destino da moto, por exemplo, "Operacional"
+        situacao = models.CharField(max_length=50)  # Situação atual, por exemplo, "Operando"
+        localizacao = models.CharField(max_length=100, blank=True, null=True)  # Localização atual da moto
+        observacao = models.TextField(blank=True, null=True)  # Observações adicionais
