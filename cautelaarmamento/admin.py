@@ -1,47 +1,51 @@
 from django.contrib import admin
-from .models import Vtr, Bicicleta
+from .models import Armas, Municoes, Cautela, PolicialMilitar, Vtr, Bicicleta, Moto
 
-class VtrAdmin(admin.ModelAdmin):
-    list_display = ('marca', 'modelo', 'placa', 'situacao', 'localizacao')
-    list_filter = ('marca', 'situacao', 'ano', 'localizacao')
-    search_fields = ('marca', 'modelo', 'placa', 'chassi', 'fornecedor')
-    ordering = ('marca', 'modelo', 'ano')
+@admin.register(Armas)
+class ArmasAdmin(admin.ModelAdmin):
+    list_display = ['tipo', 'marca', 'modelo', 'calibre', 'numero_arma', 'localizacao', 'cautelado']
+    search_fields = ['tipo', 'marca', 'modelo', 'numero_arma']
+    list_filter = ['marca', 'calibre', 'cautelado']
+    ordering = ['tipo', 'marca', 'modelo']
 
-admin.site.register(Vtr, VtrAdmin)
+@admin.register(Municoes)
+class MunicoesAdmin(admin.ModelAdmin):
+    list_display = ['tipo', 'calibre', 'data_recebimento', 'saldo', 'cautelado']
+    search_fields = ['tipo', 'calibre', 'referencia']
+    list_filter = ['calibre', 'data_recebimento', 'cautelado']
+    ordering = ['tipo', 'calibre', 'data_recebimento']
 
-# @admin.register(Bicicleta)
-class BicicletaAdmin(admin.ModelAdmin):
-    list_display = ('marca', 'tipo', 'ano', 'cor', 'situacao', 'tombo', 'localizacao')
-    search_fields = ('marca', 'tipo', 'tombo')
-    list_filter = ('marca', 'tipo', 'situacao', 'ano')
-    ordering = ('marca', 'tipo', 'ano')
-
-admin.site.register(Bicicleta, BicicletaAdmin)
-
-from django.contrib import admin
-from .models import PolicialMilitar
+@admin.register(Cautela)
+class CautelaAdmin(admin.ModelAdmin):
+    list_display = ['policial_militar', 'arma', 'municao', 'vtr', 'bicicleta', 'moto', 'data_cautela', 'cautelado']
+    search_fields = ['policial_militar__nome_completo', 'arma__modelo', 'vtr__modelo', 'bicicleta__tipo', 'moto__modelo']
+    list_filter = ['data_cautela', 'cautelado']
+    ordering = ['data_cautela']
 
 @admin.register(PolicialMilitar)
 class PolicialMilitarAdmin(admin.ModelAdmin):
-    list_display = ('nome_completo', 'numero_identificacao', 'cpf', 'patente', 'unidade', 'status', 'data_ingresso')  # Campos exibidos na lista
-    search_fields = ('nome_completo', 'numero_identificacao', 'cpf', 'patente', 'unidade')  # Campos para busca
-    list_filter = ('patente', 'unidade', 'status')  # Filtros laterais
-    ordering = ['nome_completo']  # Ordenação padrão
-    fieldsets = (
-        ('Dados Pessoais', {
-            'fields': ('nome_completo', 'numero_identificacao', 'cpf', 'data_nascimento')
-        }),
-        ('Informações de Contato', {
-            'fields': ('telefone', 'email', 'endereco')
-        }),
-        ('Dados de Serviço', {
-            'fields': ('patente', 'unidade', 'data_ingresso', 'lotacao_atual')
-        }),
-        ('Situação na Corporação', {
-            'fields': ('status',)
-        }),
-        ('Outros Dados', {
-            'fields': ('observacoes',)
-        }),
-    )
+    list_display = ['nome_completo', 'numero_identificacao', 'patente', 'unidade', 'status']
+    search_fields = ['nome_completo', 'numero_identificacao', 'cpf']
+    list_filter = ['patente', 'unidade', 'status']
+    ordering = ['nome_completo']
 
+@admin.register(Vtr)
+class VtrAdmin(admin.ModelAdmin):
+    list_display = ['marca', 'modelo', 'placa', 'ano', 'situacao', 'cautelado']
+    search_fields = ['marca', 'modelo', 'placa']
+    list_filter = ['marca', 'situacao', 'cautelado']
+    ordering = ['marca', 'modelo', 'ano']
+
+@admin.register(Bicicleta)
+class BicicletaAdmin(admin.ModelAdmin):
+    list_display = ['marca', 'tipo', 'ano', 'cor', 'tombo', 'situacao', 'cautelado']
+    search_fields = ['marca', 'tipo', 'tombo']
+    list_filter = ['marca', 'tipo', 'situacao', 'cautelado']
+    ordering = ['marca', 'tipo', 'ano']
+
+@admin.register(Moto)
+class MotoAdmin(admin.ModelAdmin):
+    list_display = ['marca', 'modelo', 'placa', 'ano', 'situacao', 'cautelado']
+    search_fields = ['marca', 'modelo', 'placa']
+    list_filter = ['marca', 'situacao', 'cautelado']
+    ordering = ['marca', 'modelo', 'ano']

@@ -2,11 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from .models import Vtr
-from .forms import CautelamentodeViatura,CauteladeBicicleta, NomedosPms
-
-# from .forms import RegistroForm
-
+from .models import Vtr,Cautela
+from .forms import CautelaForm, CautelamentodeViatura, CautelamentodeBicicleta, NomedosPms
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 def login_view(request):
     if request.method == "POST":
@@ -21,10 +20,8 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            # Redirecionar para a página inicial ou dashboard
             return redirect('home')
         else:
-            # Adiciona uma mensagem de erro se a autenticação falhar
             messages.error(request, 'Nome de usuário ou senha incorretos.')
 
     return render(request, 'login.html')
@@ -41,34 +38,97 @@ def profile(request):
 
 @login_required
 def inventario_equipamentos(request):
-    print('olá mundo')
     equipamentos = Vtr.objects.all()
-    print(equipamentos)
-    # return render(request, 'cautelaarmamento/inventario_equipamentos.html', {'equipamentos': equipamentos})
     return render(request, 'catalogo_de_equipamento/inventario_equipamentos.html', {'equipamentos': equipamentos})
 
 @login_required
 def registro_view(request):
-    # Sua lógica aqui
     return render(request, 'cautelaarmamento/registro.html')
 
-@login_required
-def cautela_de_armamento(request):
+# @login_required
+# def cautela_de_armamento(request):
+#     if request.method == 'POST':
+#         form = CautelaForm(request.POST)
+#         if form.is_valid():
+#             cautela = form.save()
+
+#             # Marcar como cautelado
+#             if cautela.arma:
+#                 cautela.arma.cautelado = True
+#                 cautela.arma.save()
+#             if cautela.municao:
+#                 cautela.municao.cautelado = True
+#                 cautela.municao.save()
+#             if cautela.vtr:
+#                 cautela.vtr.cautelado = True
+#                 cautela.vtr.save()
+#             if cautela.bicicleta:
+#                 cautela.bicicleta.cautelado = True
+#                 cautela.bicicleta.save()
+#             if cautela.moto:
+#                 cautela.moto.cautelado = True
+#                 cautela.moto.save()
+
+#             return redirect('formulario_sucesso')
+#     else:
+#         form = CautelaForm()
+
+#     return render(request, 'armamento\cautela.html', {'form': form})
+
+# def formulario_sucesso(request):
+#     return render(request, 'armamento/formulario_sucesso.html')
+
+def cautelar_armamento(request):
+    policiais = Policial.objects.all()
+    armamentos = Armamento.objects.filter(disponivel=True)
+
     if request.method == 'POST':
-        form01 = NomedosPms(request.POST)
-        form02 = CautelamentodeViatura(request.POST)
-        form03 = CauteladeBicicleta(request.POST)
-        form04 = CauteladeBicicleta(request.POST)
+        policial_id = request.POST.get('policial')
+        armamento_id = request.POST.get('armamento')
+        policial = get_object_or_404(Policial, id=policial_id)
+        armamento = get_object_or_404(Armamento, id=armamento_id)
         
-        if form01.is_valid() and form02.is_valid() and form03.is_valid() and form04.is_valid():
-            form01.save()
-            form02.save()
-            form03.save()
-            form04.save()
-            return render(request, 'armamento/formulario_sucesso.html')
-    else:
-        form01 = NomedosPms()  # Instancia um formulário vazio
-        form02 = CautelamentodeViatura()     # Instancia um formulário vazio
-        form03 = CauteladeBicicleta()     # Instancia um formulário vazio
-        form04 = CauteladeBicicleta()     # Instancia um formulário vazio
-    return render(request, 'armamento/cautela.html', {'form01': form01, 'form02': form02, 'form03': form03 , 'form04': form04})
+        Cautela.objects.create(policial=policial, armamento=armamento)
+        armamento.disponivel = False
+        armamento.save()
+
+        return redirect('cautelar_armamento')
+
+    return render(request, 'cautela/cautelar_armamento.html', {'policiais': policiais, 'armamentos': armamentos})
+
+
+@login_required
+def descautelar_armamento(request):
+    # Buscar todas as cautelas que ainda não foram descauteladas
+    cautelas = Cautela.objects.filter(data_descautela__isnull=True)
+    print(cautelas)
+
+    if request.method == 'POST':
+        cautela_id = request.POST.get('cautela_id')
+        cautela = get_object_or_404(Cautela, id=cautela_id)
+        
+        # Marcar como descautelado
+        cautela.data_descautela = timezone.now()
+
+        # Atualizar o status do armamento, munição, viatura, bicicleta, e moto para disponível
+        if cautela.arma:
+            cautela.arma.cautelado = False
+            cautela.arma.save()
+        if cautela.municao:
+            cautela.municao.cautelado = False
+            cautela.municao.save()
+        if cautela.vtr:
+            cautela.vtr.cautelado = False
+            cautela.vtr.save()
+        if cautela.bicicleta:
+            cautela.bicicleta.cautelado = False
+            cautela.bicicleta.save()
+        if cautela.moto:
+            cautela.moto.cautelado = False
+            cautela.moto.save()
+
+        cautela.save()
+
+        return redirect('descautelar_armamento')
+
+    return render(request, 'armamento/descautela.html', {'descautela': descautelar_armamento})

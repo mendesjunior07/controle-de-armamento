@@ -1,1 +1,14 @@
-<h1>FORMULARIO SALVO COM SUCESSO</h1>
+{% extends 'base_html/base.html' %}
+
+{% block title %}Cautela de Armamento - Sucesso{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">Sucesso!</h4>
+        <p>O formulário de cautela de armamento foi salvo com sucesso.</p>
+        <hr>
+        <p class="mb-0">Você pode <a href="{% url 'cautela_de_armamento' %}" class="alert-link">registrar outra cautela</a> ou <a href="{% url 'inventario_equipamentos' %}" class="alert-link">verificar o inventário</a>.</p>
+    </div>
+</div>
+{% endblock %}
