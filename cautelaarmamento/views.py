@@ -78,16 +78,23 @@ def formulario_sucesso(request):
 
 @login_required
 def descautelar_armamento(request):
-    cautelas = Cautela.objects.filter(data_descautela__isnull=True)  # Corrigido aqui
+    cautelas = Cautela.objects.filter(data_descautela__isnull=True)
+
+    # Obtém as opções de escolhas do campo 'disponivel' do modelo Armas
+    status_disponibilidade_choices = Armas.STATUS_DISPONIBILIDADE
+
     if request.method == 'POST':
         cautela_id = request.POST.get('cautela_id')
+        alteracao = request.POST.get('alteracao')
+
         cautela = get_object_or_404(Cautela, id=cautela_id)
         cautela.data_descautela = timezone.now()
-        cautela.armamento.disponivel = 'Disponivel'
-        cautela.armamento.save()
-        cautela.save()
-        abc = request
+
+        if alteracao in dict(Armas.STATUS_DISPONIBILIDADE).keys():
+            cautela.armamento.disponivel = alteracao
+            cautela.armamento.save()
+            cautela.save()
 
         return redirect('descautelar_armamento')
 
-    return render(request, 'armamento/descautela.html', {'cautelas': cautelas})
+    return render(request, 'armamento/descautela.html', {'cautelas': cautelas, 'status_disponibilidade_choices': status_disponibilidade_choices})

@@ -12,10 +12,18 @@ class PolicialMilitar(models.Model):
         return self.nome
 
 class Armas(models.Model):
+    STATUS_DISPONIBILIDADE = [
+        ('Disponivel', 'Disponível'),
+        ('Indisponivel', 'Indisponível'),
+        ('verificar', 'Verificar'),
+        ('manutencao', 'Manutenção'),
+        ('quebrada', 'Quebrada'),
+        # Adicione outras opções conforme necessário
+    ]
     tipo = models.CharField(max_length=100)
     modelo = models.CharField(max_length=100)
     numero_de_serie = models.CharField(max_length=100, unique=True)
-    disponivel = models.CharField(max_length=200, default='Disponivel')
+    disponivel = models.CharField(max_length=20, choices=STATUS_DISPONIBILIDADE)
 
     def __str__(self):
         return f"{self.tipo} - {self.modelo} ({self.numero_de_serie})"

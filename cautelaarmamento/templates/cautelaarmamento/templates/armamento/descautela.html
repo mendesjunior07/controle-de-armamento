@@ -56,102 +56,10 @@
                                     <div class="mb-3">
                                         <label for="novo_policial{{ cautela.id }}" class="form-label">Selecionar a alteração encontrada</label>
                                         <select class="form-select" name="alteracao" id="novo_policial{{ cautela.id }}" required>
-                                            <!-- I. Alterações em Armas de Fogo -->
-                                            <optgroup label="Alterações em Armas de Fogo - Estado Geral">
-                                                <option value="desgaste_excessivo_cano">Desgaste excessivo do cano</option>
-                                                <option value="corrosao_componentes_metalicos">Corrosão em componentes metálicos</option>
-                                                <option value="trincas_deformacoes_corpo_arma">Trincas ou deformações no corpo da arma</option>
-                                                <option value="folgas_partes_moveis">Folgas nas partes móveis</option>
-                                                <option value="problemas_mecanismo_disparo">Problemas no mecanismo de disparo</option>
-                                                <option value="danos_miras_sistemas_pontaria">Danos nas miras ou sistemas de pontaria</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Armas de Fogo - Componentes Específicos">
-                                                <option value="cano_obstruido">Cano obstruído</option>
-                                                <option value="retem_carregador_danificado">Retém do carregador danificado</option>
-                                                <option value="gatilho_defeito">Gatilho com defeito</option>
-                                                <option value="percussor_quebrado">Percussor quebrado</option>
-                                                <option value="mola_real_enfraquecida">Mola real enfraquecida</option>
-                                                <option value="extrator_ejetor_problemas">Extrator ou ejetor com problemas</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Armas de Fogo - Acessórios">
-                                                <option value="lanternas_miras_laser_defeitos">Lanternas e miras laser com defeitos</option>
-                                                <option value="trilhos_adaptadores_danificados">Trilhos e adaptadores danificados</option>
-                                                <option value="coldres_desgaste_excessivo_quebras">Coldres com desgaste excessivo ou quebras</option>
-                                                <option value="bandoleiras_danificadas">Bandoleiras danificadas</option>
-                                            </optgroup>
-                                        
-                                            <!-- II. Alterações em Coletes Balísticos -->
-                                            <optgroup label="Alterações em Coletes Balísticos - Painéis Balísticos">
-                                                <option value="deformacoes_rasgos_paineis">Deformações ou rasgos nos painéis</option>
-                                                <option value="umidade_mofo_paineis">Umidade ou mofo nos painéis</option>
-                                                <option value="data_validade_expirada">Data de validade expirada</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Coletes Balísticos - Capa Externa">
-                                                <option value="rasgos_cortes_desgaste_excessivo">Rasgos, cortes ou desgaste excessivo</option>
-                                                <option value="zipes_velcros_danificados">Zíperes ou velcros danificados</option>
-                                                <option value="fechos_ajustes_quebrados">Fechos ou ajustes quebrados</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Coletes Balísticos - Correias e Ajustes">
-                                                <option value="correias_desfiadas_cortadas">Correias desfiadas ou cortadas</option>
-                                                <option value="fivelas_ajustes_quebrados">Fivelas ou ajustes quebrados</option>
-                                                <option value="engates_rapidos_danificados">Engates rápidos danificados</option>
-                                            </optgroup>
-                                        
-                                            <!-- III. Alterações em Algemas -->
-                                            <optgroup label="Alterações em Algemas - Corrente e Articulações">
-                                                <option value="corrente_deformada_esticada">Corrente deformada ou esticada</option>
-                                                <option value="articulacoes_rigidas_travadas">Articulações rígidas ou travadas</option>
-                                                <option value="elos_quebrados_danificados">Elos quebrados ou danificados</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Algemas - Mecanismo de Travamento">
-                                                <option value="dentes_travamento_desgastados">Dentes de travamento desgastados</option>
-                                                <option value="mola_travamento_enfraquecida">Mola de travamento enfraquecida</option>
-                                                <option value="chave_algema_danificada_perdida">Chave de algema danificada ou perdida</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Algemas - Acabamento">
-                                                <option value="corrosao_componentes_metalicos">Corrosão em componentes metálicos</option>
-                                                <option value="revestimento_danificado_descascado">Revestimento danificado ou descascado</option>
-                                            </optgroup>
-                                        
-                                            <!-- IV. Alterações em Outros Equipamentos -->
-                                            <optgroup label="Alterações em Rádios Comunicadores">
-                                                <option value="antenas_quebradas_danificadas">Antenas quebradas ou danificadas</option>
-                                                <option value="baterias_pouca_autonomia_danificadas">Baterias com pouca autonomia ou danificadas</option>
-                                                <option value="botoes_controles_defeito">Botões ou controles com defeito</option>
-                                                <option value="visor_trincado_danificado">Visor trincado ou danificado</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Bastões Retráteis">
-                                                <option value="mecanismo_travamento_defeito">Mecanismo de travamento com defeito</option>
-                                                <option value="segmentos_deformados_danificados">Segmentos deformados ou danificados</option>
-                                                <option value="empunhadura_danificada">Empunhadura danificada</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Equipamentos de Proteção Individual (EPI)">
-                                                <option value="capacetes_trincas_deformacoes">Capacetes com trincas ou deformações</option>
-                                                <option value="oculos_protecao_lentes_riscadas_quebradas">Óculos de proteção com lentes riscadas ou quebradas</option>
-                                                <option value="luvas_rasgos_desgaste_excessivo">Luvas com rasgos ou desgaste excessivo</option>
-                                            </optgroup>
-                                            <optgroup label="Alterações em Equipamentos de Primeiros Socorros">
-                                                <option value="kits_primeiros_socorros_incompletos_itens_vencidos">Kits de primeiros socorros incompletos ou com itens vencidos</option>
-                                                <option value="torniquetes_danificados_defeito">Torniquetes danificados ou com defeito</option>
-                                                <option value="mascaras_rcp_danificadas_sujas">Máscaras de RCP danificadas ou sujas</option>
-                                            </optgroup>
-                                        
-                                            <!-- V. Situações Adicionais -->
-                                            <optgroup label="Situações Adicionais - Perda">
-                                                <option value="perda_total_armamento_equipamento">Perda total do armamento ou equipamento</option>
-                                                <option value="perda_componentes_acessorios_especificos">Perda de componentes ou acessórios específicos</option>
-                                            </optgroup>
-                                            <optgroup label="Situações Adicionais - Roubo">
-                                                <option value="roubo_armamento_equipamento_completo">Roubo do armamento ou equipamento completo</option>
-                                                <option value="roubo_componentes_acessorios_especificos">Roubo de componentes ou acessórios específicos</option>
-                                            </optgroup>
-                                            <optgroup label="Situações Adicionais - Extravio">
-                                                <option value="extravio_armamento_equipamento_completo">Extravio do armamento ou equipamento completo</option>
-                                                <option value="extravio_componentes_acessorios_especificos">Extravio de componentes ou acessórios específicos</option>
-                                            </optgroup>
+                                            {% for key, value in status_disponibilidade_choices %}
+                                                <option value="{{ key }}">{{ value }}</option>
+                                            {% endfor %}
                                         </select>
-                                        
-                                        
                                     </div>
                             
                                     <button type="submit" class="btn btn-danger">Confirmar Alteração</button>
