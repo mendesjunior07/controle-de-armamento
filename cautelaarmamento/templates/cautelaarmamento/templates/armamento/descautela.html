@@ -7,8 +7,13 @@
         {% if cautelas %}
             {% for cautela in cautelas %}
             <li class="list-group-item">
-                {{ cautela.policial.nome }} - {{ cautela.armamento.nome }}
-                <button type="button" class="btn btn-warning float-end" data-bs-toggle="modal" data-bs-target="#confirmModal{{ cautela.id }}">
+
+                <button type="button" class="btn btn-danger float-end" data-bs-toggle="modal" data-bs-target="#confirmModalAlteracao{{ cautela.id }}">
+                    Descautelar com Alteração
+                </button>
+
+                {{ cautela.policial.nome }} - {{ cautela.armamento.tipo }} / {{ cautela.armamento.modelo }} / {{ cautela.armamento.numero_de_serie }}
+                <button type="button" class="btn btn-warning float-end me-2" data-bs-toggle="modal" data-bs-target="#confirmModal{{ cautela.id }}">
                     Descautelar
                 </button>
 
@@ -34,6 +39,37 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Modal de confirmação com alteração -->
+                <div class="modal fade" id="confirmModalAlteracao{{ cautela.id }}" tabindex="-1" aria-labelledby="confirmModalAlteracaoLabel{{ cautela.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmModalAlteracaoLabel{{ cautela.id }}">Confirmação de Alteração</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="cautela_id" value="{{ cautela.id }}">
+                                    
+                                    <div class="mb-3">
+                                        <label for="novo_policial{{ cautela.id }}" class="form-label">Selecionar novo policial</label>
+                                        <select class="form-select" name="novo_policial" id="novo_policial{{ cautela.id }}" required>
+                                            {% for policial in policiais %}
+                                            <option value="{{ policial.id }}">{{ policial.nome }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-danger">Confirmar Alteração</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </li>
             {% endfor %}
         {% else %}

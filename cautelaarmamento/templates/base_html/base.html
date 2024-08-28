@@ -26,7 +26,7 @@
                 </div>
             </div>
             <ul class="sidebar-nav">
-            {% comment %} ################################################################# {% endcomment %} {% comment %} ###################### INVENTARIO DE ARMAS #################### {% endcomment %} {% comment %} ##############################################################{% endcomment %}
+            {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %} {% comment %} ###################### INVENTARIO DE ARMAS #################### {% endcomment %} {% comment %} ##############################################################{% endcomment %}
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#inventario" aria-expanded="false" aria-controls="inventario">
                         <i class="lni lni-list"></i>
@@ -47,39 +47,31 @@
                         </li>
                     </ul>
                 </li>
-                {% comment %} #################### RELATORIOS E ANALISES ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################{% endcomment %}
+
+            {% comment %} #################### ARMAMENTO ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################{% endcomment %}                
+                
                 <li class="sidebar-item">
-                    <!-- Link principal do menu "Armamento" que colapsa/expande o submenu -->
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#armamento" aria-expanded="false" aria-controls="armamento">
+                    <a href="#armamento" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#armamento" aria-expanded="false" aria-controls="armamento">
                         <i class="lni lni-shield"></i>
                         <span>Armamento</span>
                     </a>
-                    
-                    <!-- Submenu para "Armamento" -->
                     <ul id="armamento" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        
-                        <!-- Link para "Cautela de Armamento" -->
                         <li class="sidebar-item">
-                            <a href="{% url 'cautela_de_armamento' %}" class="sidebar-link">Cautela de armamento</a>
+                            <a href="{% url 'cautelar_de_armamento' %}" class="sidebar-link">Cautela de armamento</a>
                         </li>
-                        
-                        <!-- Link para "Descautela de Armamento" -->
                         <li class="sidebar-item">
                             <a href="{% url 'descautelar_armamento' %}" class="sidebar-link">Descautela de armamento</a>
-
                         </li>
-                        
                     </ul>
                 </li>
-                    
-                    {% comment %} #################### RELATORIOS E ANALISES ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                    {% endcomment %}
+            
+                                    
+            {% comment %} #################### RELATORIOS E ANALISES ################### {% endcomment %}
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#relatorio" aria-expanded="false" aria-controls="relatorio">
                         <i class="lni lni-bar-chart"></i>
                         <span>Relatórios e Análises</span>
                     </a>
-                    {% comment %} ############################################################## {% endcomment %}
                     <ul id="relatorio" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
                         <li class="sidebar-item">
                             <a href="#" class="sidebar-link">
@@ -101,8 +93,7 @@
                         </li>
                     </ul>
                 </li>
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
+            {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %}
 
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#autorizacao" aria-expanded="false" aria-controls="autorizacao">
@@ -130,7 +121,7 @@
                         </li>
                     </ul>
                 </li>
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
+                {% comment %} ##################### MANUTENÇÃO E SUPORTE ########################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
                 {% endcomment %}
 
                 <li class="sidebar-item">
@@ -161,7 +152,7 @@
                         </li>
                     </ul>
                 </li>
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
+                {% comment %} ######################## CONFIGURAÇÕES DO SISTEMA ####################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
                 {% endcomment %}
 
                 <li class="sidebar-item">
@@ -192,7 +183,7 @@
                         </li>
                     </ul>
                 </li>
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
+                {% comment %} ########################## DOCUMENTAÇÃO E PROTOCOLOS ###################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
                 {% endcomment %}
 
                 <li class="sidebar-item">
@@ -215,7 +206,7 @@
                 </li>
                 </ul>
                 </li>
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
+                {% comment %} ######################### MONITORAMENTO EM TEMPO REAL ####################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
                 {% endcomment %}
                 <li class="sidebar-item">
                     <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#monitoramento" aria-expanded="false" aria-controls="monitoramento">

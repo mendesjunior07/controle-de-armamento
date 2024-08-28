@@ -280,13 +280,10 @@ a.sidebar-link:hover {
 /* Ajustes para dropdown expandido */
 
 .sidebar-dropdown {
-    min-width: 250px;
-    /* Define uma largura mínima de 250px para o dropdown. */
-    max-width: 350px;
-    /* Define uma largura máxima de 350px para o dropdown. */
+    background-color: #0e2238;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    /* Adiciona uma sombra para destacar o dropdown */
 }
 
-#armamento.collapse {
-    display: block !important;
-    /* Garante que o Bootstrap aplique o estilo de exibição */
-}
+
+.armamento.collapse {display: block !important; /* Remova ou ajuste esta linha */}
