@@ -86,7 +86,7 @@ def descautelar_armamento(request):
         cautela.armamento.disponivel = 'Disponivel'
         cautela.armamento.save()
         cautela.save()
-        abc = request.POST.
+        abc = request
 
         return redirect('descautelar_armamento')
 
