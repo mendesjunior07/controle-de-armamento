@@ -26,7 +26,15 @@ def login_view(request):
 
 @login_required
 def index(request):
-    return render(request, 'cautelaarmamento/index.html')
+    if request.user.is_authenticated:
+        username = request.user.username
+        context = {'username': username}
+        # Faça algo com o username
+        print(f"Usuário logado: {username}")
+    else:
+        context = {}
+        print("Nenhum usuário logado.")
+    return render(request, 'cautelaarmamento/index.html', context)
 
 @login_required
 def profile(request):
@@ -46,9 +54,7 @@ def cautelar_de_armamento(request):
     policiais = PolicialMilitar.objects.all()
     print(policiais)
     armamento = Armas.objects.all()
-
-    armamentos = Armas.objects.filter(disponivel=True)
-    print(armamentos)
+    armamentos = Armas.objects.filter(disponivel='Disponivel')
     policiais = PolicialMilitar.objects.all()
 
     if request.method == 'POST':
@@ -72,16 +78,15 @@ def formulario_sucesso(request):
 
 @login_required
 def descautelar_armamento(request):
-    cautelas = Cautela.objects.filter(data_descautela__isnull=True)
-    print(cautelas)
-
+    cautelas = Cautela.objects.filter(data_descautela__isnull=True)  # Corrigido aqui
     if request.method == 'POST':
         cautela_id = request.POST.get('cautela_id')
         cautela = get_object_or_404(Cautela, id=cautela_id)
         cautela.data_descautela = timezone.now()
-        cautela.armamento.disponivel = True
+        cautela.armamento.disponivel = 'Disponivel'
         cautela.armamento.save()
         cautela.save()
+        abc = request.POST.
 
         return redirect('descautelar_armamento')
 

@@ -15,7 +15,7 @@ class Armas(models.Model):
     tipo = models.CharField(max_length=100)
     modelo = models.CharField(max_length=100)
     numero_de_serie = models.CharField(max_length=100, unique=True)
-    disponivel = models.BooleanField(default=True)
+    disponivel = models.CharField(max_length=200, default='Disponivel')
 
     def __str__(self):
         return f"{self.tipo} - {self.modelo} ({self.numero_de_serie})"
