@@ -1,5 +1,39 @@
 {% extends 'base_html/base.html' %}
-{% block title %}Index{% endblock %}
+
 {% block content %}
-<h1>Index</h1>
+<div class="container">
+    <h2 class="mt-4">Lista de Armamentos</h2>
+
+    <!-- Formulário de Busca -->
+    <form method="GET" action="{% url 'listar_armamentos' %}" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="query" class="form-control" placeholder="Buscar por tipo, modelo ou número de série" value="{{ request.GET.query }}">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </div>
+    </form>
+
+    <!-- Tabela de Armamentos -->
+    <table class="table table-striped table-hover mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Modelo</th>
+                <th scope="col">Número de Série</th>
+                <th scope="col">Disponibilidade</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for armamento in armamentos %}
+            <tr>
+                <td>{{ armamento.id }}</td>
+                <td>{{ armamento.tipo }}</td>
+                <td>{{ armamento.modelo }}</td>
+                <td>{{ armamento.numero_de_serie }}</td>
+                <td>{{ armamento.get_disponivel_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

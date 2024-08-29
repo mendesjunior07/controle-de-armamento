@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from .models import Cautela, Armas, PolicialMilitar, Vtr
 from django.utils import timezone
+from django.db.models import Q
 
 def login_view(request):
     if request.method == "POST":
@@ -85,16 +86,49 @@ def descautelar_armamento(request):
 
     if request.method == 'POST':
         cautela_id = request.POST.get('cautela_id')
-        alteracao = request.POST.get('alteracao')
+        alteracao = request.POST.get('alteracao', None)
 
+        # Verifica se a ID da cautela é válida
         cautela = get_object_or_404(Cautela, id=cautela_id)
+
+        # Atualiza a data de descautelamento
         cautela.data_descautela = timezone.now()
 
-        if alteracao in dict(Armas.STATUS_DISPONIBILIDADE).keys():
-            cautela.armamento.disponivel = alteracao
-            cautela.armamento.save()
-            cautela.save()
+        if alteracao:
+            # Se o usuário escolheu uma alteração, salva o novo status selecionado
+            if alteracao in dict(Armas.STATUS_DISPONIBILIDADE).keys():
+                cautela.armamento.disponivel = alteracao
+        else:
+            # Caso contrário, define o status como "Disponivel"
+            cautela.armamento.disponivel = 'Disponivel'
+
+        # Salva as alterações no armamento e na cautela
+        cautela.armamento.save()
+        cautela.save()
 
         return redirect('descautelar_armamento')
 
-    return render(request, 'armamento/descautela.html', {'cautelas': cautelas, 'status_disponibilidade_choices': status_disponibilidade_choices})
+    return render(request, 'armamento/descautela.html', {
+        'cautelas': cautelas,
+        'status_disponibilidade_choices': status_disponibilidade_choices
+    })
+
+
+@login_required
+def listar_armamentos(request):
+    # Obtém o termo de busca do campo de pesquisa
+    query = request.GET.get('query')
+
+    if query:
+        # Filtra os armamentos com base no termo de busca
+        armamentos = Armas.objects.filter(
+            Q(tipo__icontains=query) | 
+            Q(modelo__icontains=query) | 
+            Q(numero_de_serie__icontains=query)
+        )
+    else:
+        # Se não houver busca, retorna todos os armamentos
+        armamentos = Armas.objects.all()
+
+    # Renderiza o template 'armamento/armas_e_materiais.html' com a lista de armamentos filtrada
+    return render(request, 'catalogo_de_equipamento/armas_e_materiais.html', {'armamentos': armamentos})

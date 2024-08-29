@@ -28,27 +28,24 @@
             </div>
             <ul class="sidebar-nav">
             {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %} {% comment %} ###################### INVENTARIO DE ARMAS #################### {% endcomment %} {% comment %} ##############################################################{% endcomment %}
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#inventario" aria-expanded="false" aria-controls="inventario">
-                        <i class="lni lni-list"></i>
-                        <span>Catálogo de Equipamentos</span>
-                    </a>
-                    <ul id="inventario" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                                Itens Disponíveis
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">Armas e Materiais
-                              </a>
-                        </li>
-                    </ul>
-                </li>
-
+            <li class="sidebar-item">
+                <a href="#inventario" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#inventario" aria-expanded="false" aria-controls="inventario">
+                    <i class="lni lni-list"></i>
+                    <span>Catálogo de Equipamentos</span>
+                </a>
+                <ul id="inventario" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Itens Disponíveis</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'listar_armamentos' %}" class="sidebar-link">Armas e Materiais</a>
+                    </li>
+                </ul>
+            </li>
+            
             {% comment %} #################### ARMAMENTO ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################{% endcomment %}                
                 
                 <li class="sidebar-item">

@@ -26,12 +26,13 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                Você tem certeza que deseja descautelar o armamento "{{ cautela.armamento.nome }}" do policial "{{ cautela.policial.nome }}"?
-                            </div>
+                                Você tem certeza que deseja descautelar o armamento "{{ cautela.armamento.tipo }} - {{ cautela.armamento.modelo }}" do policial "{{ cautela.policial.nome }}"?
+                            </div>                            
                             <div class="modal-footer">
                                 <form method="post">
                                     {% csrf_token %}
                                     <input type="hidden" name="cautela_id" value="{{ cautela.id }}">
+
                                     <button type="submit" class="btn btn-danger">Descautelar</button>
                                 </form>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
