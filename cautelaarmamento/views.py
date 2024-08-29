@@ -53,7 +53,6 @@ def registro_view(request):
 @login_required
 def cautelar_de_armamento(request):
     policiais = PolicialMilitar.objects.all()
-    print(policiais)
     armamento = Armas.objects.all()
     armamentos = Armas.objects.filter(disponivel='Disponivel')
     policiais = PolicialMilitar.objects.all()
