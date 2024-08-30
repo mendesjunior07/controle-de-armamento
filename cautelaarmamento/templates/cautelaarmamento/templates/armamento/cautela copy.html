@@ -1,0 +1,46 @@
+{% extends 'base_html/base.html' %}
+{% block title %}Cautela de Armamento{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Cautelar Armamento</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="policial" class="form-label">Policial</label>
+            <select class="form-select" name="policial" id="policial" required style="width: 100%;">
+                {% for policial in policiais %}
+                <option value="{{ policial.id }}">{{ policial.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="armamento" class="form-label">Armamento</label>
+            <select class="form-select" name="armamento" id="armamento" required style="width: 100%;">
+                {% for armamento in armamentos %}
+                <option value="{{ armamento.id }}">{{ armamento.tipo }} - {{ armamento.modelo }} >> {{armamento.numero_de_serie}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Cautelar</button>
+    </form>
+</div>
+
+<!-- Adicione o CSS e JS do Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Inicialize o Select2 nos campos -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#policial').select2({
+            placeholder: "Selecione um policial",
+            allowClear: true
+        });
+        $('#armamento').select2({
+            placeholder: "Selecione um armamento",
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %}

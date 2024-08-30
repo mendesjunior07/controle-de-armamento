@@ -11,6 +11,13 @@ class PolicialMilitar(models.Model):
     def __str__(self):
         return self.nome
 
+class Categoria(models.Model):
+    nome = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.nome
+    
+    
 class Armas(models.Model):
     STATUS_DISPONIBILIDADE = [
         ('Disponivel', 'Disponível'),
@@ -20,11 +27,13 @@ class Armas(models.Model):
         ('quebrada', 'Quebrada'),
         # Adicione outras opções conforme necessário
     ]
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=100)
     modelo = models.CharField(max_length=100)
     numero_de_serie = models.CharField(max_length=100, unique=True)
     disponivel = models.CharField(max_length=20, choices=STATUS_DISPONIBILIDADE)
 
+    
     def __str__(self):
         return f"{self.tipo} - {self.modelo} ({self.numero_de_serie})"
 

@@ -1,46 +1,140 @@
 {% extends 'base_html/base.html' %}
-{% block title %}Cautela de Armamento{% endblock %}
+
+{% block title %}
+    Cautela de Armamento
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Cautelar Armamento</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="policial" class="form-label">Policial</label>
-            <select class="form-select" name="policial" id="policial" required style="width: 100%;">
-                {% for policial in policiais %}
-                <option value="{{ policial.id }}">{{ policial.nome }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="armamento" class="form-label">Armamento</label>
-            <select class="form-select" name="armamento" id="armamento" required style="width: 100%;">
-                {% for armamento in armamentos %}
-                <option value="{{ armamento.id }}">{{ armamento.tipo }} - {{ armamento.modelo }} >> {{armamento.numero_de_serie}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Cautelar</button>
-    </form>
-</div>
+    <div class="container mt-4">
+        <h2 class="mb-4">Cautela de Armamentos e Equipamentos</h2>
+        <br>
+        <h5>Nome do PM.:</h5>
+        <select class="form-select" name="policial" id="policial" required style="width: 100%;">
+            {% for policial in policiais %}
+            <option value="{{ policial.id }}">{{ policial.nome }}</option>
+            {% endfor %}
+        </select>
+        <br>
 
-<!-- Adicione o CSS e JS do Select2 -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <div class="table-responsive">
+            <table id="dynamicTable" class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Categoria</th>
+                        <th>Subcategoria</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <select name="categoria[]" class="form-select" onchange="updateSubcategories(this)">
+                                <option value="">Selecione uma categoria</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="subcategoria[]" class="form-select">
+                                <option value="">Selecione uma subcategoria</option>
+                                {% for subcategoria in subcategorias %}
+                                <option value="{{ subcategoria.id }}" data-categoria="{{ subcategoria.categoria.id }}">
+                                    {{ subcategoria.tipo }} - {{ subcategoria.modelo }} ({{ subcategoria.numero_de_serie }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        
+                        
+                        <td>
+                            <button type="button" class="btn btn-danger" onclick="removeRow(this)">-</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-<!-- Inicialize o Select2 nos campos -->
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#policial').select2({
-            placeholder: "Selecione um policial",
-            allowClear: true
+        <button type="button" class="btn btn-primary mt-3" onclick="addRow()">Adicionar Linha</button>
+    </div>
+
+    <!-- Scripts JavaScript -->
+    <script>
+        // Define as opções dependentes
+        const options = {
+            frutas: ["Maçã", "Banana", "Laranja", "Uva"],
+            animais: ["Cachorro", "Gato", "Pássaro", "Peixe"]
+        };
+
+        function addRow() {
+            const table = document.getElementById("dynamicTable").getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow(-1);
+
+            // Cria a célula da categoria com a lista suspensa
+            const cell1 = newRow.insertCell(0);
+            cell1.innerHTML = `
+                <select name="categoria[]" class="form-select" onchange="updateSubcategories(this)">
+                    <option value="">Selecione uma categoria</option>
+                    {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+                    {% endfor %}
+                </select>
+            `;
+
+            // Cria a célula da subcategoria com uma lista suspensa vazia
+            const cell2 = newRow.insertCell(1);
+            cell2.innerHTML = `
+                <select name="subcategoria[]" class="form-select">
+                    <option value="">Selecione uma subcategoria</option>
+                </select>
+            `;
+
+            // Cria a célula do botão de remoção
+            const cell3 = newRow.insertCell(2);
+            cell3.innerHTML = '<button type="button" class="btn btn-danger" onclick="removeRow(this)">-</button>';
+
+            // Inicializa o Select2 na nova linha
+            initializeSelect2();
+        }
+
+        function removeRow(button) {
+            button.closest('tr').remove();
+        }
+
+        function updateSubcategories(selectElement) {
+            const selectedCategoryId = selectElement.value; // Obtém o ID da categoria selecionada
+            const subcategorySelect = selectElement.closest('tr').querySelector('select[name="subcategoria[]"]');
+            
+            // Limpa as opções de subcategoria anteriores
+            subcategorySelect.innerHTML = '<option value="">Selecione uma subcategoria</option>';
+        
+            // Obtém todas as opções de subcategoria que possuem o atributo 'data-categoria'
+            const allSubcategories = document.querySelectorAll('option[data-categoria]');
+        
+            // Filtra as subcategorias correspondentes à categoria selecionada e as adiciona
+            allSubcategories.forEach(function(option) {
+                if (option.getAttribute('data-categoria') === selectedCategoryId) {
+                    subcategorySelect.appendChild(option.cloneNode(true));
+                }
+            });
+        }
+        
+        function initializeSelect2() {
+            // Inicializa o Select2 em todos os elementos <select> existentes e novos
+            $('select').select2({
+                placeholder: "Selecione uma opção",
+                allowClear: true
+            });
+        }
+        
+        // Inicializa o Select2 quando o documento é carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSelect2();
         });
-        $('#armamento').select2({
-            placeholder: "Selecione um armamento",
-            allowClear: true
-        });
-    });
-</script>
+        
+    </script>
+
+    <!-- Adicione o CSS e JS do Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock %}
