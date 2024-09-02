@@ -1,127 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar/Remover Linhas com Lista Suspensa</title>
-    <style>
-        .button {
-            cursor: pointer;
-            padding: 5px 10px;
-            margin: 5px;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
-            font-size: 16px;
-        }
-        
-        .button.remove {
-            background-color: #f44336;
-        }
-        
-        table {
-            width: 50%;
-            border-collapse: collapse;
-        }
-        
-        table,
-        th,
-        td {
-            border: 1px solid black;
-            padding: 10px;
-        }
-    </style>
+    <title>Cautela de Armamento</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 
 <body>
-
-    <h2>Gerenciar Linhas com Listas Suspensas Dependentes</h2>
-
-    <table id="dynamicTable">
-        <tr>
-            <th>Categoria</th>
-            <th>Subcategoria</th>
-            <th>Ação</th>
-        </tr>
-        <tr>
-            <td>
-                <select name="categoria[]" onchange="updateSubcategories(this)">
-                <option value="">Selecione uma categoria</option>
-                <option value="frutas">Frutas</option>
-                <option value="animais">Animais</option>
-            </select>
-            </td>
-            <td>
-                <select name="subcategoria[]">
-                <option value="">Selecione uma subcategoria</option>
-            </select>
-            </td>
-            <td>
-                <button class="button remove" onclick="removeRow(this)">-</button>
-            </td>
-        </tr>
-    </table>
-
-    <button class="button" onclick="addRow()">+</button>
-
-    <script>
-        // Define as opções dependentes
-        const options = {
-            frutas: ["Maçã", "Banana", "Laranja", "Uva"],
-            animais: ["Cachorro", "Gato", "Pássaro", "Peixe"]
-        };
-
-        function addRow() {
-            const table = document.getElementById("dynamicTable");
-            const newRow = table.insertRow(-1);
-
-            // Cria a célula da categoria com a lista suspensa
-            const cell1 = newRow.insertCell(0);
-            cell1.innerHTML = `
-            <select name="categoria[]" onchange="updateSubcategories(this)">
-                <option value="">Selecione uma categoria</option>
-                <option value="frutas">Frutas</option>
-                <option value="animais">Animais</option>
-            </select>
-        `;
-
-            // Cria a célula da subcategoria com uma lista suspensa vazia
-            const cell2 = newRow.insertCell(1);
-            cell2.innerHTML = `
-            <select name="subcategoria[]">
-                <option value="">Selecione uma subcategoria</option>
-            </select>
-        `;
-
-            // Cria a célula do botão de remoção
-            const cell3 = newRow.insertCell(2);
-            cell3.innerHTML = '<button class="button remove" onclick="removeRow(this)">-</button>';
-        }
-
-        function removeRow(button) {
-            button.parentElement.parentElement.remove();
-        }
-
-        function updateSubcategories(selectElement) {
-            const selectedCategory = selectElement.value;
-            const subcategorySelect = selectElement.parentElement.nextElementSibling.firstElementChild;
-
-            // Limpa as opções de subcategoria anteriores
-            subcategorySelect.innerHTML = '<option value="">Selecione uma subcategoria</option>';
-
-            // Adiciona as novas opções de subcategoria com base na categoria selecionada
-            if (selectedCategory && options[selectedCategory]) {
-                options[selectedCategory].forEach(function(subcategory) {
-                    const option = document.createElement("option");
-                    option.value = subcategory.toLowerCase();
-                    option.text = subcategory;
-                    subcategorySelect.add(option);
-                });
-            }
-        }
-    </script>
 
 </body>
 
