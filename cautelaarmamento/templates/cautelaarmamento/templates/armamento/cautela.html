@@ -79,6 +79,38 @@ Cautela de Armamento
     var row = button.closest("tr");
     row.parentNode.removeChild(row);
   }
+
+  function showModal() {
+    // Coleta os dados do formulário para exibição no modal
+    const policial = document.getElementById("mySelect").selectedOptions[0].text;
+    let categorias = [];
+    document.querySelectorAll(".categoria-select").forEach(select => {
+      categorias.push(select.selectedOptions[0].text);
+    });
+
+    let subcategorias = [];
+    document.querySelectorAll(".subcategoria-select").forEach(select => {
+      subcategorias.push(select.selectedOptions[0].text);
+    });
+
+    // Monta a lista de confirmações no modal
+    let confirmationDetails = `<strong>Policial:</strong> ${policial}<br><br><strong>Categorias e Subcategorias Selecionadas:</strong><br>`;
+    categorias.forEach((categoria, index) => {
+      confirmationDetails += `Categoria: ${categoria} - Subcategoria: ${subcategorias[index]}<br>`;
+    });
+
+    // Insere os detalhes no corpo do modal
+    document.getElementById('confirmation-details').innerHTML = confirmationDetails;
+
+    // Exibir o modal de confirmação
+    var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+  }
+
+  function submitForm() {
+    // Enviar o formulário após confirmação
+    document.getElementById('main-form').submit();
+  }
 </script>
 
 <!-- Inclua o CSS do Select2 -->
@@ -159,9 +191,30 @@ Cautela de Armamento
       <button type="button" class="btn btn-success" onclick="addRow()">
         Adicionar Linha +
       </button>
-      <button type="submit" class="btn btn-primary">Enviar</button>
+      <!-- Botão que abre o modal -->
+      <button type="button" class="btn btn-primary" onclick="showModal()">Enviar</button>
     </div>
   </form>
+</div>
+
+<!-- Modal de Confirmação do Bootstrap -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">Confirmação</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Exibe as informações selecionadas -->
+        <p id="confirmation-details"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Confirmar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Ativa o Select2 em todos os elementos com a classe 'select2' -->
