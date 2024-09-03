@@ -27,6 +27,26 @@
                 </div>
             </div>
             <ul class="sidebar-nav">
+
+            {% comment %} #################### ARMAMENTO ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################{% endcomment %}                
+                
+            <li class="sidebar-item">
+                <a href="#armamento" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#armamento" aria-expanded="false" aria-controls="armamento">
+                    <i class="lni lni-shield"></i>
+                    <span>Armamento</span>
+                </a>
+                <ul id="armamento" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="{% url 'cautelar_de_armamento' %}" class="sidebar-link">Cautela de armamento</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'descautelar_armamento' %}" class="sidebar-link">Descautela de armamento</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'cadastrar_pessoa' %}" class="sidebar-link">Cadastro de Policiais Militares</a>
+                    </li>
+                </ul>
+            </li>
             {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %} {% comment %} ###################### INVENTARIO DE ARMAS #################### {% endcomment %} {% comment %} ##############################################################{% endcomment %}
             <li class="sidebar-item">
                 <a href="#inventario" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#inventario" aria-expanded="false" aria-controls="inventario">
@@ -46,22 +66,7 @@
                 </ul>
             </li>
             
-            {% comment %} #################### ARMAMENTO ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################{% endcomment %}                
-                
-                <li class="sidebar-item">
-                    <a href="#armamento" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#armamento" aria-expanded="false" aria-controls="armamento">
-                        <i class="lni lni-shield"></i>
-                        <span>Armamento</span>
-                    </a>
-                    <ul id="armamento" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="{% url 'cautelar_de_armamento' %}" class="sidebar-link">Cautela de armamento</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="{% url 'descautelar_armamento' %}" class="sidebar-link">Descautela de armamento</a>
-                        </li>
-                    </ul>
-                </li>
+
             
                                     
             {% comment %} #################### RELATORIOS E ANALISES ################### {% endcomment %}

@@ -1,0 +1,109 @@
+{% extends 'base_html/base.html' %}
+
+{% block title %}
+    Cautela de Armamento
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Cadastro de Policial</h2>
+
+    <!-- Exibir mensagens de erro -->
+    {% if error %}
+    <div class="alert alert-danger" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'cadastrar_pessoa' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="nome_completo" class="form-label">Nome Completo</label>
+                <input type="text" name="nome_completo" class="form-control" id="nome_completo" required />
+                <div class="invalid-feedback">
+                    Por favor, insira o nome completo.
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="nome_guerra" class="form-label">Nome de Guerra</label>
+                <input type="text" name="nome_guerra" class="form-control" id="nome_guerra" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="posto_graduacao" class="form-label">Posto/Graduação</label>
+                <input type="text" name="posto_graduacao" class="form-control" id="posto_graduacao" required />
+                <div class="invalid-feedback">
+                    Por favor, insira o posto ou graduação.
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="matricula" class="form-label">Matrícula</label>
+                <input type="text" name="matricula" class="form-control" id="matricula" required />
+                <div class="invalid-feedback">
+                    Por favor, insira a matrícula.
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="rgpm" class="form-label">RGPM</label>
+                <input type="text" name="rgpm" class="form-control" id="rgpm" required />
+                <div class="invalid-feedback">
+                    Por favor, insira o RGPM.
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="lotacao" class="form-label">Lotação</label>
+                <input type="text" name="lotacao" class="form-control" id="lotacao" required />
+                <div class="invalid-feedback">
+                    Por favor, insira a lotação.
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="data_nascimento" class="form-label">Data de Nascimento</label>
+                <input type="date" name="data_nascimento" class="form-control" id="data_nascimento" required />
+                <div class="invalid-feedback">
+                    Por favor, insira a data de nascimento.
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="cpf" class="form-label">CPF</label>
+                <input type="text" name="cpf" class="form-control" id="cpf" required />
+                <div class="invalid-feedback">
+                    Por favor, insira o CPF.
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" name="restricao" class="form-check-input" id="restricao" />
+            <label for="restricao" class="form-check-label">Restrição</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Script de validação do Bootstrap
+    (function () {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{% endblock %}

@@ -227,9 +227,9 @@ def listar_armamentos(request):
 
 ####################################################################
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.http import HttpResponseBadRequest
-from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.core.exceptions import ValidationError
+from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento, Pessoa
 
 def cautela_de_armamento_view(request):
     # Obtém todas as categorias e policiais do banco de dados para exibir no formulário
@@ -292,3 +292,47 @@ def get_subcategorias(request, categoria_id):
 def formulario_sucesso(request):
     # Renderiza o template 'sucesso.html' que exibe uma mensagem de sucesso ou confirmação após o formulário ser enviado com sucesso
     return render(request, 'armamento/sucesso.html')
+
+
+def cadastrar_pessoa(request):
+    if request.method == 'POST':
+        # Obtendo os dados do formulário
+        nome_completo = request.POST.get('nome_completo')
+        nome_guerra = request.POST.get('nome_guerra')
+        posto_graduacao = request.POST.get('posto_graduacao')
+        matricula = request.POST.get('matricula')
+        rgpm = request.POST.get('rgpm')
+        lotacao = request.POST.get('lotacao')
+        data_nascimento = request.POST.get('data_nascimento')
+        restricao = request.POST.get('restricao', False)
+        cpf = request.POST.get('cpf')
+
+        # Cria uma instância do modelo para usar a validação
+        pessoa = Pessoa(
+            nome_completo=nome_completo,
+            nome_guerra=nome_guerra,
+            posto_graduacao=posto_graduacao,
+            matricula=matricula,
+            rgpm=rgpm,
+            lotacao=lotacao,
+            data_nascimento=data_nascimento,
+            restricao=bool(restricao),
+            cpf=cpf
+        )
+
+        try:
+            pessoa.clean()  # Executa as validações do modelo
+            pessoa.save()  # Salva a instância no banco de dados se for válida
+            return redirect('sucesso_cadastro')  # Redireciona para a página de sucesso
+        except ValidationError as e:
+            # Certifique-se de usar o caminho completo para o template
+            return render(request, 'armamento/cadastrar_pessoa.html', {'error': e.message, 'pessoa': pessoa})
+
+    # Certifique-se de usar o caminho completo para o template
+    return render(request, 'armamento/cadastrar_pessoa.html')
+
+
+
+def sucesso_view(request):
+    # Renderiza o template de sucesso para qualquer ação que precise de uma confirmação genérica
+    return render(request, 'sucesso.html')
