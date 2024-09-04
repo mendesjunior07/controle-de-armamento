@@ -77,7 +77,7 @@ class CautelaDeArmamento(models.Model):
         ('QTU', 'QTU (12 Horas)'),
         ('GIRO', 'Giro (6 Horas)'),
         ('EXPEDIENTE', 'Expediente (8 Horas)'),
-        ('PLANTAO', 'Plantão'),
+        ('PERMANENTE', 'Permanente'),
     ]
     tipo_servico = models.CharField(max_length=10, choices=SERVICO_CHOICES)
     policial = models.ForeignKey(Policial, on_delete=models.CASCADE)
