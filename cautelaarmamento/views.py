@@ -229,27 +229,28 @@ def listar_armamentos(request):
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.core.exceptions import ValidationError
-from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento, Pessoa
+from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento
+from django.db import IntegrityError
 
 def cautela_de_armamento_view(request):
     # Obtém todas as categorias e policiais do banco de dados para exibir no formulário
     categorias = Categoria.objects.all()
     policiais = Policial.objects.all()
+    tipos_servico = CautelaDeArmamento.SERVICO_CHOICES  # Obtém as opções de tipo de serviço
 
     # Verifica se a requisição é do tipo POST, indicando que o formulário foi submetido
     if request.method == 'POST':
-        # Obtém o ID do policial a partir dos dados enviados na requisição POST
+        # Obtém os dados do formulário
         policial_id = request.POST.get('policial')
-
-        # Obtém a lista de IDs das categorias e subcategorias a partir dos dados enviados na requisição POST
+        tipo_servico = request.POST.get('tipo_servico')
         categorias_ids = request.POST.getlist('categorias[]')
         subcategorias_ids = request.POST.getlist('subcategorias[]')
 
         # Verifica se todos os dados necessários estão presentes
-        if policial_id and categorias_ids and subcategorias_ids:
+        if policial_id and tipo_servico and categorias_ids and subcategorias_ids:
             try:
                 # Busca o objeto Policial no banco de dados correspondente ao ID fornecido
-                policial = Policial.objects.get(id=policial_id)
+                policial_instance = Policial.objects.get(id=policial_id)
 
                 # Itera sobre as listas de IDs de categorias e subcategorias simultaneamente
                 for categoria_id, subcategoria_id in zip(categorias_ids, subcategorias_ids):
@@ -258,7 +259,12 @@ def cautela_de_armamento_view(request):
                     subcategoria = Subcategoria.objects.get(id=subcategoria_id)
 
                     # Cria uma nova instância de CautelaDeArmamento no banco de dados
-                    CautelaDeArmamento.objects.create(policial=policial, categoria=categoria, subcategoria=subcategoria)
+                    CautelaDeArmamento.objects.create(
+                        policial=policial_instance,  # Usa a instância do policial
+                        categoria=categoria,
+                        subcategoria=subcategoria,
+                        tipo_servico=tipo_servico  # Adiciona o tipo de serviço
+                    )
 
                 # Redireciona o usuário para a URL de sucesso após a criação da cautela
                 return redirect('sucesso')  # Substitua 'sucesso' pela sua URL de sucesso.
@@ -271,11 +277,14 @@ def cautela_de_armamento_view(request):
             # Retorna uma resposta de erro se algum dos dados necessários estiver ausente
             return HttpResponseBadRequest("Dados insuficientes para processar o formulário.")
 
-    # Renderiza o template 'cautela.html' com as categorias e policiais para exibição na página
+    # Renderiza o template 'cautela.html' com as categorias, policiais e tipos de serviço para exibição na página
     return render(request, 'armamento/cautela.html', {
         'categorias': categorias,
         'policiais': policiais,
+        'tipos_servico': tipos_servico,
     })
+
+
 
 
 def get_subcategorias(request, categoria_id):
@@ -289,10 +298,6 @@ def get_subcategorias(request, categoria_id):
     return JsonResponse(subcategorias_list, safe=False)
 
 
-def formulario_sucesso(request):
-    # Renderiza o template 'sucesso.html' que exibe uma mensagem de sucesso ou confirmação após o formulário ser enviado com sucesso
-    return render(request, 'armamento/sucesso.html')
-
 
 def cadastrar_pessoa(request):
     if request.method == 'POST':
@@ -304,11 +309,18 @@ def cadastrar_pessoa(request):
         rgpm = request.POST.get('rgpm')
         lotacao = request.POST.get('lotacao')
         data_nascimento = request.POST.get('data_nascimento')
-        restricao = request.POST.get('restricao', False)
+        # restricao = request.POST.get('restricao', False)
         cpf = request.POST.get('cpf')
 
+        # Verifica se já existe um policial com o mesmo CPF
+        if Policial.objects.filter(cpf=cpf).exists():
+            return render(request, 'armamento/cadastrar_pessoa.html', {
+                'error': 'Já existe um policial com este CPF.',
+                'pessoa': request.POST
+            })
+
         # Cria uma instância do modelo para usar a validação
-        pessoa = Pessoa(
+        pessoa = Policial(
             nome_completo=nome_completo,
             nome_guerra=nome_guerra,
             posto_graduacao=posto_graduacao,
@@ -316,23 +328,29 @@ def cadastrar_pessoa(request):
             rgpm=rgpm,
             lotacao=lotacao,
             data_nascimento=data_nascimento,
-            restricao=bool(restricao),
+            # restricao=bool(restricao),
             cpf=cpf
         )
 
         try:
             pessoa.clean()  # Executa as validações do modelo
             pessoa.save()  # Salva a instância no banco de dados se for válida
-            return redirect('sucesso_cadastro')  # Redireciona para a página de sucesso
+            return redirect('sucesso')  # Ajustado para o nome correto da URL
         except ValidationError as e:
-            # Certifique-se de usar o caminho completo para o template
             return render(request, 'armamento/cadastrar_pessoa.html', {'error': e.message, 'pessoa': pessoa})
+        except IntegrityError:
+            return render(request, 'armamento/cadastrar_pessoa.html', {
+                'error': 'Erro ao salvar o policial. Certifique-se de que o CPF é único.',
+                'pessoa': pessoa
+            })
 
-    # Certifique-se de usar o caminho completo para o template
     return render(request, 'armamento/cadastrar_pessoa.html')
 
 
+def formulario_sucesso(request):
+    # Renderiza o template 'sucesso.html' que exibe uma mensagem de sucesso ou confirmação após o formulário ser enviado com sucesso
+    return render(request, 'armamento/sucesso.html')
 
 def sucesso_view(request):
     # Renderiza o template de sucesso para qualquer ação que precise de uma confirmação genérica
-    return render(request, 'sucesso.html')
+    return render(request, 'sucesso-cadastro.html')

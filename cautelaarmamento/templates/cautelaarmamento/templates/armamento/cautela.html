@@ -83,6 +83,8 @@ Cautela de Armamento
   function showModal() {
     // Coleta os dados do formulário para exibição no modal
     const policial = document.getElementById("mySelect").selectedOptions[0].text;
+    const tipoServico = document.getElementById("tipo_servico").selectedOptions[0].text;
+
     let categorias = [];
     document.querySelectorAll(".categoria-select").forEach(select => {
       categorias.push(select.selectedOptions[0].text);
@@ -94,7 +96,7 @@ Cautela de Armamento
     });
 
     // Monta a lista de confirmações no modal
-    let confirmationDetails = `<strong>Policial:</strong> ${policial}<br><br><strong>Categorias e Subcategorias Selecionadas:</strong><br>`;
+    let confirmationDetails = `<strong>Policial:</strong> ${policial}<br><strong>Tipo de Serviço:</strong> ${tipoServico}<br><br><strong>Categorias e Subcategorias Selecionadas:</strong><br>`;
     categorias.forEach((categoria, index) => {
       confirmationDetails += `Categoria: ${categoria} - Subcategoria: ${subcategorias[index]}<br>`;
     });
@@ -132,10 +134,21 @@ Cautela de Armamento
       <select id="mySelect" name="policial" class="form-select select2" required>
         <option value="">Selecione um Policial</option>
         {% for policial in policiais %}
-        <option value="{{ policial.id }}">{{ policial.nome }}</option>
+        <option value="{{ policial.id }}">{{ policial.nome_completo }}</option>
         {% endfor %}
       </select>
       <div class="invalid-feedback">Por favor, selecione um policial.</div>
+    </div>
+
+    <div class="mb-3">
+      <label for="tipo_servico" class="form-label">Tipo de Serviço:</label>
+      <select id="tipo_servico" name="tipo_servico" class="form-select select2" required>
+        <option value="">Selecione o Tipo de Serviço</option>
+        {% for value, label in tipos_servico %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="invalid-feedback">Por favor, selecione o tipo de serviço.</div>
     </div>
 
     <div class="table-responsive">
