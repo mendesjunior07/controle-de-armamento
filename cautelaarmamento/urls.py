@@ -8,7 +8,7 @@ from .views import (
     listar_armamentos, 
     get_subcategorias,
     cadastrar_pessoa,  
-    sucesso_view  # Renomeado para evitar conflito
+    sucesso_view, atualizar_subcategorias  # Renomeado para evitar conflito
 )
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     path('subcategorias/<int:categoria_id>/', get_subcategorias, name='subcategorias_por_categoria'),
     path('cadastrar-pessoa/', cadastrar_pessoa, name='cadastrar_pessoa'),
     path('sucesso-cadastro/', sucesso_view, name='sucesso_cadastro'),  # Corrigido para referenciar a função correta
+    path('atualizar_subcategorias/', atualizar_subcategorias, name='atualizar_subcategorias'),
 ]

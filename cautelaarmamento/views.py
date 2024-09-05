@@ -233,70 +233,64 @@ from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento
 from django.db import IntegrityError
 
 def cautela_de_armamento_view(request):
-    # Obtém todas as categorias e policiais do banco de dados para exibir no formulário
     categorias = Categoria.objects.all()
     policiais = Policial.objects.all()
-    tipos_servico = CautelaDeArmamento.SERVICO_CHOICES  # Obtém as opções de tipo de serviço
+    tipos_servico = CautelaDeArmamento.SERVICO_CHOICES
 
-    # Verifica se a requisição é do tipo POST, indicando que o formulário foi submetido
     if request.method == 'POST':
-        # Obtém os dados do formulário
         policial_id = request.POST.get('policial')
         tipo_servico = request.POST.get('tipo_servico')
         categorias_ids = request.POST.getlist('categorias[]')
         subcategorias_ids = request.POST.getlist('subcategorias[]')
+        quantidades = request.POST.getlist('quantidades[]')  # Captura das quantidades de munição
 
-        # Verifica se todos os dados necessários estão presentes
-        if policial_id and tipo_servico and categorias_ids and subcategorias_ids:
+        if policial_id and tipo_servico and categorias_ids and subcategorias_ids and quantidades:
             try:
-                # Busca o objeto Policial no banco de dados correspondente ao ID fornecido
                 policial_instance = Policial.objects.get(id=policial_id)
 
-                # Itera sobre as listas de IDs de categorias e subcategorias simultaneamente
-                for categoria_id, subcategoria_id in zip(categorias_ids, subcategorias_ids):
-                    # Busca o objeto Categoria e Subcategoria no banco de dados correspondentes aos IDs fornecidos
+                for categoria_id, subcategoria_id, quantidade in zip(categorias_ids, subcategorias_ids, quantidades):
                     categoria = Categoria.objects.get(id=categoria_id)
                     subcategoria = Subcategoria.objects.get(id=subcategoria_id)
 
                     # Cria uma nova instância de CautelaDeArmamento no banco de dados
                     CautelaDeArmamento.objects.create(
-                        policial=policial_instance,  # Usa a instância do policial
+                        policial=policial_instance,
                         categoria=categoria,
                         subcategoria=subcategoria,
-                        tipo_servico=tipo_servico  # Adiciona o tipo de serviço
+                        tipo_servico=tipo_servico,
+                        quantidade=quantidade  # Adiciona quantidade
                     )
 
-                # Redireciona o usuário para a URL de sucesso após a criação da cautela
-                return redirect('sucesso')  # Substitua 'sucesso' pela sua URL de sucesso.
+                    # Atualiza a situação da subcategoria para "cautelada"
+                    subcategoria.situacao = 'cautelada'
+                    subcategoria.save()
+
+                return redirect('sucesso')
 
             except (Policial.DoesNotExist, Categoria.DoesNotExist, Subcategoria.DoesNotExist) as e:
-                # Retorna uma resposta de erro se algum dos objetos não for encontrado
                 return HttpResponseBadRequest(f"Erro: {str(e)}")
 
         else:
-            # Retorna uma resposta de erro se algum dos dados necessários estiver ausente
             return HttpResponseBadRequest("Dados insuficientes para processar o formulário.")
 
-    # Renderiza o template 'cautela.html' com as categorias, policiais e tipos de serviço para exibição na página
+    # Filtra apenas subcategorias com situação "disponível"
+    subcategorias = Subcategoria.objects.filter(situacao='disponivel')
     return render(request, 'armamento/cautela.html', {
         'categorias': categorias,
         'policiais': policiais,
         'tipos_servico': tipos_servico,
+        'subcategorias': subcategorias,
     })
 
 
-
-
 def get_subcategorias(request, categoria_id):
-    # Filtra todas as subcategorias do banco de dados que pertencem à categoria especificada pelo categoria_id
-    subcategorias = Subcategoria.objects.filter(categoria_id=categoria_id)
-
-    # Cria uma lista de dicionários contendo o 'id' e o 'nome' de cada subcategoria filtrada
-    subcategorias_list = [{'id': subcategoria.id, 'nome': subcategoria.nome} for subcategoria in subcategorias]
-
-    # Retorna a lista de subcategorias em formato JSON para ser consumido por uma requisição AJAX
-    return JsonResponse(subcategorias_list, safe=False)
-
+    try:
+        # Filtra as subcategorias pela categoria e situação "disponivel"
+        subcategorias = Subcategoria.objects.filter(categoria_id=categoria_id, situacao='disponivel')
+        data = [{'id': subcategoria.id, 'nome': subcategoria.nome} for subcategoria in subcategorias]
+        return JsonResponse(data, safe=False)
+    except Categoria.DoesNotExist:
+        return JsonResponse({'error': 'Categoria não encontrada'}, status=404)
 
 
 def cadastrar_pessoa(request):
@@ -354,3 +348,17 @@ def formulario_sucesso(request):
 def sucesso_view(request):
     # Renderiza o template de sucesso para qualquer ação que precise de uma confirmação genérica
     return render(request, 'sucesso-cadastro.html')
+
+def atualizar_subcategorias(request):
+    if request.method == 'POST':
+        # Recebe os dados da requisição
+        categorias = request.POST.getlist('categorias[]')
+        subcategorias = request.POST.getlist('subcategorias[]')
+        
+        # Atualiza o estado das subcategorias
+        for subcategoria_id in subcategorias:
+            if subcategoria_id:
+                Subcategoria.objects.filter(id=subcategoria_id).update(situacao='cautelada')
+        
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)

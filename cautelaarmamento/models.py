@@ -10,21 +10,59 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nome
 
+class Categoria_municoes(models.Model):
+    nome = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.nome
+
+class Subcategoria_municoes(models.Model):
+    SITUACAO_CHOICES = [
+        ('disponivel', 'Disponível'),
+        ('indisponivel', 'Indisponível'),
+        ('em_manutencao', 'Em manutenção'),
+        ('cautelada', 'Cautelada'),
+        # Adicione outras situações conforme necessário
+    ]
+
+    nome = models.CharField(max_length=100)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias_municoes')
+    situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES)  # Campo de situação adicionado
+    
+    
+    def __str__(self):
+        return f'{self.nome} - {self.get_situacao_display()}'
+    
 class Subcategoria(models.Model):
     SITUACAO_CHOICES = [
         ('disponivel', 'Disponível'),
         ('indisponivel', 'Indisponível'),
         ('em_manutencao', 'Em manutenção'),
+        ('cautelada', 'Cautelada'),
         # Adicione outras situações conforme necessário
     ]
 
     nome = models.CharField(max_length=100)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias')
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias_municoes')
     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES)  # Campo de situação adicionado
+    
+    
+    def __str__(self):
+        return f'{self.nome} - {self.get_situacao_display()}'
+
+
+class Subcategoria_municoes(models.Model):
+
+
+    nome = models.CharField(max_length=100)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias')
+    quantidade = models.PositiveIntegerField(null=True, blank=True)
+    
 
     def __str__(self):
         return f'{self.nome} - {self.get_situacao_display()}'
+
+
 
 
 def validar_cpf(cpf):
@@ -90,23 +128,12 @@ class CautelaDeArmamento(models.Model):
         return f'{self.policial.nome_completo} - {self.categoria.nome} - {self.subcategoria.nome} - {self.data} - {self.hora.strftime("%Y-%m-%d %H:%M:%S")}'
 
 
-# class Pessoa(models.Model):
-#     nome_completo = models.CharField(max_length=255)
-#     nome_guerra = models.CharField(max_length=255, blank=True, null=True)  # Pode ser nulo se não houver
-#     posto_graduacao = models.CharField(max_length=100)
-#     id = models.AutoField(primary_key=True)  # ID automático
-#     matricula = models.CharField(max_length=20, unique=True)
-#     rgpm = models.CharField(max_length=20, unique=True)
-#     lotacao = models.CharField(max_length=255)
-#     data_nascimento = models.DateField()
-#     inclusao = models.DateField(auto_now_add=True)  # Data de inclusão automática
-#     restricao = models.BooleanField(default=False)
-#     cpf = models.CharField(max_length=14, unique=True)
+class CautelaDeMunicoes(models.Model):
 
-#     def clean(self):
-#         if not CPF(self.cpf).validate():
-#             raise ValidationError("CPF inválido")
+    categoria = models.ForeignKey(Categoria_municoes, on_delete=models.CASCADE)
+    subcategoria = models.ForeignKey(Subcategoria_municoes, on_delete=models.CASCADE)
+    hora = models.DateTimeField(auto_now_add=True)
+    data = models.DateField(auto_now_add=True)
 
-#     def __str__(self):
-#         return self.nome_completo 
-
+    def __str__(self):
+        return f'{self.policial.nome_completo} - {self.categoria.nome} - {self.subcategoria.nome} - {self.data} - {self.hora.strftime("%Y-%m-%d %H:%M:%S")}'
