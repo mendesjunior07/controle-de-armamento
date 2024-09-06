@@ -134,14 +134,20 @@ Cautela de Armamento
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 {% comment %} ####################### Parte do Formulário HTML ####################### {% endcomment %}
+<!-- ############### Estrutura do Contêiner Principal -->
 
 <div class="container mt-4">
   <h1 class="mb-4 text-center">CAUTELA DE ARMAMENTO E EQUIPAMENTO</h1>
 
+  <!-- Início do Formulário -->
+
   <form method="POST" id="main-form" class="needs-validation" novalidate>
     {% csrf_token %}
+
+    <!-- Dados do Policial e Tipo de Serviço -->
+
     <div class="mb-3">
-      <h5>DADOS DO POLICIAL E TIPO DE SERVIÇO</h5>
+        <h5>DADOS DO POLICIAL E TIPO DE SERVIÇO</h5>
       <label for="policial-select" class="form-label"><H6>Nome do Policial:</H6></label>
       <select id="mySelect" name="policial" class="form-select select2" required>
         <option value="">Selecione um Policial</option>
@@ -151,6 +157,8 @@ Cautela de Armamento
       </select>
       <div class="invalid-feedback">Por favor, selecione um policial.</div>
     </div>
+
+    <!-- Tipo de Serviço -->
 
     <div class="mb-3">
       <label for="tipo_servico" class="form-label"><H6>Tipo de Serviço:</H6></label>
@@ -163,6 +171,8 @@ Cautela de Armamento
       <div class="invalid-feedback">Por favor, selecione o tipo de serviço.</div>
     </div>
 
+    <!-- Seção de Armamento e Equipamentos -->
+     
     <div class="table-responsive">
       <h5>ARMAMENTO E EQUIPAMENTOS</h5>
       <table id="form-table" class="table table-bordered">
@@ -251,24 +261,19 @@ Cautela de Armamento
                 class="form-select subcategoria-select select2"
                 name="subcategoria_municoes[]"
                 required
+                onchange="atualizarQuantidadeTotal(this)"
               >
                 <option value="">Selecione uma Subcategoria</option>
               </select>
             </td>
             <td>
-              <input type="number" class="form-control" name="quantidade_total_municoes[]" required>
+              <input type="number" class="form-control quantidade-total" name="quantidade_total[]" readonly>
             </td>
             <td>
-              <input type="number" class="form-control" name="quantidade_municoes[]" required>
+              <input type="number" class="form-control" name="quantidade[]" min="1" oninput="atualizarQuantidadeRestante(this)" required>
             </td>
             <td>
-              <button
-                type="button"
-                class="btn btn-danger btn-sm"
-                onclick="removeRow(this)"
-              >
-                -
-              </button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
             </td>
           </tr>
         </tbody>
@@ -276,13 +281,11 @@ Cautela de Armamento
 
       <div class="mb-3">
         <button type="button" class="btn btn-primary" onclick="addRow('municoes-table-body')">Adicionar Linha</button>
+        <button type="button" class="btn btn-success" onclick="showModal()">Enviar</button>
       </div>
 
     </div>
 
-    <div class="mt-4 d-flex justify-content-between">
-      <button type="button" class="btn btn-primary" onclick="showModal()">Confirmar</button>
-    </div>
   </form>
 </div>
 
@@ -293,17 +296,16 @@ Cautela de Armamento
         <h5 class="modal-title" id="confirmModalLabel">Confirmação</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="confirmation-details">
-        <!-- Detalhes da confirmação serão inseridos aqui -->
+      <div class="modal-body">
+        <div id="confirmation-details"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        <button type="button" class="btn btn-primary" onclick="submitForm()">Enviar</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Confirmar</button>
       </div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 {% endblock %}

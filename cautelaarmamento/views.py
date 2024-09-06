@@ -472,6 +472,8 @@ def cautela_de_armamento_view(request):
         tipo_servico = request.POST.get('tipo_servico')
         categorias = request.POST.getlist('categorias[]')
         subcategorias = request.POST.getlist('subcategorias[]')
+        print(policial_id)
+        print(categoria)
 
         policial = get_object_or_404(Policial, id=policial_id)
 
@@ -569,7 +571,7 @@ def cautela_municoes(request):
         'categorias': categorias,
         'subcategorias': subcategorias
     }
-    return render(request, 'cautela_municoes.html', context)
+    return render(request, 'armamento\cautela.html', context)
 
 def obter_subcategorias(request, categoria_id):
     # Função para obter subcategorias de munição com base na categoria selecionada
