@@ -444,7 +444,7 @@ from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento, Categ
 
 def index(request):
     # Função para renderizar a página inicial ou qualquer outro contexto desejado
-    return render(request, 'index.html')
+    return render(request, 'cautelaarmamento/index.html')
 
 def registro_view(request):
     # Função de visualização para o registro de um novo formulário de cautela
@@ -549,7 +549,6 @@ def atualizar_subcategorias(request):
     return JsonResponse(data, safe=False)
 
 def cautela_municoes(request):
-    # Função para a cautela de munições
     if request.method == 'POST':
         categorias = request.POST.getlist('categoria_municoes[]')
         subcategorias = request.POST.getlist('subcategoria_municoes[]')
@@ -565,13 +564,15 @@ def cautela_municoes(request):
             )
         return redirect('sucesso')
 
-    categorias = CategoriaMunicao.objects.all()
+    # Obtendo todas as categorias de munição do banco de dados
+    categorias_municoes = CategoriaMunicao.objects.all()
     subcategorias = SubcategoriaMunicao.objects.all()
     context = {
-        'categorias': categorias,
+        'categorias_municoes': categorias_municoes,  # Passando as categorias para o template
         'subcategorias': subcategorias
     }
-    return render(request, 'armamento\cautela.html', context)
+    return render(request, 'armamento/cautela.html', context)
+
 
 def obter_subcategorias(request, categoria_id):
     # Função para obter subcategorias de munição com base na categoria selecionada

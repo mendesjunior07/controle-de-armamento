@@ -227,58 +227,50 @@ Cautela de Armamento
       </div>
 
 {% comment %} ####################### Tabela para MUNIÇÕES ####################### {% endcomment %}
-
+{% for categoria_municao in categorias_municoes %}
+    <p>{{ categoria_municao.nome }}</p>
+{% endfor %}
       <h5>MUNIÇÕES</h5>
       <table id="municoes-table" class="table table-bordered">
         <thead class="table-light">
-          <tr>
-            <th>Categoria</th>
-            <th>Subcategoria</th>
-            <th>Quantidade Total</th>
-            <th>Quantidade</th>
-            <th>Opções</th>
-          </tr>
+            <tr>
+                <th>Categoria</th>
+                <th>Subcategoria</th>
+                <th>Quantidade Total</th>
+                <th>Quantidade</th>
+                <th>Opções</th>
+            </tr>
         </thead>
         <tbody id="municoes-table-body">
-          <tr id="municoes-row1">
-            <td>
-              <select
-                id="categoriaM1"
-                class="form-select categoria-select select2"
-                name="categoria_municoes[]"
-                onchange="updateSubcategorias('municoes-row1')"
-                required
-              >
-                <option value="">Selecione uma Categoria</option>
-                {% for categoria in categorias %}
-                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
-                {% endfor %}
-              </select>
+            <tr id="municoes-row1">
+              <td>
+                <select id="categoriaM1" class="form-select categoria-select select2" name="categoria_municoes[]" onchange="updateSubcategorias('municoes-row1')" required>
+                    <option value="">Selecione uma Categoria</option>
+                    {% for categoria_municao in categorias_municoes %}
+                        <option value="{{ categoria_municao.id }}">{{ categoria_municao.nome }}</option>
+                    {% endfor %}
+                </select>
             </td>
-            <td>
-              <select
-                id="subcategoriaM1"
-                class="form-select subcategoria-select select2"
-                name="subcategoria_municoes[]"
-                required
-                onchange="atualizarQuantidadeTotal(this)"
-              >
-                <option value="">Selecione uma Subcategoria</option>
-              </select>
-            </td>
-            <td>
-              <input type="number" class="form-control quantidade-total" name="quantidade_total[]" readonly>
-            </td>
-            <td>
-              <input type="number" class="form-control" name="quantidade[]" min="1" oninput="atualizarQuantidadeRestante(this)" required>
-            </td>
-            <td>
-              <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
-            </td>
-          </tr>
+                        
+            
+                <td>
+                    <select id="subcategoriaM1" class="form-select subcategoria-select select2" name="subcategoria_municoes[]" required onchange="atualizarQuantidadeTotal(this)">
+                        <option value="">Selecione uma Subcategoria</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="form-control quantidade-total" name="quantidade_total[]" readonly>
+                </td>
+                <td>
+                    <input type="number" class="form-control" name="quantidade[]" min="1" oninput="atualizarQuantidadeRestante(this)" required>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
+                </td>
+            </tr>
         </tbody>
-      </table>
-
+    </table>
+    
       <div class="mb-3">
         <button type="button" class="btn btn-primary" onclick="addRow('municoes-table-body')">Adicionar Linha</button>
         <button type="button" class="btn btn-success" onclick="showModal()">Enviar</button>
