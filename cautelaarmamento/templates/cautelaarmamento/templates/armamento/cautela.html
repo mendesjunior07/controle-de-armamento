@@ -1,155 +1,246 @@
-{% extends 'base_html/base.html' %}
-
-{% block title %}
-Cautela de Armamento
-{% endblock %}
-
-{% block content %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+{% extends 'base_html/base.html' %} {% load static %} {% block title %} Cautela
+de Armamento {% endblock %} {% block content %}
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<link
+  href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
 <script>
-  function updateSubcategorias(rowId) {
-    var formRow = document.getElementById(rowId);
-    var categoriaId = formRow.querySelector(".categoria-select").value;
-    console.log(categoriaId);
+  $(document).ready(function () {
+    // Inicializa o Select2 em todos os selects com a classe .select2
+    $(".select2").select2({
+      placeholder: "Selecione uma opção",
+      allowClear: true,
+    });
+  });
 
-    var subcategoriaSelect = formRow.querySelector(".subcategoria-select");
-    subcategoriaSelect.innerHTML = '<option value="">Selecione uma Subcategoria</option>';
 
-    if (categoriaId) {
-        fetch(`/subcategorias/${categoriaId}/?situacao=disponivel`)
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-                data.forEach((subcategoria) => {
-                    var option = document.createElement("option");
-                    option.value = subcategoria.id;
-                    option.textContent = subcategoria.nome;
-                    subcategoriaSelect.appendChild(option);
-                });
+  function atualizarQuantidadeTotal(selectElement) {
+    var subcategoriaId = selectElement.value; // Obtém o ID da subcategoria selecionada
+    var row = selectElement.closest("tr"); // Encontra a linha correspondente
+    var quantidadeTotalInput = row.querySelector(".quantidade-total"); // Encontra o campo de quantidade total
 
-                $(subcategoriaSelect).select2({
-                    placeholder: 'Digite para buscar...',
-                    allowClear: true
-                });
-            });
+    console.log("Subcategoria ID selecionada:", subcategoriaId); // Log para verificar o ID selecionado
+
+    if (subcategoriaId) {
+      fetch(`/obter_quantidade_total/${subcategoriaId}/`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Erro ao buscar a quantidade total");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log("Dados recebidos do servidor:", data); // Log para verificar os dados recebidos
+          if (data.quantidade !== undefined) {
+            quantidadeTotalInput.value = data.quantidade; // Atualiza o valor do campo com a quantidade retornada
+          } else {
+            quantidadeTotalInput.value = 0; // Define como 0 se não houver quantidade
+          }
+        })
+        .catch((error) =>
+          console.error("Erro ao buscar quantidade total:", error)
+        );
+    } else {
+      quantidadeTotalInput.value = ""; // Limpa o campo se nenhuma subcategoria estiver selecionada
     }
   }
 
-  function addRow(tableBodyId) {
-    var tableBody = document.getElementById(tableBodyId);
-    var rowCount = tableBody.rows.length + 1;
-    var row = tableBody.insertRow(rowCount - 1);
+  // Função para atualizar as subcategorias de armamento com base na categoria selecionada
+  function updateSubcategoriasArmamento(rowId) {
+    var formRow = document.getElementById(rowId);
+    var categoriaId = formRow.querySelector(
+      ".categoria-select-armamento"
+    ).value;
+    var subcategoriaSelect = formRow.querySelector(
+      ".subcategoria-select-armamento"
+    );
+    subcategoriaSelect.innerHTML =
+      '<option value="">Selecione uma Subcategoria</option>';
 
-    row.id = `form-row-${tableBodyId}-${rowCount}`;
+    if (categoriaId) {
+      fetch(`/subcategorias_armamento/${categoriaId}/`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Erro ao buscar subcategorias");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.forEach((subcategoria) => {
+            var option = document.createElement("option");
+            option.value = subcategoria.id;
+            option.textContent = subcategoria.nome;
+            subcategoriaSelect.appendChild(option);
+          });
 
-    row.innerHTML = `
-      <td>
-        <select id="categoria${rowCount}" class="form-select categoria-select select2" name="categorias[]"
-          onchange="updateSubcategorias('form-row-${tableBodyId}-${rowCount}')">
-          <option value="">Selecione uma Categoria</option>
-          {% for categoria in categorias %}
-            <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
-          {% endfor %}
-        </select>
-      </td>
-      <td>
-        <select id="subcategoria${rowCount}" class="form-select subcategoria-select select2" name="subcategorias[]">
-          <option value="">Selecione uma Subcategoria</option>
-        </select>
-      </td>
-      <td>
-        <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
-      </td>
-    `;
+          // Re-inicializa o Select2 após adicionar as novas opções
+          $(subcategoriaSelect).select2({
+            placeholder: "Digite para buscar...",
+            allowClear: true,
+          });
+        })
+        .catch((error) =>
+          console.error("Erro ao buscar subcategorias de armamento:", error)
+        );
+    }
+  }
 
-    $('.select2').select2({
-      placeholder: 'Digite para buscar...',
-      allowClear: true
+  // Função para atualizar as subcategorias de munição com base na categoria selecionada
+  function updateSubcategoriasMunicao(rowId) {
+    var formRow = document.getElementById(rowId);
+    var categoriaId = formRow.querySelector(".categoria-select-municao").value;
+    var subcategoriaSelect = formRow.querySelector(
+      ".subcategoria-select-municao"
+    );
+    subcategoriaSelect.innerHTML =
+      '<option value="">Selecione uma Subcategoria</option>';
+
+    if (categoriaId) {
+      fetch(`/subcategorias_municao/${categoriaId}/`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Erro ao buscar subcategorias");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.forEach((subcategoria) => {
+            var option = document.createElement("option");
+            option.value = subcategoria.id;
+            option.textContent = subcategoria.nome;
+            subcategoriaSelect.appendChild(option);
+          });
+
+          // Re-inicializa o Select2 após adicionar as novas opções
+          $(subcategoriaSelect).select2({
+            placeholder: "Digite para buscar...",
+            allowClear: true,
+          });
+        })
+        .catch((error) =>
+          console.error("Erro ao buscar subcategorias de munição:", error)
+        );
+    }
+  }
+
+  function addRow(tableId, tipo) {
+    // Obtenha o corpo da tabela onde a nova linha será adicionada
+    var tableBody = document.getElementById(tableId);
+
+    // Determine o novo ID da linha
+    var rowCount = tableBody.getElementsByTagName("tr").length;
+    var newRowId =
+      tipo === "armamento"
+        ? "form-row" + (rowCount + 1)
+        : "municoes-row" + (rowCount + 1);
+
+    // Crie uma nova linha
+    var newRow = document.createElement("tr");
+    newRow.id = newRowId;
+
+    // Adicione o conteúdo da nova linha
+    if (tipo === "armamento") {
+      newRow.innerHTML = `
+            <td>
+              <select id="categoria${
+                rowCount + 1
+              }" class="form-select categoria-select-armamento select2" name="categorias[]"
+              onchange="updateSubcategoriasArmamento('${newRowId}')">
+                <option value="">Selecione uma Categoria</option>
+                {% for categoria in categorias %}
+                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select id="subcategoria${
+                rowCount + 1
+              }" class="form-select subcategoria-select-armamento select2" name="subcategorias[]" required>
+                <option value="">Selecione uma Subcategoria</option>
+              </select>
+            </td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
+            </td>
+        `;
+    } else if (tipo === "municao") {
+      newRow.innerHTML = `
+            <td>
+              <select id="categoriaM${
+                rowCount + 1
+              }" class="form-select categoria-select-municao select2" name="categoria_municoes[]"
+              onchange="updateSubcategoriasMunicao('${newRowId}')">
+                <option value="">Selecione uma Categoria</option>
+                {% for categoria_municao in categorias_municoes %}
+                <option value="{{ categoria_municao.id }}">{{ categoria_municao.nome }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select id="subcategoriaM${
+                rowCount + 1
+              }" class="form-select subcategoria-select-municao select2" name="subcategoria_municoes[]" required onchange="atualizarQuantidadeTotal(this)">
+                <option value="">Selecione uma Subcategoria</option>
+              </select>
+            </td>
+            <td>
+              <input type="number" class="form-control quantidade-total" name="quantidade_total[]" readonly>
+            </td>
+            <td>
+              <input type="number" class="form-control" name="quantidade[]" min="1" oninput="atualizarQuantidadeRestante(this)" required>
+            </td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
+            </td>
+        `;
+    }
+
+    // Adicione a nova linha ao corpo da tabela
+    tableBody.appendChild(newRow);
+
+    // Reinitialize Select2 for the new select elements
+    $(`#${newRowId} .select2`).select2({
+      placeholder: "Digite para buscar...",
+      allowClear: true,
     });
   }
 
   function removeRow(button) {
     var row = button.closest("tr");
-    row.parentNode.removeChild(row);
+    if (row.parentNode.rows.length > 1) {
+      row.remove();
+    } else {
+      alert("Não é possível remover todas as linhas.");
+    }
   }
-
-  function showModal() {
-    const policial = document.getElementById("mySelect").selectedOptions[0].text;
-    const tipoServico = document.getElementById("tipo_servico").selectedOptions[0].text;
-
-    let categorias = [];
-    document.querySelectorAll(".categoria-select").forEach(select => {
-      categorias.push(select.selectedOptions[0].text);
-    });
-
-    let subcategorias = [];
-    document.querySelectorAll(".subcategoria-select").forEach(select => {
-      subcategorias.push(select.selectedOptions[0].text);
-    });
-
-    let confirmationDetails = `<strong>Policial:</strong> ${policial}<br><strong>Tipo de Serviço:</strong> ${tipoServico}<br><br><strong>Categorias e Subcategorias Selecionadas:</strong><br>`;
-    categorias.forEach((categoria, index) => {
-      confirmationDetails += `Categoria: ${categoria} - Subcategoria: ${subcategorias[index]}<br>`;
-    });
-
-    document.getElementById('confirmation-details').innerHTML = confirmationDetails;
-
-    var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    modal.show();
-  }
-
-  function submitForm() {
-    const formData = new FormData();
-    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-    formData.append('policial', document.getElementById('mySelect').value);
-    formData.append('tipo_servico', document.getElementById('tipo_servico').value);
-
-    document.querySelectorAll(".categoria-select").forEach((select, index) => {
-        formData.append(`categorias[${index}]`, select.value);
-        formData.append(`subcategorias[${index}]`, select.closest('tr').querySelector(".subcategoria-select").value);
-    });
-
-    fetch('/atualizar_subcategorias/', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('main-form').submit();
-        } else {
-            alert('Erro ao atualizar subcategorias.');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        alert('Erro ao atualizar subcategorias.');
-    });
-}
 </script>
-
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-{% comment %} ####################### Parte do Formulário HTML ####################### {% endcomment %}
-<!-- ############### Estrutura do Contêiner Principal -->
 
 <div class="container mt-4">
   <h1 class="mb-4 text-center">CAUTELA DE ARMAMENTO E EQUIPAMENTO</h1>
 
   <!-- Início do Formulário -->
-
   <form method="POST" id="main-form" class="needs-validation" novalidate>
     {% csrf_token %}
 
     <!-- Dados do Policial e Tipo de Serviço -->
-
     <div class="mb-3">
-        <h5>DADOS DO POLICIAL E TIPO DE SERVIÇO</h5>
-      <label for="policial-select" class="form-label"><H6>Nome do Policial:</H6></label>
-      <select id="mySelect" name="policial" class="form-select select2" required>
+      <h5>DADOS DO POLICIAL E TIPO DE SERVIÇO</h5>
+      <label for="policial-select" class="form-label"
+        ><h6>Nome do Policial:</h6></label
+      >
+      <select
+        id="mySelect"
+        name="policial"
+        class="form-select select2"
+        required
+      >
         <option value="">Selecione um Policial</option>
         {% for policial in policiais %}
         <option value="{{ policial.id }}">{{ policial.nome_completo }}</option>
@@ -159,20 +250,27 @@ Cautela de Armamento
     </div>
 
     <!-- Tipo de Serviço -->
-
     <div class="mb-3">
-      <label for="tipo_servico" class="form-label"><H6>Tipo de Serviço:</H6></label>
-      <select id="tipo_servico" name="tipo_servico" class="form-select select2" required>
+      <label for="tipo_servico" class="form-label"
+        ><h6>Tipo de Serviço:</h6></label
+      >
+      <select
+        id="tipo_servico"
+        name="tipo_servico"
+        class="form-select select2"
+        required
+      >
         <option value="">Selecione o Horário</option>
         {% for value, label in tipos_servico %}
-          <option value="{{ value }}">{{ label }}</option>
+        <option value="{{ value }}">{{ label }}</option>
         {% endfor %}
       </select>
-      <div class="invalid-feedback">Por favor, selecione o tipo de serviço.</div>
+      <div class="invalid-feedback">
+        Por favor, selecione o tipo de serviço.
+      </div>
     </div>
 
     <!-- Seção de Armamento e Equipamentos -->
-     
     <div class="table-responsive">
       <h5>ARMAMENTO E EQUIPAMENTOS</h5>
       <table id="form-table" class="table table-bordered">
@@ -188,10 +286,9 @@ Cautela de Armamento
             <td>
               <select
                 id="categoria1"
-                class="form-select categoria-select select2"
+                class="form-select categoria-select-armamento select2"
                 name="categorias[]"
-                onchange="updateSubcategorias('form-row1')"
-                required
+                onchange="updateSubcategoriasArmamento('form-row1')"
               >
                 <option value="">Selecione uma Categoria</option>
                 {% for categoria in categorias %}
@@ -201,8 +298,8 @@ Cautela de Armamento
             </td>
             <td>
               <select
-                id="subcategoria1"
-                class="form-select subcategoria-select select2"
+                id="subcategoria2"
+                class="form-select subcategoria-select-armamento select2"
                 name="subcategorias[]"
                 required
               >
@@ -223,81 +320,139 @@ Cautela de Armamento
       </table>
 
       <div class="mb-3">
-        <button type="button" class="btn btn-primary" onclick="addRow('form-table-body')">Adicionar Linha</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="addRow('form-table-body', 'armamento')"
+        >
+          Adicionar Linha
+        </button>
       </div>
 
-{% comment %} ####################### Tabela para MUNIÇÕES ####################### {% endcomment %}
-{% for categoria_municao in categorias_municoes %}
-    <p>{{ categoria_municao.nome }}</p>
-{% endfor %}
+      <!-- Tabela para MUNIÇÕES -->
       <h5>MUNIÇÕES</h5>
+      <!-- Botão para mostrar/esconder a tabela -->
+      <button onclick="toggleTable()">Mostrar/Esconder Tabela</button>
       <table id="municoes-table" class="table table-bordered">
         <thead class="table-light">
-            <tr>
-                <th>Categoria</th>
-                <th>Subcategoria</th>
-                <th>Quantidade Total</th>
-                <th>Quantidade</th>
-                <th>Opções</th>
-            </tr>
+          <tr>
+            <th>Categoria</th>
+            <th>Subcategoria</th>
+            <th>Quantidade Total</th>
+            <th>Quantidade</th>
+            <th>Opções</th>
+          </tr>
         </thead>
         <tbody id="municoes-table-body">
-            <tr id="municoes-row1">
-              <td>
-                <select id="categoriaM1" class="form-select categoria-select select2" name="categoria_municoes[]" onchange="updateSubcategorias('municoes-row1')" required>
-                    <option value="">Selecione uma Categoria</option>
-                    {% for categoria_municao in categorias_municoes %}
-                        <option value="{{ categoria_municao.id }}">{{ categoria_municao.nome }}</option>
-                    {% endfor %}
-                </select>
+          <tr id="municoes-row1">
+            <td>
+              <select
+                id="categoriaM1"
+                class="form-select categoria-select-municao select2"
+                name="categoria_municoes[]"
+                onchange="updateSubcategoriasMunicao('municoes-row1')"
+                required
+              >
+                <option value="">Selecione uma Categoria</option>
+                {% for categoria_municao in categorias_municoes %}
+                <option value="{{ categoria_municao.id }}">
+                  {{ categoria_municao.nome }}
+                </option>
+                {% endfor %}
+              </select>
             </td>
-                        
-            
-                <td>
-                    <select id="subcategoriaM1" class="form-select subcategoria-select select2" name="subcategoria_municoes[]" required onchange="atualizarQuantidadeTotal(this)">
-                        <option value="">Selecione uma Subcategoria</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="number" class="form-control quantidade-total" name="quantidade_total[]" readonly>
-                </td>
-                <td>
-                    <input type="number" class="form-control" name="quantidade[]" min="1" oninput="atualizarQuantidadeRestante(this)" required>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
-                </td>
-            </tr>
+            <td>
+              <select
+                id="subcategoriaM1"
+                class="form-select subcategoria-select-municao select2"
+                name="subcategoria_municoes[]"
+                required
+                onchange="atualizarQuantidadeTotal(this)"
+              >
+                <option value="">Selecione uma Subcategoria</option>
+              </select>
+            </td>
+            <td>
+              <input
+                type="number"
+                class="form-control quantidade-total"
+                name="quantidade_total[]"
+                readonly
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                class="form-control"
+                name="quantidade[]"
+                min="1"
+                oninput="atualizarQuantidadeRestante(this)"
+                required
+              />
+            </td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-danger btn-sm"
+                onclick="removeRow(this)"
+              >
+                -
+              </button>
+            </td>
+          </tr>
         </tbody>
-    </table>
-    
+      </table>
+
       <div class="mb-3">
-        <button type="button" class="btn btn-primary" onclick="addRow('municoes-table-body')">Adicionar Linha</button>
-        <button type="button" class="btn btn-success" onclick="showModal()">Enviar</button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="addRow('municoes-table-body', 'municao')"
+        >
+          Adicionar Linha
+        </button>
+        <button type="button" class="btn btn-success" onclick="showModal()">
+          Enviar
+        </button>
       </div>
-
     </div>
-
   </form>
 </div>
 
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="confirmModal"
+  tabindex="-1"
+  aria-labelledby="confirmModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="confirmModalLabel">Confirmação</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
       </div>
       <div class="modal-body">
         <div id="confirmation-details"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        <button type="button" class="btn btn-primary" onclick="submitForm()">Confirmar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Fechar
+        </button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">
+          Confirmar
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 {% endblock %}

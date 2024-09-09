@@ -45,6 +45,7 @@ class Policial(models.Model):
     def __str__(self):
         return self.nome_completo
 
+
 # Definição da classe CautelaDeArmamento
 class CautelaDeArmamento(models.Model):
     SERVICO_CHOICES = [
