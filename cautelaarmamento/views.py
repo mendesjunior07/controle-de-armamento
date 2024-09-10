@@ -442,34 +442,112 @@ from django.http import JsonResponse
 from django.db.models import Sum
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from .models import Categoria, Subcategoria, Policial, CautelaDeArmamento, CategoriaMunicao, SubcategoriaMunicao, CautelaDeMunicoes
+from .models import (
+    Categoria, 
+    CautelaDeArmamento, 
+    Subcategoria, 
+    Policial, 
+    CategoriaMunicao, 
+    MunicaoCautelada,
+    SubcategoriaMunicao, 
+    ArmamentoCautelado,
+    CautelaDeMunicoes
+)
 
 def index(request):
     return render(request, 'cautelaarmamento/index.html')
 
+# def cautela_de_armamento_view(request):
+#     if request.method == 'POST':
+#         policial_id = request.POST.get('policial')
+#         tipo_servico = request.POST.get('tipo_servico')
+#         categorias = request.POST.getlist('categorias[]')
+#         subcategorias = request.POST.getlist('subcategorias[]')
+
+#         policial = get_object_or_404(Policial, id=policial_id)
+
+#         with transaction.atomic():
+#             for categoria_id, subcategoria_id in zip(categorias, subcategorias):
+#                 categoria = get_object_or_404(Categoria, id=categoria_id)
+#                 subcategoria = get_object_or_404(Subcategoria, id=subcategoria_id)
+
+#                 CautelaDeArmamento.objects.create(
+#                     policial=policial,
+#                     tipo_servico=tipo_servico,
+#                     categoria=categoria,
+#                     subcategoria=subcategoria
+#                 )
+
+#         return redirect('sucesso')
+
+#     policiais = Policial.objects.all()
+#     tipos_servico = CautelaDeArmamento.SERVICO_CHOICES
+#     categorias_servico = Categoria.objects.all()
+#     subcategoria_armamento = Subcategoria.objects.all()
+#     categoria_municoes = CategoriaMunicao.objects.all()
+#     subcategoria_municoes = SubcategoriaMunicao.objects.all()
+
+#     # Calcula a quantidade total de munições usando aggregate e Sum
+#     quantidade_total = CautelaDeMunicoes.objects.aggregate(total=Sum('quantidade'))['total']
+#     if quantidade_total is None:
+#         quantidade_total = 0
+
+#     context = {
+#         'policiais': policiais,
+#         'categorias': categorias_servico,
+#         'tipos_servico': tipos_servico,
+#         'subcategorias_armamento': subcategoria_armamento,
+#         'categorias_municoes': categoria_municoes,
+#         'subcategorias_municoes': subcategoria_municoes,
+#         'quantidade_total': quantidade_total
+#     }
+
+#     return render(request, 'armamento/cautela.html', context)
+
+
+
+
+
 def cautela_de_armamento_view(request):
     if request.method == 'POST':
+        # Obtém os dados do formulário
         policial_id = request.POST.get('policial')
         tipo_servico = request.POST.get('tipo_servico')
         categorias = request.POST.getlist('categorias[]')
         subcategorias = request.POST.getlist('subcategorias[]')
 
+        # Verifica se todos os dados obrigatórios foram fornecidos
+        if not policial_id or not tipo_servico or not categorias or not subcategorias:
+            return JsonResponse({'error': 'Todos os campos obrigatórios devem ser preenchidos.'}, status=400)
+
+        # Recupera o policial selecionado
         policial = get_object_or_404(Policial, id=policial_id)
 
+        # Inicia uma transação para garantir a integridade dos dados
         with transaction.atomic():
+            # Cria instâncias de CautelaDeArmamento e atualiza subcategorias
             for categoria_id, subcategoria_id in zip(categorias, subcategorias):
+                # Recupera a categoria e subcategoria para evitar IDs inválidos
                 categoria = get_object_or_404(Categoria, id=categoria_id)
                 subcategoria = get_object_or_404(Subcategoria, id=subcategoria_id)
 
+                # Cria a instância de CautelaDeArmamento
                 CautelaDeArmamento.objects.create(
                     policial=policial,
                     tipo_servico=tipo_servico,
-                    categoria=categoria,
+                    categoria=categoria,  # Certifique-se de que a categoria é um objeto válido
                     subcategoria=subcategoria
                 )
 
+                # Atualiza a situação da subcategoria para "cautelada"
+                subcategoria.situacao = 'cautelada'
+                subcategoria.save()
+                print(f"Subcategoria {subcategoria_id} atualizada para 'cautelada'.")
+
+        # Redireciona para a página de sucesso após o processamento
         return redirect('sucesso')
 
+    # Caso o método seja GET, busca os dados necessários para preencher o formulário
     policiais = Policial.objects.all()
     tipos_servico = CautelaDeArmamento.SERVICO_CHOICES
     categorias_servico = Categoria.objects.all()
@@ -492,6 +570,7 @@ def cautela_de_armamento_view(request):
         'quantidade_total': quantidade_total
     }
 
+    # Renderiza o template correto
     return render(request, 'armamento/cautela.html', context)
 
 
@@ -511,48 +590,86 @@ def get_subcategorias_municao(request, categoria_id):
     data = [{"id": subcategoria.id, "nome": subcategoria.nome} for subcategoria in subcategorias]
     return JsonResponse(data, safe=False)
 
-# Nova função para obter a quantidade total de munição para uma subcategoria específica
 def obter_quantidade_total(request, subcategoria_id):
     try:
-        # Busca a subcategoria de munição específica
         subcategoria = get_object_or_404(SubcategoriaMunicao, id=subcategoria_id)
-
-        # Obtém o valor do campo 'total_de_municoes'
         total_municoes = subcategoria.total_de_municoes
-        
         return JsonResponse({'quantidade': total_municoes})
     except SubcategoriaMunicao.DoesNotExist:
         return JsonResponse({'error': 'Subcategoria não encontrada'}, status=404)
 
-# def registro_view(request):
-#     # Função de visualização para o registro de um novo formulário de cautela
-#     policiais = Policial.objects.all()
+# def cautela_de_armamento_view(request):
+#     if request.method == 'POST':
+#         policial_id = request.POST.get('policial')
+#         tipo_servico = request.POST.get('tipo_servico')
+
+#         # Cria a instância de CautelaDeArmamento
+#         cautela = CautelaDeArmamento.objects.create(
+#             policial_id=policial_id,
+#             tipo_servico=tipo_servico
+#         )
+
+#         categorias = request.POST.getlist('categorias[]')
+#         subcategorias = request.POST.getlist('subcategorias[]')
+#         print(categorias)
+#         print(subcategorias)
+
+#         # Utiliza uma transação para garantir a integridade dos dados
+#         with transaction.atomic():
+#             for categoria_id, subcategoria_id in zip(categorias, subcategorias):
+#                 # Cria o objeto ArmamentoCautelado
+#                 ArmamentoCautelado.objects.create(
+#                     cautela=cautela,
+#                     categoria_id=categoria_id,
+#                     subcategoria_id=subcategoria_id
+#                 )
+
+#                 # Atualiza a situação da subcategoria para "cautelada"
+#                 try:
+#                     subcategoria = Subcategoria.objects.get(id=subcategoria_id)
+#                     subcategoria.situacao = 'cautelada'
+#                     subcategoria.save()
+#                     print(f"Subcategoria {subcategoria_id} atualizada para 'cautelada'.")
+#                 except Subcategoria.DoesNotExist:
+#                     print(f"Subcategoria com ID {subcategoria_id} não encontrada.")
+
+#         categorias_municao = request.POST.getlist('categoria_municoes[]')
+#         subcategorias_municao = request.POST.getlist('subcategoria_municoes[]')
+#         quantidades = request.POST.getlist('quantidade[]')
+
+#         # Processa as munições cauteladas
+#         for categoria_id, subcategoria_id, quantidade in zip(categorias_municao, subcategorias_municao, quantidades):
+#             MunicaoCautelada.objects.create(
+#                 cautela=cautela,
+#                 categoria_id=categoria_id,
+#                 subcategoria_id=subcategoria_id,
+#                 quantidade=quantidade
+#             )
+
+#         return redirect('nome_da_view_de_sucesso')
+
+#     # Busca dados para preencher o formulário
 #     categorias = Categoria.objects.all()
+#     categorias_municoes = CategoriaMunicao.objects.all()
+#     policiais = Policial.objects.all()
 #     tipos_servico = CautelaDeArmamento.SERVICO_CHOICES
-#     print(policiais)
-#     print(categorias)
 
 #     context = {
-#         'policiais': policiais,
 #         'categorias': categorias,
+#         'categorias_municoes': categorias_municoes,
+#         'policiais': policiais,
 #         'tipos_servico': tipos_servico
 #     }
-#     return render(request, 'registro.html', context)
+
+#     # Renderiza o template correto
+#     return render(request, 'armamento/cautela.html', context)
 
 def inventario_equipamentos(request):
-    # Função de visualização para o inventário de equipamentos
     equipamentos = CautelaDeArmamento.objects.all()
     context = {'equipamentos': equipamentos}
     return render(request, 'inventario.html', context)
 
-
-
-# def formulario_sucesso(request):
-#     # Função de visualização de sucesso após o envio do formulário
-#     return render(request, 'sucesso.html')
-
 def descautelar_armamento(request):
-    # Função de visualização para descautelar armamento
     if request.method == 'POST':
         cautela_id = request.POST.get('cautela_id')
         cautela = get_object_or_404(CautelaDeArmamento, id=cautela_id)
@@ -561,30 +678,22 @@ def descautelar_armamento(request):
     return JsonResponse({'success': False})
 
 def listar_armamentos(request):
-    # Função de visualização para listar todos os armamentos
     armamentos = CautelaDeArmamento.objects.all()
     context = {'armamentos': armamentos}
     return render(request, 'listar_armamentos.html', context)
 
-# def get_subcategorias(request, categoria_id):
-#     # Função para obter subcategorias disponíveis com base na categoria selecionada
-#     subcategorias = Subcategoria.objects.filter(categoria_id=categoria_id, situacao='disponivel')
-#     data = [{'id': subcategoria.id, 'nome': subcategoria.nome} for subcategoria in subcategorias]
-#     return JsonResponse(data, safe=False)
-
 def cadastrar_pessoa(request):
-    # Função para cadastrar uma nova pessoa (policial)
     if request.method == 'POST':
         nome_completo = request.POST.get('nome_completo')
         matricula = request.POST.get('matricula')
-        # Suponha que mais campos sejam processados aqui
-        # Implementar a lógica de salvamento do policial
+        # Lógica de salvamento do policial
         return redirect('sucesso_cadastro')
     return render(request, 'cadastrar_pessoa.html')
 
-# def sucesso_view(request):
-#     # Função de visualização de sucesso após o cadastro de uma pessoa
-#     return render(request, 'sucesso_cadastro.html')
+
+def sucesso_view(request):
+    # Função de visualização de sucesso após o cadastro de uma pessoa
+    return render(request, 'armamento\sucesso.html')
 
 # @require_POST
 # def atualizar_subcategorias(request):

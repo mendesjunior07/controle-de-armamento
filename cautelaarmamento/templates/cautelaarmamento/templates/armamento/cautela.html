@@ -51,7 +51,73 @@ de Armamento {% endblock %} {% block content %}
       quantidadeTotalInput.value = ""; // Limpa o campo se nenhuma subcategoria estiver selecionada
     }
   }
+  {% comment %} ################################# {% endcomment %}
+  function showModal() {
+    // Captura o valor selecionado do campo "Nome do Policial"
+    var policialSelecionado = document.getElementById('mySelect').options[document.getElementById('mySelect').selectedIndex].text;
+  
+    // Captura o valor selecionado do campo "Tipo de Serviço"
+    var tipoServicoSelecionado = document.getElementById('tipo_servico').options[document.getElementById('tipo_servico').selectedIndex].text;
+  
+    // Captura as categorias e subcategorias de armamento
+    var categorias = document.getElementsByName('categorias[]');
+    var subcategorias = document.getElementsByName('subcategorias[]');
+    var categoriasSelecionadas = [];
+    var subcategoriasSelecionadas = [];
+  
+    // Itera sobre todas as categorias e subcategorias de armamento
+    for (var i = 0; i < categorias.length; i++) {
+      var categoriaNome = categorias[i].options[categorias[i].selectedIndex].text;
+      var subcategoriaNome = subcategorias[i].options[subcategorias[i].selectedIndex].text;
+      categoriasSelecionadas.push(categoriaNome);
+      subcategoriasSelecionadas.push(subcategoriaNome);
+    }
+  
+    // Captura as categorias e subcategorias de munições
+    var categoriasMunicoes = document.getElementsByName('categoria_municoes[]');
+    var subcategoriasMunicoes = document.getElementsByName('subcategoria_municoes[]');
+    var quantidadesMunicoes = document.getElementsByName('quantidade[]');
+    var municoesSelecionadas = [];
+  
+    // Itera sobre todas as categorias e subcategorias de munições
+    for (var i = 0; i < categoriasMunicoes.length; i++) {
+      var categoriaMunicaoNome = categoriasMunicoes[i].options[categoriasMunicoes[i].selectedIndex].text;
+      var subcategoriaMunicaoNome = subcategoriasMunicoes[i].options[subcategoriasMunicoes[i].selectedIndex].text;
+      var quantidadeMunicao = quantidadesMunicoes[i].value;
+      municoesSelecionadas.push({
+        categoria: categoriaMunicaoNome,
+        subcategoria: subcategoriaMunicaoNome,
+        quantidade: quantidadeMunicao
+      });
+    }
+  
+    // Monta o conteúdo do modal
+    var detalhes = `
+      <p><strong>Nome do Policial:</strong> ${policialSelecionado}</p>
+      <p><strong>Tipo de Serviço:</strong> ${tipoServicoSelecionado}</p>
+      <h5>Armamento e Equipamentos Selecionados:</h5>
+      <ul>
+        ${categoriasSelecionadas.map((categoria, index) => `<li>Categoria: ${categoria}, Subcategoria: ${subcategoriasSelecionadas[index]}</li>`).join('')}
+      </ul>
+      <h5>Munições Selecionadas:</h5>
+      <ul>
+        ${municoesSelecionadas.map(municao => `<li>Categoria: ${municao.categoria}, Subcategoria: ${municao.subcategoria}, Quantidade: ${municao.quantidade}</li>`).join('')}
+      </ul>
+    `;
+  
+    // Insere os detalhes no modal
+    document.getElementById('confirmation-details').innerHTML = detalhes;
+  
+    // Exibe o modal
+    var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+  }
+  
 
+  {% comment %} #################################################### {% endcomment %}
+  function submitForm() {
+    document.getElementById('main-form').submit();
+  }
   // Função para atualizar as subcategorias de armamento com base na categoria selecionada
   function updateSubcategoriasArmamento(rowId) {
     var formRow = document.getElementById(rowId);
@@ -331,8 +397,7 @@ de Armamento {% endblock %} {% block content %}
 
       <!-- Tabela para MUNIÇÕES -->
       <h5>MUNIÇÕES</h5>
-      <!-- Botão para mostrar/esconder a tabela -->
-      <button onclick="toggleTable()">Mostrar/Esconder Tabela</button>
+
       <table id="municoes-table" class="table table-bordered">
         <thead class="table-light">
           <tr>
@@ -419,38 +484,24 @@ de Armamento {% endblock %} {% block content %}
   </form>
 </div>
 
-<div
-  class="modal fade"
-  id="confirmModal"
-  tabindex="-1"
-  aria-labelledby="confirmModalLabel"
-  aria-hidden="true"
->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="confirmModalLabel">Confirmação</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div id="confirmation-details"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Fechar
-        </button>
-        <button type="button" class="btn btn-primary" onclick="submitForm()">
-          Confirmar
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Confirmar</button>
       </div>
     </div>
   </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

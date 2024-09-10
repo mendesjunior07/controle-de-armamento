@@ -106,3 +106,27 @@ def validar_cpf(cpf):
     if resto > 9:
         resto = 0
     return int(cpf[10]) == resto
+
+# Nova Classe: Item de Munição Cautelada
+class MunicaoCautelada(models.Model):
+    cautela = models.ForeignKey(CautelaDeArmamento, related_name='municoes', on_delete=models.CASCADE)
+    categoria = models.ForeignKey(CategoriaMunicao, on_delete=models.CASCADE)
+    subcategoria = models.ForeignKey(SubcategoriaMunicao, on_delete=models.CASCADE)
+    quantidade = models.IntegerField()
+    data_cautela = models.DateTimeField(auto_now_add=True)
+    ultima_atualizacao = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.categoria} - {self.subcategoria} - {self.quantidade} - {self.data_cautela.strftime("%Y-%m-%d %H:%M:%S")}'
+
+
+# Nova Classe: Item de Armamento Cautelado
+class ArmamentoCautelado(models.Model):
+    cautela = models.ForeignKey(CautelaDeArmamento, related_name='armamentos', on_delete=models.CASCADE)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    subcategoria = models.ForeignKey(Subcategoria, on_delete=models.CASCADE)
+    data_cautela = models.DateTimeField(auto_now_add=True)
+    ultima_atualizacao = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.categoria.nome} - {self.subcategoria.nome} - {self.data_cautela.strftime("%Y-%m-%d %H:%M:%S")}'
