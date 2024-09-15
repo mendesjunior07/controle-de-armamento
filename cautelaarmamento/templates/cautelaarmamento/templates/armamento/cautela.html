@@ -20,7 +20,6 @@ de Armamento {% endblock %} {% block content %}
     });
   });
 
-
   function atualizarQuantidadeTotal(selectElement) {
     var subcategoriaId = selectElement.value; // Obtém o ID da subcategoria selecionada
     var row = selectElement.closest("tr"); // Encontra a linha correspondente
@@ -51,20 +50,20 @@ de Armamento {% endblock %} {% block content %}
       quantidadeTotalInput.value = ""; // Limpa o campo se nenhuma subcategoria estiver selecionada
     }
   }
-  {% comment %} ################################# {% endcomment %}
+
   function showModal() {
     // Captura o valor selecionado do campo "Nome do Policial"
     var policialSelecionado = document.getElementById('mySelect').options[document.getElementById('mySelect').selectedIndex].text;
-  
+
     // Captura o valor selecionado do campo "Tipo de Serviço"
     var tipoServicoSelecionado = document.getElementById('tipo_servico').options[document.getElementById('tipo_servico').selectedIndex].text;
-  
+
     // Captura as categorias e subcategorias de armamento
     var categorias = document.getElementsByName('categorias[]');
     var subcategorias = document.getElementsByName('subcategorias[]');
     var categoriasSelecionadas = [];
     var subcategoriasSelecionadas = [];
-  
+
     // Itera sobre todas as categorias e subcategorias de armamento
     for (var i = 0; i < categorias.length; i++) {
       var categoriaNome = categorias[i].options[categorias[i].selectedIndex].text;
@@ -72,13 +71,13 @@ de Armamento {% endblock %} {% block content %}
       categoriasSelecionadas.push(categoriaNome);
       subcategoriasSelecionadas.push(subcategoriaNome);
     }
-  
+
     // Captura as categorias e subcategorias de munições
     var categoriasMunicoes = document.getElementsByName('categoria_municoes[]');
     var subcategoriasMunicoes = document.getElementsByName('subcategoria_municoes[]');
     var quantidadesMunicoes = document.getElementsByName('quantidade[]');
     var municoesSelecionadas = [];
-  
+
     // Itera sobre todas as categorias e subcategorias de munições
     for (var i = 0; i < categoriasMunicoes.length; i++) {
       var categoriaMunicaoNome = categoriasMunicoes[i].options[categoriasMunicoes[i].selectedIndex].text;
@@ -90,7 +89,7 @@ de Armamento {% endblock %} {% block content %}
         quantidade: quantidadeMunicao
       });
     }
-  
+
     // Monta o conteúdo do modal
     var detalhes = `
       <p><strong>Nome do Policial:</strong> ${policialSelecionado}</p>
@@ -104,31 +103,25 @@ de Armamento {% endblock %} {% block content %}
         ${municoesSelecionadas.map(municao => `<li>Categoria: ${municao.categoria}, Subcategoria: ${municao.subcategoria}, Quantidade: ${municao.quantidade}</li>`).join('')}
       </ul>
     `;
-  
+
     // Insere os detalhes no modal
     document.getElementById('confirmation-details').innerHTML = detalhes;
-  
+
     // Exibe o modal
     var modal = new bootstrap.Modal(document.getElementById('confirmModal'));
     modal.show();
   }
-  
 
-  {% comment %} #################################################### {% endcomment %}
   function submitForm() {
     document.getElementById('main-form').submit();
   }
+
   // Função para atualizar as subcategorias de armamento com base na categoria selecionada
   function updateSubcategoriasArmamento(rowId) {
     var formRow = document.getElementById(rowId);
-    var categoriaId = formRow.querySelector(
-      ".categoria-select-armamento"
-    ).value;
-    var subcategoriaSelect = formRow.querySelector(
-      ".subcategoria-select-armamento"
-    );
-    subcategoriaSelect.innerHTML =
-      '<option value="">Selecione uma Subcategoria</option>';
+    var categoriaId = formRow.querySelector(".categoria-select-armamento").value;
+    var subcategoriaSelect = formRow.querySelector(".subcategoria-select-armamento");
+    subcategoriaSelect.innerHTML = '<option value="">Selecione uma Subcategoria</option>';
 
     if (categoriaId) {
       fetch(`/subcategorias_armamento/${categoriaId}/`)
@@ -140,10 +133,12 @@ de Armamento {% endblock %} {% block content %}
         })
         .then((data) => {
           data.forEach((subcategoria) => {
-            var option = document.createElement("option");
-            option.value = subcategoria.id;
-            option.textContent = subcategoria.nome;
-            subcategoriaSelect.appendChild(option);
+            if (subcategoria.situacao === 'disponivel') {
+              var option = document.createElement("option");
+              option.value = subcategoria.id;
+              option.textContent = subcategoria.nome;
+              subcategoriaSelect.appendChild(option);
+            }
           });
 
           // Re-inicializa o Select2 após adicionar as novas opções
@@ -162,11 +157,8 @@ de Armamento {% endblock %} {% block content %}
   function updateSubcategoriasMunicao(rowId) {
     var formRow = document.getElementById(rowId);
     var categoriaId = formRow.querySelector(".categoria-select-municao").value;
-    var subcategoriaSelect = formRow.querySelector(
-      ".subcategoria-select-municao"
-    );
-    subcategoriaSelect.innerHTML =
-      '<option value="">Selecione uma Subcategoria</option>';
+    var subcategoriaSelect = formRow.querySelector(".subcategoria-select-municao");
+    subcategoriaSelect.innerHTML = '<option value="">Selecione uma Subcategoria</option>';
 
     if (categoriaId) {
       fetch(`/subcategorias_municao/${categoriaId}/`)
@@ -178,10 +170,12 @@ de Armamento {% endblock %} {% block content %}
         })
         .then((data) => {
           data.forEach((subcategoria) => {
-            var option = document.createElement("option");
-            option.value = subcategoria.id;
-            option.textContent = subcategoria.nome;
-            subcategoriaSelect.appendChild(option);
+            if (subcategoria.situacao === 'disponivel') {
+              var option = document.createElement("option");
+              option.value = subcategoria.id;
+              option.textContent = subcategoria.nome;
+              subcategoriaSelect.appendChild(option);
+            }
           });
 
           // Re-inicializa o Select2 após adicionar as novas opções
@@ -214,79 +208,56 @@ de Armamento {% endblock %} {% block content %}
     // Adicione o conteúdo da nova linha
     if (tipo === "armamento") {
       newRow.innerHTML = `
-            <td>
-              <select id="categoria${
-                rowCount + 1
-              }" class="form-select categoria-select-armamento select2" name="categorias[]"
-              onchange="updateSubcategoriasArmamento('${newRowId}')">
-                <option value="">Selecione uma Categoria</option>
-                {% for categoria in categorias %}
-                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
-                {% endfor %}
-              </select>
-            </td>
-            <td>
-              <select id="subcategoria${
-                rowCount + 1
-              }" class="form-select subcategoria-select-armamento select2" name="subcategorias[]" required>
-                <option value="">Selecione uma Subcategoria</option>
-              </select>
-            </td>
-            <td>
-              <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
-            </td>
-        `;
+        <td>
+          <select class="form-control categoria-select-armamento" onchange="updateSubcategoriasArmamento('${newRowId}')">
+            <option value="">Selecione uma Categoria</option>
+            <!-- As opções serão carregadas dinamicamente -->
+          </select>
+        </td>
+        <td>
+          <select class="form-control subcategoria-select-armamento" onchange="atualizarQuantidadeTotal(this)">
+            <option value="">Selecione uma Subcategoria</option>
+            <!-- As opções serão carregadas dinamicamente -->
+          </select>
+        </td>
+        <td><input type="number" class="form-control quantidade-total" readonly></td>
+        <td><button type="button" class="btn btn-danger" onclick="removeRow('${newRowId}', '${tableId}')">Remover</button></td>
+      `;
     } else if (tipo === "municao") {
       newRow.innerHTML = `
-            <td>
-              <select id="categoriaM${
-                rowCount + 1
-              }" class="form-select categoria-select-municao select2" name="categoria_municoes[]"
-              onchange="updateSubcategoriasMunicao('${newRowId}')">
-                <option value="">Selecione uma Categoria</option>
-                {% for categoria_municao in categorias_municoes %}
-                <option value="{{ categoria_municao.id }}">{{ categoria_municao.nome }}</option>
-                {% endfor %}
-              </select>
-            </td>
-            <td>
-              <select id="subcategoriaM${
-                rowCount + 1
-              }" class="form-select subcategoria-select-municao select2" name="subcategoria_municoes[]" required onchange="atualizarQuantidadeTotal(this)">
-                <option value="">Selecione uma Subcategoria</option>
-              </select>
-            </td>
-            <td>
-              <input type="number" class="form-control quantidade-total" name="quantidade_total[]" readonly>
-            </td>
-            <td>
-              <input type="number" class="form-control" name="quantidade[]" min="1" oninput="atualizarQuantidadeRestante(this)" required>
-            </td>
-            <td>
-              <button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)">-</button>
-            </td>
-        `;
+        <td>
+          <select class="form-control categoria-select-municao" onchange="updateSubcategoriasMunicao('${newRowId}')">
+            <option value="">Selecione uma Categoria</option>
+            <!-- As opções serão carregadas dinamicamente -->
+          </select>
+        </td>
+        <td>
+          <select class="form-control subcategoria-select-municao" onchange="atualizarQuantidadeTotal(this)">
+            <option value="">Selecione uma Subcategoria</option>
+            <!-- As opções serão carregadas dinamicamente -->
+          </select>
+        </td>
+        <td><input type="number" class="form-control quantidade" name="quantidade[]" onchange="atualizarQuantidadeTotal(this)"></td>
+        <td><button type="button" class="btn btn-danger" onclick="removeRow('${newRowId}', '${tableId}')">Remover</button></td>
+      `;
     }
 
     // Adicione a nova linha ao corpo da tabela
     tableBody.appendChild(newRow);
-
-    // Reinitialize Select2 for the new select elements
+    
+    // Re-inicialize o Select2 para os novos selects
     $(`#${newRowId} .select2`).select2({
       placeholder: "Digite para buscar...",
       allowClear: true,
     });
   }
 
-  function removeRow(button) {
-    var row = button.closest("tr");
-    if (row.parentNode.rows.length > 1) {
-      row.remove();
-    } else {
-      alert("Não é possível remover todas as linhas.");
-    }
+  function removeRow(rowId, tableId) {
+    var row = document.getElementById(rowId);
+    row.parentNode.removeChild(row);
   }
 </script>
+
 
 <div class="container mt-4">
   <h1 class="mb-4 text-center">CAUTELA DE ARMAMENTO E EQUIPAMENTO</h1>

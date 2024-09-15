@@ -2,29 +2,6 @@ from django.db import models
 from django.core.exceptions import ValidationError
 import re
 
-# Definição da classe Categoria
-class Categoria(models.Model):
-    nome = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.nome
-
-# Definição da classe Subcategoria
-class Subcategoria(models.Model):
-    SITUACAO_CHOICES = [
-        ('disponivel', 'Disponível'),
-        ('indisponivel', 'Indisponível'),
-        ('em_manutencao', 'Em manutenção'),
-        ('cautelada', 'Cautelada'),
-    ]
-
-    nome = models.CharField(max_length=100)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias_armamento')
-    situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES)
-
-    def __str__(self):
-        return f'{self.nome} - {self.get_situacao_display()}'
-
 # Definição da classe Policial
 class Policial(models.Model):
     nome_completo = models.CharField(max_length=255)
@@ -45,6 +22,12 @@ class Policial(models.Model):
     def __str__(self):
         return self.nome_completo
 
+# Definição da classe Categoria
+class Categoria(models.Model):
+    nome = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nome
 
 # Definição da classe CautelaDeArmamento
 class CautelaDeArmamento(models.Model):
@@ -58,12 +41,47 @@ class CautelaDeArmamento(models.Model):
     tipo_servico = models.CharField(max_length=10, choices=SERVICO_CHOICES)
     policial = models.ForeignKey(Policial, on_delete=models.CASCADE)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    subcategoria = models.ForeignKey(Subcategoria, on_delete=models.CASCADE)
+    subcategoria = models.ForeignKey('Subcategoria', on_delete=models.CASCADE)  # Referência futura
     hora = models.DateTimeField(auto_now_add=True)
     data = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.policial.nome_completo} - {self.categoria.nome} - {self.subcategoria.nome} - {self.data} - {self.hora.strftime("%Y-%m-%d %H:%M:%S")}'
+
+# Definição da classe Subcategoria
+class Subcategoria(models.Model):
+    SITUACAO_CHOICES = [
+        ('disponivel', 'Disponível'),
+        ('indisponivel', 'Indisponível'),
+        ('em_manutencao', 'Em manutenção'),
+        ('cautelada', 'Cautelada'),
+    ]
+
+    nome = models.CharField(max_length=100)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='subcategorias_armamento')
+    situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES)
+
+    # Adicionando os novos campos
+
+    def __str__(self):
+        return f'{self.nome} - {self.categoria.nome} - {self.get_situacao_display()}'
+
+# Função de validação de CPF
+def validar_cpf(cpf):
+    cpf = re.sub(r'\D', '', cpf)
+    if len(cpf) != 11 or cpf == cpf[0] * 11:
+        return False
+    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
+    resto = 11 - (soma % 11)
+    if resto > 9:
+        resto = 0
+    if int(cpf[9]) != resto:
+        return False
+    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
+    resto = 11 - (soma % 11)
+    if resto > 9:
+        resto = 0
+    return int(cpf[10]) == resto
 
 # Definição da classe Categoria de Munição
 class CategoriaMunicao(models.Model):
@@ -90,23 +108,6 @@ class CautelaDeMunicoes(models.Model):
     def __str__(self):
         return f'{self.categoria} - {self.subcategoria} - {self.quantidade}'
 
-# Função de validação de CPF
-def validar_cpf(cpf):
-    cpf = re.sub(r'\D', '', cpf)
-    if len(cpf) != 11 or cpf == cpf[0] * 11:
-        return False
-    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))
-    resto = 11 - (soma % 11)
-    if resto > 9:
-        resto = 0
-    if int(cpf[9]) != resto:
-        return False
-    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))
-    resto = 11 - (soma % 11)
-    if resto > 9:
-        resto = 0
-    return int(cpf[10]) == resto
-
 # Nova Classe: Item de Munição Cautelada
 class MunicaoCautelada(models.Model):
     cautela = models.ForeignKey(CautelaDeArmamento, related_name='municoes', on_delete=models.CASCADE)
@@ -119,13 +120,15 @@ class MunicaoCautelada(models.Model):
     def __str__(self):
         return f'{self.categoria} - {self.subcategoria} - {self.quantidade} - {self.data_cautela.strftime("%Y-%m-%d %H:%M:%S")}'
 
-
 # Nova Classe: Item de Armamento Cautelado
 class ArmamentoCautelado(models.Model):
     cautela = models.ForeignKey(CautelaDeArmamento, related_name='armamentos', on_delete=models.CASCADE)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     subcategoria = models.ForeignKey(Subcategoria, on_delete=models.CASCADE)
     data_cautela = models.DateTimeField(auto_now_add=True)
+    nome_guerra = models.ForeignKey(Policial, on_delete=models.SET_NULL, null=True, blank=True, related_name='subcategorias_armamento')  # Nome do policial
+    tipo_servico = models.CharField(max_length=10, choices=CautelaDeArmamento.SERVICO_CHOICES, null=True, blank=True)  # Tipo de serviço
+
     ultima_atualizacao = models.DateTimeField(auto_now=True)
 
     def __str__(self):
