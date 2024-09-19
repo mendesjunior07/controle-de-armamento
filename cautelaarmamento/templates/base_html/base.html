@@ -40,13 +40,15 @@
                         <a href="{% url 'cautelar_de_armamento' %}" class="sidebar-link">Cautela de armamento</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'descautelar_armamento' %}" class="sidebar-link">Descautela de armamento</a>
+                        <a href="{% url 'listar_cautelas' %}" class="sidebar-link">Descautela de armamento</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'cadastrar_pessoa' %}" class="sidebar-link">Cadastro de Policiais Militares</a>
+                        {% comment %} <a href="{% url 'cadastrar_pessoa' %}" class="sidebar-link">Cadastro de Policiais Militares</a> {% endcomment %}
+                        <a href="#" class="sidebar-link">Cadastro de Policiais Militares</a>
                     </li>
                 </ul>
             </li>
+            
             {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %} {% comment %} ###################### INVENTARIO DE ARMAS #################### {% endcomment %} {% comment %} ##############################################################{% endcomment %}
             <li class="sidebar-item">
                 <a href="#inventario" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#inventario" aria-expanded="false" aria-controls="inventario">
@@ -58,10 +60,12 @@
                         <a href="#" class="sidebar-link">Itens Disponíveis</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a>
+                        {% comment %} <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a> {% endcomment %}
+                        <a href="#" 'inventario_equ class="sidebar-link">Inventário de Equipamentos</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'listar_armamentos' %}" class="sidebar-link">Armas e Materiais</a>
+                        {% comment %} <a href="{% url 'listar_armamentos' %}" class="sidebar-link">Armas e Materiais</a> {% endcomment %}
+                        <a href="#" class="sidebar-link">Armas e Materiais</a>
                     </li>
                 </ul>
             </li>

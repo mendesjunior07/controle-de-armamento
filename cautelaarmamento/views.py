@@ -24,17 +24,15 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Sum
 from django.db import transaction
-from django.views.decorators.http import require_POST
 from .models import (
     Categoria, 
     CautelaDeArmamento, 
     Subcategoria, 
     Policial, 
     CategoriaMunicao, 
-    MunicaoCautelada,
     SubcategoriaMunicao, 
-    ArmamentoCautelado,
-    CautelaDeMunicoes
+    CautelaDeMunicoes,
+    RegistroCautelaCompleta
 )
 
 def index(request):
@@ -46,41 +44,92 @@ def cautela_de_armamento_view(request):
         # Obtém os dados do formulário
         policial_id = request.POST.get('policial')
         tipo_servico = request.POST.get('tipo_servico')
-        categorias = request.POST.getlist('categorias[]')
-        subcategorias = request.POST.getlist('subcategorias[]')
+        categorias_armamento = request.POST.getlist('categorias[]')
+        subcategorias_armamento = request.POST.getlist('subcategorias[]')
+        categorias_municao = request.POST.getlist('categoria_municoes[]')
+        subcategorias_municao = request.POST.getlist('subcategoria_municoes[]')
+        quantidades_municao = request.POST.getlist('quantidade[]')
 
-        # Verifica se todos os dados obrigatórios foram fornecidos
-        if not policial_id or not tipo_servico or not categorias or not subcategorias:
-            return JsonResponse({'error': 'Todos os campos obrigatórios devem ser preenchidos.'}, status=400)
+        # Verifica se os campos obrigatórios foram preenchidos
+        if not policial_id or not tipo_servico:
+            return JsonResponse({'error': 'Os campos Nome do Policial e Tipo de Serviço são obrigatórios.'}, status=400)
 
-        # Recupera o policial selecionado
+        # Verifica se pelo menos um grupo (armamento ou munição) foi preenchido
+        if not (categorias_armamento and subcategorias_armamento) and not (categorias_municao and subcategorias_municao and quantidades_municao):
+            return JsonResponse({'error': 'Preencha pelo menos um dos grupos: armamento ou munição.'}, status=400)
+
         policial = get_object_or_404(Policial, id=policial_id)
+        armeiro = request.user
 
-        # Inicia uma transação para garantir a integridade dos dados
-        with transaction.atomic():
-            # Cria instâncias de CautelaDeArmamento e atualiza subcategorias
-            for categoria_id, subcategoria_id in zip(categorias, subcategorias):
-                # Recupera a categoria e subcategoria para evitar IDs inválidos
-                categoria = get_object_or_404(Categoria, id=categoria_id)
-                subcategoria = get_object_or_404(Subcategoria, id=subcategoria_id)
+        try:
+            with transaction.atomic():
+                # Inicializa variáveis para munição e armamento para uso posterior
+                categoria_armamento_nome = None
+                subcategoria_armamento_nome = None
+                categoria_municao_nome = None
+                subcategoria_municao_nome = None
+                quantidade_total_municao = 0
 
-                # Cria a instância de CautelaDeArmamento
-                CautelaDeArmamento.objects.create(
+                # Salvar dados da cautela de armamento, se presentes
+                if categorias_armamento and subcategorias_armamento:
+                    for categoria_id, subcategoria_id in zip(categorias_armamento, subcategorias_armamento):
+                        if categoria_id and subcategoria_id:  # Verifica se os IDs não estão em branco
+                            categoria_armamento = get_object_or_404(Categoria, id=categoria_id)
+                            subcategoria_armamento = get_object_or_404(Subcategoria, id=subcategoria_id)
+
+                            # Salva registro no modelo de Cautela de Armamento
+                            CautelaDeArmamento.objects.create(
+                                policial=policial,
+                                tipo_servico=tipo_servico,
+                                categoria=categoria_armamento,
+                                subcategoria=subcategoria_armamento,
+                                armeiro=armeiro
+                            )
+                            subcategoria_armamento.situacao = 'cautelada'
+                            subcategoria_armamento.save()
+
+                            # Armazena os nomes para o registro final
+                            categoria_armamento_nome = categoria_armamento.nome
+                            subcategoria_armamento_nome = subcategoria_armamento.nome
+
+                # Salvar dados de munições, se presentes
+                if categorias_municao and subcategorias_municao and quantidades_municao:
+                    for categoria_id, subcategoria_id, quantidade in zip(categorias_municao, subcategorias_municao, quantidades_municao):
+                        if categoria_id and subcategoria_id and quantidade:  # Verifica se os IDs e quantidade não estão em branco
+                            categoria_municao = get_object_or_404(CategoriaMunicao, id=categoria_id)
+                            subcategoria_municao = get_object_or_404(SubcategoriaMunicao, id=subcategoria_id)
+
+                            # Salva registro no modelo de Cautela de Munição
+                            CautelaDeMunicoes.objects.create(
+                                policial=policial,
+                                categoria=categoria_municao,
+                                subcategoria=subcategoria_municao,
+                                quantidade=int(quantidade)
+                            )
+
+                            # Armazena os nomes para o registro final
+                            categoria_municao_nome = categoria_municao.nome
+                            subcategoria_municao_nome = subcategoria_municao.nome
+                            quantidade_total_municao += int(quantidade)
+
+                # Registro na nova model com todos os detalhes
+                RegistroCautelaCompleta.objects.create(
                     policial=policial,
                     tipo_servico=tipo_servico,
-                    categoria=categoria,  # Certifique-se de que a categoria é um objeto válido
-                    subcategoria=subcategoria
+                    categoria_armamento=categoria_armamento_nome,
+                    subcategoria_armamento=subcategoria_armamento_nome,
+                    categoria_municao=categoria_municao_nome,
+                    subcategoria_municao=subcategoria_municao_nome,
+                    quantidade_municao=quantidade_total_municao,
+                    armeiro=armeiro
                 )
 
-                # Atualiza a situação da subcategoria para "cautelada"
-                subcategoria.situacao = 'cautelada'
-                subcategoria.save()
-                print(f"Subcategoria {subcategoria_id} atualizada para 'cautelada'.")
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 
-        # Redireciona para a página de sucesso após o processamento
         return redirect('sucesso')
 
-    # Caso o método seja GET, busca os dados necessários para preencher o formulário
+    # Renderiza o template de cautela
     policiais = Policial.objects.all()
     tipos_servico = CautelaDeArmamento.SERVICO_CHOICES
     categorias_servico = Categoria.objects.all()
@@ -88,11 +137,12 @@ def cautela_de_armamento_view(request):
     categoria_municoes = CategoriaMunicao.objects.all()
     subcategoria_municoes = SubcategoriaMunicao.objects.all()
 
-    # Calcula a quantidade total de munições usando aggregate e Sum
+    # Calcula a quantidade total de munições
     quantidade_total = CautelaDeMunicoes.objects.aggregate(total=Sum('quantidade'))['total']
     if quantidade_total is None:
         quantidade_total = 0
 
+    # Monta o contexto corretamente como um dicionário
     context = {
         'policiais': policiais,
         'categorias': categorias_servico,
@@ -103,9 +153,14 @@ def cautela_de_armamento_view(request):
         'quantidade_total': quantidade_total
     }
 
-    # Renderiza o template correto
     return render(request, 'armamento/cautela.html', context)
 
+
+
+
+############################# AJAX ###################################
+######################################################################
+# busca todas as subcategorias relacionadas a armamento
 
 def get_subcategorias_armamento(request, categoria_id):
     try:
@@ -117,12 +172,15 @@ def get_subcategorias_armamento(request, categoria_id):
     data = [{"id": subcategoria.id, "nome": subcategoria.nome} for subcategoria in subcategorias]
     return JsonResponse(data, safe=False)
 
+# busca todas as subcategorias relacionadas a munição
+
 def get_subcategorias_municao(request, categoria_id):
     categoria = get_object_or_404(CategoriaMunicao, id=categoria_id)
     subcategorias = categoria.subcategorias.all()
     data = [{"id": subcategoria.id, "nome": subcategoria.nome} for subcategoria in subcategorias]
     return JsonResponse(data, safe=False)
 
+# busca todas as quantidades de munições
 def obter_quantidade_total(request, subcategoria_id):
     try:
         subcategoria = get_object_or_404(SubcategoriaMunicao, id=subcategoria_id)
@@ -130,25 +188,38 @@ def obter_quantidade_total(request, subcategoria_id):
         return JsonResponse({'quantidade': total_municoes})
     except SubcategoriaMunicao.DoesNotExist:
         return JsonResponse({'error': 'Subcategoria não encontrada'}, status=404)
+    
+def listar_registros_cautela(request):
+    # Recupera todos os registros de cautela do banco de dados
+    registros = RegistroCautelaCompleta.objects.all()
 
+    # Passa os registros para o template
+    context = {
+        'registros': registros
+    }
 
-def inventario_equipamentos(request):
-    equipamentos = CautelaDeArmamento.objects.all()
-    context = {'equipamentos': equipamentos}
-    return render(request, 'inventario.html', context)
+    return render(request, 'armamento/descautela.html', context)
 
-def descautelar_armamento(request):
-    if request.method == 'POST':
-        cautela_id = request.POST.get('cautela_id')
-        cautela = get_object_or_404(CautelaDeArmamento, id=cautela_id)
-        cautela.delete()
-        return JsonResponse({'success': True})
-    return JsonResponse({'success': False})
+######################################################################
+######################################################################
 
-def listar_armamentos(request):
-    armamentos = CautelaDeArmamento.objects.all()
-    context = {'armamentos': armamentos}
-    return render(request, 'listar_armamentos.html', context)
+# def inventario_equipamentos(request):
+#     equipamentos = CautelaDeArmamento.objects.all()
+#     context = {'equipamentos': equipamentos}
+#     return render(request, 'inventario.html', context)
+
+# def descautelar_armamento(request):
+#     if request.method == 'POST':
+#         cautela_id = request.POST.get('cautela_id')
+#         cautela = get_object_or_404(CautelaDeArmamento, id=cautela_id)
+#         cautela.delete()
+#         return JsonResponse({'success': True})
+#     return JsonResponse({'success': False})
+
+# def listar_armamentos(request):
+#     armamentos = CautelaDeArmamento.objects.all()
+#     context = {'armamentos': armamentos}
+#     return render(request, 'listar_armamentos.html', context)
 
 def cadastrar_pessoa(request):
     if request.method == 'POST':

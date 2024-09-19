@@ -1,81 +1,80 @@
 {% extends 'base_html/base.html' %}
 
+{% block title %}Lista de Cautelas{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>Descautelar Armamento</h2>
-    <ul class="list-group">
-        {% if cautelas %}
-            {% for cautela in cautelas %}
-            <li class="list-group-item">
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Registros de Cautelas</h2>
+    
+    <!-- Campo de pesquisa -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="search_input" class="form-label">Pesquisar</label>
+            <input type="text" id="search_input" class="form-control" placeholder="Digite para pesquisar...">
+        </div>
+    </div>
 
-                <button type="button" class="btn btn-danger float-end" data-bs-toggle="modal" data-bs-target="#confirmModalAlteracao{{ cautela.id }}">
-                    Descautelar com Alteração
-                </button>
-
-                {{ cautela.policial.nome }} - {{ cautela.armamento.tipo }} / {{ cautela.armamento.modelo }} / {{ cautela.armamento.numero_de_serie }}
-                <button type="button" class="btn btn-warning float-end me-2" data-bs-toggle="modal" data-bs-target="#confirmModal{{ cautela.id }}">
-                    Descautelar
-                </button>
-
-                <!-- Modal de confirmação -->
-                <div class="modal fade" id="confirmModal{{ cautela.id }}" tabindex="-1" aria-labelledby="confirmModalLabel{{ cautela.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="confirmModalLabel{{ cautela.id }}">Confirmação de Descautelamento</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                Você tem certeza que deseja descautelar o armamento "{{ cautela.armamento.tipo }} - {{ cautela.armamento.modelo }}" do policial "{{ cautela.policial.nome }}"?
-                            </div>                            
-                            <div class="modal-footer">
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="cautela_id" value="{{ cautela.id }}">
-
-                                    <button type="submit" class="btn btn-danger">Descautelar</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal de confirmação com alteração -->
-                <div class="modal fade" id="confirmModalAlteracao{{ cautela.id }}" tabindex="-1" aria-labelledby="confirmModalAlteracaoLabel{{ cautela.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="confirmModalAlteracaoLabel{{ cautela.id }}">Confirmação de Alteração</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="cautela_id" value="{{ cautela.id }}">
-                                    
-                                    <div class="mb-3">
-                                        <label for="novo_policial{{ cautela.id }}" class="form-label">Selecionar a alteração encontrada</label>
-                                        <select class="form-select" name="alteracao" id="novo_policial{{ cautela.id }}" required>
-                                            {% for key, value in status_disponibilidade_choices %}
-                                                <option value="{{ key }}">{{ value }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                            
-                                    <button type="submit" class="btn btn-danger">Confirmar Alteração</button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </li>
+    <!-- Tabela de registros -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Data e Hora</th>
+                <th>Policial</th>
+                <th>Tipo de Serviço</th>
+                <th>Categoria Armamento</th>
+                <th>Subcategoria Armamento</th>
+                <th>Categoria Munição</th>
+                <th>Subcategoria Munição</th>
+                <th>Quantidade Munição</th>
+                <th>Armeiro</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="registros_tbody">
+            {% for registro in registros %}
+            <tr>
+                <td>{{ registro.data_hora }}</td>
+                <td>{{ registro.policial.nome }}</td>
+                <td>{{ registro.tipo_servico }}</td>
+                <td>{{ registro.categoria_armamento }}</td>
+                <td>{{ registro.subcategoria_armamento }}</td>
+                <td>{{ registro.categoria_municao }}</td>
+                <td>{{ registro.subcategoria_municao }}</td>
+                <td>{{ registro.quantidade_municao }}</td>
+                <td>{{ registro.armeiro.username }}</td>
+                <td>
+                    <button class="btn btn-danger btn-sm">Descautela S/A</button>
+                    <button class="btn btn-primary btn-sm">Descautela C/A</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10" class="text-center">Nenhum registro encontrado</td>
+            </tr>
             {% endfor %}
-        {% else %}
-            <li class="list-group-item">Nenhum item para descautelar.</li>
-        {% endif %}
-    </ul>
+        </tbody>
+    </table>
 </div>
+
+<!-- Script para filtro de pesquisa personalizada -->
+<script>
+    // Função de filtro personalizada
+    document.getElementById('search_input').addEventListener('keyup', function() {
+        var searchText = this.value.toLowerCase(); // Captura o valor da pesquisa e converte para minúsculas
+        var registros = document.querySelectorAll('#registros_tbody tr'); // Seleciona todas as linhas da tabela
+
+        registros.forEach(function(registro) {
+            var matchFound = false;
+            // Itera sobre todas as células da linha
+            registro.querySelectorAll('td').forEach(function(td) {
+                if (td.textContent.toLowerCase().includes(searchText)) {
+                    matchFound = true; // Verifica se alguma célula contém o texto digitado
+                }
+            });
+            // Exibe ou oculta a linha com base no resultado da pesquisa
+            registro.style.display = matchFound ? '' : 'none';
+        });
+    });
+</script>
+
 {% endblock %}
