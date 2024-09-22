@@ -325,6 +325,18 @@ de Armamento {% endblock %} {% block content %}
     }
   }
 
+  function atualizarQuantidadeRestante(inputElement) {
+    var quantidadeDigitada = parseInt(inputElement.value);
+    var row = inputElement.closest('tr');
+    var quantidadeTotalInput = row.querySelector('.quantidade-total');
+    var quantidadeTotal = parseInt(quantidadeTotalInput.value);
+
+    if (quantidadeDigitada > quantidadeTotal) {
+        alert('A quantidade selecionada não pode ser maior que o total disponível.');
+        inputElement.value = quantidadeTotal;  // Ajusta o valor para o máximo disponível
+    }
+}
+
   function removeRow(rowId, tableId) {
     var row = document.getElementById(rowId);
     row.parentNode.removeChild(row);

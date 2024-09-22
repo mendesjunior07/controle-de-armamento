@@ -43,7 +43,12 @@
                 <td>{{ registro.quantidade_municao }}</td>
                 <td>{{ registro.armeiro.username }}</td>
                 <td>
-                    <button class="btn btn-danger btn-sm">Descautela S/A</button>
+                    <form method="POST" action="{% url 'descautelar_sa' %}" id="form-descautelar-sa-{{ registro.id }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="registro_id" value="{{ registro.id }}">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="descautelarMunicao({{ registro.id }})">Descautela S/A</button>
+                    </form>
+
                     <button class="btn btn-primary btn-sm">Descautela C/A</button>
                 </td>
             </tr>
@@ -58,6 +63,12 @@
 
 <!-- Script para filtro de pesquisa personalizada -->
 <script>
+    function descautelarMunicao(registroId) {
+        var confirmacao = confirm('Tem certeza que deseja descautelar esta munição?');
+        if (confirmacao) {
+            document.getElementById('form-descautelar-sa-' + registroId).submit();
+        }
+    }
     // Função de filtro personalizada
     document.getElementById('search_input').addEventListener('keyup', function() {
         var searchText = this.value.toLowerCase(); // Captura o valor da pesquisa e converte para minúsculas

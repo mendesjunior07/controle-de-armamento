@@ -40,7 +40,8 @@ from .views import (
     get_subcategorias_armamento,
     get_subcategorias_municao,
     obter_quantidade_total, sucesso_view,
-    listar_registros_cautela
+    listar_registros_cautela,
+    descautelar_sa,
 )
 
 urlpatterns = [
@@ -56,4 +57,5 @@ urlpatterns = [
     path('obter_quantidade_total/<int:subcategoria_id>/', obter_quantidade_total, name='obter_quantidade_total'),
     # path('create-cautela/', create_cautela, name='create_cautela'),
     path('listar-cautelas/', listar_registros_cautela, name='listar_cautelas'),
+    path('descautelar-sa/', descautelar_sa, name='descautelar_sa'),
 ]
