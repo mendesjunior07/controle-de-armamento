@@ -42,6 +42,7 @@ from .views import (
     obter_quantidade_total, sucesso_view,
     listar_registros_cautela,
     descautelar_sa,
+    descautelar_ca
 )
 
 urlpatterns = [
@@ -58,4 +59,5 @@ urlpatterns = [
     # path('create-cautela/', create_cautela, name='create_cautela'),
     path('listar-cautelas/', listar_registros_cautela, name='listar_cautelas'),
     path('descautelar-sa/', descautelar_sa, name='descautelar_sa'),
+    path('descautelar-ca/', descautelar_ca, name='descautelar_ca'),
 ]

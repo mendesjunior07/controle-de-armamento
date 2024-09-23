@@ -49,7 +49,7 @@
                         <button type="button" class="btn btn-danger btn-sm" onclick="descautelarMunicao({{ registro.id }})">Descautela S/A</button>
                     </form>
 
-                    <button class="btn btn-primary btn-sm">Descautela C/A</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#descautelarCAModal" onclick="openDescautelarModal({{ registro.id }}, '{{ registro.categoria_armamento }}', '{{ registro.subcategoria_armamento }}')">Descautela C/A</button>
                 </td>
             </tr>
             {% empty %}
@@ -61,7 +61,46 @@
     </table>
 </div>
 
-<!-- Script para filtro de pesquisa personalizada -->
+<!-- Modal para Descautela C/A -->
+<div class="modal fade" id="descautelarCAModal" tabindex="-1" aria-labelledby="descautelarCAModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="descautelarCAModalLabel">Descautelar Armamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="descautelarCAForm" method="POST" action="{% url 'descautelar_ca' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="registro_id" id="registro_id_modal"> <!-- Aqui o ID do registro a ser descautelado -->
+
+                    <div class="mb-3">
+                        <label for="situacao" class="form-label">Situação do Armamento</label>
+                        <select class="form-select" id="situacao" name="situacao" required>
+                            <option value="">Selecione uma situação</option>
+                            <option value="extraviado">Extraviado</option>
+                            <option value="roubado">Roubado</option>
+                            <option value="quebrado">Quebrado</option>
+                            <option value="furado">Furado</option>
+                            <option value="disparado">Disparado</option>
+                            <option value="disponivel">Disponível</option> <!-- Caso deseje reverter -->
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="observacao" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Confirmar Descautelar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Script para filtro de pesquisa personalizada e modal -->
 <script>
     function descautelarMunicao(registroId) {
         var confirmacao = confirm('Tem certeza que deseja descautelar esta munição?');
@@ -69,6 +108,19 @@
             document.getElementById('form-descautelar-sa-' + registroId).submit();
         }
     }
+
+    function openDescautelarModal(registroId, categoriaArmamento, subcategoriaArmamento) {
+        // Preenche o campo oculto com o ID do registro
+        document.getElementById('registro_id_modal').value = registroId;
+    
+        // Preenche as informações no título do modal (ou outro campo se necessário)
+        document.getElementById('descautelarCAModalLabel').innerText = `Descautelar Armamento: ${categoriaArmamento} - ${subcategoriaArmamento}`;
+    
+        // Exibe o modal
+        var modal = new bootstrap.Modal(document.getElementById('descautelarCAModal'));
+        modal.show();
+    }
+
     // Função de filtro personalizada
     document.getElementById('search_input').addEventListener('keyup', function() {
         var searchText = this.value.toLowerCase(); // Captura o valor da pesquisa e converte para minúsculas

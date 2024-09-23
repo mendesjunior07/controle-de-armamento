@@ -25,6 +25,7 @@ from django.http import JsonResponse
 from django.db.models import Sum
 from django.db import transaction
 from django.contrib import messages
+from django.utils import timezone
 from .models import (
     Categoria, 
     CautelaDeArmamento, 
@@ -33,7 +34,8 @@ from .models import (
     CategoriaMunicao, 
     SubcategoriaMunicao, 
     CautelaDeMunicoes,
-    RegistroCautelaCompleta
+    RegistroCautelaCompleta,
+    RegistroDescautelamento
 )
 
 def index(request):
@@ -255,30 +257,72 @@ def descautelar_sa(request):
                 subcategoria_municao.total_de_municoes += registro.quantidade_municao
                 subcategoria_municao.save()
 
+                # Registra o descautelamento no banco de dados
+                RegistroDescautelamento.objects.create(
+                    data_hora_cautela=registro.data_hora,
+                    policial=registro.policial,
+                    tipo_servico=registro.tipo_servico,
+                    categoria_armamento=None,  # S/A não tem armamento
+                    subcategoria_armamento=None,  # S/A não tem armamento
+                    categoria_municao=registro.categoria_municao,
+                    subcategoria_municao=registro.subcategoria_municao,
+                    quantidade_municao=registro.quantidade_municao,
+                    armeiro=registro.armeiro,
+                    data_descautelamento=timezone.now().date(),
+                    hora_descautelamento=timezone.now().time(),
+                )
+
                 # Mensagem de sucesso para munições
                 messages.success(request, 'Munições descauteladas com sucesso e retornadas ao estoque.')
             except SubcategoriaMunicao.DoesNotExist:
                 messages.error(request, 'Erro ao encontrar a subcategoria de munição.')
 
-        # Verifica se há armamento cautelado
-        if registro.categoria_armamento and registro.subcategoria_armamento:
-            try:
-                # Recupera a subcategoria de armamento
-                subcategoria_armamento = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-
-                # Modifica a situação do armamento para "disponível"
-                subcategoria_armamento.situacao = 'disponivel'
-                subcategoria_armamento.save()
-
-                # Mensagem de sucesso para armamento
-                messages.success(request, 'Armamento descautelado com sucesso e marcado como disponível.')
-            except Subcategoria.DoesNotExist:
-                messages.error(request, 'Erro ao encontrar a subcategoria de armamento.')
-
-        # Exclui o registro da cautela (opcional)
+        # Exclui o registro da cautela após o descautelamento
         registro.delete()
 
         # Redireciona de volta para a lista de registros
+        return redirect('listar_cautelas')
+
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+def descautelar_ca(request):
+    if request.method == 'POST':
+        registro_id = request.POST.get('registro_id')
+        situacao = request.POST.get('situacao')  # Obter a nova situação
+        observacao = request.POST.get('observacao', '')  # Obter a observação (opcional)
+
+        # Busca o registro da cautela
+        registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
+
+        # Atualiza a situação do armamento
+        if registro.categoria_armamento and registro.subcategoria_armamento:
+            subcategoria_armamento = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+
+            # Atualiza a situação do armamento
+            subcategoria_armamento.situacao = situacao  # Atualiza a situação com a escolha do modal
+            subcategoria_armamento.save()
+
+            # Registra o descautelamento no novo banco de dados
+            RegistroDescautelamento.objects.create(
+                data_hora_cautela=registro.data_hora,
+                policial=registro.policial,
+                tipo_servico=registro.tipo_servico,
+                categoria_armamento=registro.categoria_armamento,
+                subcategoria_armamento=registro.subcategoria_armamento,
+                categoria_municao=registro.categoria_municao,
+                subcategoria_municao=registro.subcategoria_municao,
+                quantidade_municao=registro.quantidade_municao,
+                armeiro=registro.armeiro,
+                data_descautelamento=timezone.now().date(),
+                hora_descautelamento=timezone.now().time(),
+            )
+
+            # Mensagem de sucesso
+            messages.success(request, f'Armamento descautelado com sucesso e marcado como {situacao}. Observação: {observacao}')
+        
+        # Se o registro tiver um armamento associado, ou mesmo sem, ele será excluído
+        registro.delete()  # Exclui o registro da tabela de cautelas
+
         return redirect('listar_cautelas')
 
     return JsonResponse({'error': 'Método não permitido'}, status=405)
