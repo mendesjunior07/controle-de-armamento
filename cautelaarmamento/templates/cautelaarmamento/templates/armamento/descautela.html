@@ -356,48 +356,69 @@ document.getElementById('formDescautelarSA').addEventListener('submit', function
 {% comment %} ################################################################################### {% endcomment %}
 
 // Função para abrir o modal de Descautela C/A - Armamento 
-
 function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcategoriaArmamento) {
     document.getElementById("registroIdInputCA").value = registroId;
     document.getElementById("categoriaArmamentoModal").innerText = categoriaArmamento;
     document.getElementById("subcategoriaArmamentoModal").innerText = subcategoriaArmamento;
-  
+
+    // Exibe o modal
     var myModalCA = new bootstrap.Modal(document.getElementById("descautelarCAModal"));
     myModalCA.show();
-  }
-  
-  // Função para submissão do formulário de descautela
-  document.getElementById('formDescautelarCA').addEventListener('submit', function (e) {
+}
+
+// Função para obter o token CSRF para o envio via AJAX
+function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken=')) {
+                cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Função para submissão do formulário de descautela
+document.getElementById('formDescautelarCA').addEventListener('submit', function (e) {
     e.preventDefault(); // Previne o comportamento padrão do formulário
-    
+
     var form = this;
     var registroId = document.getElementById("registroIdInputCA").value;
-    
+
     // Envia a requisição via AJAX
     fetch(form.action, {
-      method: 'POST',
-      body: new FormData(form),
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Fechar o modal após o sucesso
-          var myModalCA = bootstrap.Modal.getInstance(document.getElementById("descautelarCAModal"));
-          myModalCA.hide();
-  
-          // Remove a linha correspondente da tabela
-          var row = document.querySelector(`tr[data-registro-id="${registroId}"]`);
-          if (row) {
-            row.remove();
-          }
-        } else {
-          alert('Ocorreu um erro ao processar a descautela.');
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-CSRFToken': getCSRFToken()  // Inclui o CSRF token no cabeçalho
         }
-      })
-      .catch(error => {
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Fechar o modal após o sucesso
+            var myModalCA = bootstrap.Modal.getInstance(document.getElementById("descautelarCAModal"));
+            myModalCA.hide();
+
+            // Remove a linha correspondente da tabela (se aplicável)
+            var row = document.querySelector(`tr[data-registro-id="${registroId}"]`);
+            if (row) {
+                row.remove();
+            }
+        } else {
+            alert('Erro ao processar a descautela: ' + (data.error || 'Desconhecido.'));
+        }
+    })
+    .catch(error => {
         console.error('Erro:', error);
-      });
-  });
+        alert('Ocorreu um erro durante a solicitação.');
+    });
+});
+
   
 
 {% comment %} ################################################################################### {% endcomment %}

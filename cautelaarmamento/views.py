@@ -387,10 +387,8 @@ def descautelar_ca(request):
         # Captura as observações do modal
         observacao = request.POST.get('observacao', '')  # Observação pode estar vazia
         
-        # Verifica se a quantidade de munição foi enviada
-        quantidade_descautela = request.POST.get("quantidade_municao")
-        if quantidade_descautela is None:
-            return JsonResponse({'error': 'Quantidade de munição não foi fornecida.'}, status=400)
+        # Verifica se a quantidade de munição foi enviada, se não, atribui 0
+        quantidade_descautela = request.POST.get("quantidade_municao", "0")  # Se não enviada, define como "0"
 
         try:
             # Converte a quantidade de munição para um inteiro
@@ -399,21 +397,28 @@ def descautelar_ca(request):
             return JsonResponse({'error': 'Quantidade de munição inválida.'}, status=400)
 
         try:
-            # Obter o registro do banco de dados
+            # Obter o registro do banco de dados de RegistroCautelaCompleta
             registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
 
-            # Obter a subcategoria relacionada ao armamento pelo nome
-            subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+            # Atualiza a situação do armamento
+            if registro.categoria_armamento and registro.subcategoria_armamento:
+                subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+                subcategoria.situacao = nova_situacao
+                subcategoria.save()
 
-            # Atualizar o campo "situação" com o valor selecionado no modal
-            subcategoria.situacao = nova_situacao
-            subcategoria.save()
-
-            # Atualiza a quantidade de munição no banco de dados
-            cautela = get_object_or_404(CautelaDeMunicoes, id=registro_id)
-            nova_quantidade = cautela.quantidade + quantidade_descautela  # Adiciona a quantidade descautelada
-            cautela.quantidade = nova_quantidade  # Atualiza a quantidade no banco
-            cautela.save()
+            # Verifica se há munição cautelada e processa
+            if registro.categoria_municao and registro.subcategoria_municao:
+                # Buscar pela subcategoria de munição e o policial para garantir que está acessando o item correto
+                cautela = get_object_or_404(
+                    CautelaDeMunicoes,
+                    policial=registro.policial,
+                    categoria__nome=registro.categoria_municao,
+                    subcategoria__nome=registro.subcategoria_municao
+                )
+                # Atualiza a quantidade de munição
+                nova_quantidade = cautela.quantidade + quantidade_descautela
+                cautela.quantidade = nova_quantidade
+                cautela.save()
 
             # Registrar o descautelamento no banco de dados com as observações
             RegistroDescautelamento.objects.create(
@@ -422,7 +427,7 @@ def descautelar_ca(request):
                 tipo_servico=registro.tipo_servico,
                 categoria_armamento=registro.categoria_armamento,
                 subcategoria_armamento=registro.subcategoria_armamento,
-                quantidade_municao=registro.quantidade_municao,
+                quantidade_municao=quantidade_descautela,  # Usamos a quantidade descautelada aqui
                 situacao_armamento=nova_situacao,
                 observacao=observacao,  # Salva as observações do modal
                 armeiro=registro.armeiro,
@@ -442,6 +447,8 @@ def descautelar_ca(request):
             return JsonResponse({'error': f'Erro no processamento: {str(e)}'}, status=500)
 
     return JsonResponse({'error': 'Método inválido'}, status=400)
+
+
 
 
 def atualizar_quantidade_municao(request):
