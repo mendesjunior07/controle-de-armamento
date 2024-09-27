@@ -1,8 +1,3 @@
-
-#########################################################################################################
-#########################################################################################################
-#########################################################################################################
-
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -39,7 +34,7 @@ class Subcategoria(models.Model):
     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')
 
     def __str__(self):
-        return f"{self.nome} ({self.categoria})"  # Incluí o nome da categoria para melhor contexto
+        return f"{self.nome} ({self.categoria})"
 
 
 # Modelo para Categoria de Munição
@@ -57,7 +52,7 @@ class SubcategoriaMunicao(models.Model):
     total_de_municoes = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"{self.nome} ({self.categoria})"  # Incluí o nome da categoria para melhor contexto
+        return f"{self.nome} ({self.categoria})"
 
 
 # Modelo para Cautela de Armamento
@@ -71,8 +66,8 @@ class CautelaDeArmamento(models.Model):
     tipo_servico = models.CharField(max_length=20, choices=SERVICO_CHOICES)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     subcategoria = models.ForeignKey(Subcategoria, on_delete=models.CASCADE)
-    hora_cautela = models.DateTimeField(default=timezone.now)  # Campo para a hora da cautela
-    armeiro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # Campo para o armeiro (usuário logado)
+    hora_cautela = models.DateTimeField(default=timezone.now)
+    armeiro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"{self.policial} - {self.categoria} - {self.subcategoria} ({self.tipo_servico})"
@@ -103,7 +98,9 @@ class RegistroCautelaCompleta(models.Model):
 
     def __str__(self):
         return f"{self.policial} - {self.tipo_servico} - {self.data_hora}"
-    
+
+
+# Modelo para Registro de Descautelamento
 class RegistroDescautelamento(models.Model):
     data_hora_cautela = models.DateTimeField()
     policial = models.ForeignKey('Policial', on_delete=models.CASCADE)
@@ -114,12 +111,18 @@ class RegistroDescautelamento(models.Model):
     subcategoria_municao = models.CharField(max_length=100, blank=True, null=True)
     quantidade_municao = models.PositiveIntegerField(default=0)
     
-    # Corrigir os campos de armeiro
+    # Novo campo para capturar a situação do armamento
+    situacao_armamento = models.CharField(max_length=20, blank=True, null=True)  # Nova situação do armamento
+
+    # Campo para observações adicionais
+    observacao = models.TextField(blank=True, null=True)  # Campo para observações
+    
+    # Atualização dos campos de armeiro
     armeiro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='registrodescautelamento_armeiro')
     armeiro_descautela = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='registrodescautelamento_armeiro_descautela')
 
-    data_descautelamento = models.DateField(auto_now_add=True)
-    hora_descautelamento = models.TimeField(auto_now_add=True)
+    data_descautelamento = models.DateField(auto_now_add=True)  # Grava automaticamente a data
+    hora_descautelamento = models.TimeField(auto_now_add=True)  # Grava automaticamente a hora
 
     def __str__(self):
         return f"{self.policial.nome} - {self.tipo_servico} - {self.data_descautelamento} {self.hora_descautelamento}"
