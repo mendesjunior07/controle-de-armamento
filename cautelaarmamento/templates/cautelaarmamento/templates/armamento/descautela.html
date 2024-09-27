@@ -1,9 +1,7 @@
-{% extends 'base_html/base.html' %}
-
-{% block title %}
-  Lista de Cautelas
-{% endblock %}
-
+{% extends 'base_html/base.html' %} 
+{% block title %} 
+  Lista de Cautelas 
+{% endblock %} 
 {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4 text-center">Registros de Cautelas</h2>
@@ -21,8 +19,8 @@
     </div>
   </div>
 
-<!-- Tabela de registros -->
-<table class="table table-bordered table-striped">
+  <!-- Tabela de registros -->
+  <table class="table table-bordered table-striped">
     <thead class="table-light">
       <tr>
         <th>Data e Hora</th>
@@ -57,7 +55,7 @@
           >
             Descautela S/A
           </button>
-  
+
           <!-- Verifica se a categoria de armamento está presente no registro -->
           {% if registro.categoria_armamento %}
           <!-- Se houver categoria de armamento, renderiza o botão de descautela com armamento (C/A) -->
@@ -70,11 +68,11 @@
           {% else %}
           <!-- Se não houver categoria de armamento, renderiza o botão para descautela de munição -->
           <button
-          class="btn btn-primary btn-sm"
-          onclick="openDescautelarMunicaoModal({{ registro.id }}, '{{ registro.categoria_municao }}', '{{ registro.subcategoria_municao }}', '{{ registro.quantidade_municao }}')"
-        >
-          Descautela C/A
-        </button>
+            class="btn btn-primary btn-sm"
+            onclick="openDescautelarMunicaoModal({{ registro.id }}, '{{ registro.categoria_municao }}', '{{ registro.subcategoria_municao }}', '{{ registro.quantidade_municao }}')"
+          >
+            Descautela C/A
+          </button>
           {% endif %}
         </td>
       </tr>
@@ -85,426 +83,407 @@
       {% endfor %}
     </tbody>
   </table>
-  
-{% comment %} ***************************************************************************************************
-***************************************************** MODAL *****************************************************
-*************************************************************************************************** {% endcomment %}
-<!-- Modal Descautela S/A -->
-<div
-  class="modal fade"
-  id="descautelarSAModal"
-  tabindex="-1"
-  aria-labelledby="descautelarSAModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="descautelarSAModalLabel">Descautela S/A</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Você tem certeza que deseja realizar a descautela S/A para o policial
-          <span id="policialNomeModal"></span>?
-        </p>
-        <form method="POST" action="{% url 'descautelar_sa' %}" id="formDescautelarSA">
+
+  {% comment %}
+  ***************************************************************************************************
+  ***************************************************** MODAL
+  *****************************************************
+  ***************************************************************************************************
+  {% endcomment %}
+  <!-- Modal Descautela S/A -->
+  <div
+    class="modal fade"
+    id="descautelarSAModal"
+    tabindex="-1"
+    aria-labelledby="descautelarSAModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="descautelarSAModalLabel">
+            Descautela S/A
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Você tem certeza que deseja realizar a descautela S/A para o
+            policial
+            <span id="policialNomeModal"></span>?
+          </p>
+          <form
+            method="POST"
+            action="{% url 'descautelar_sa' %}"
+            id="formDescautelarSA"
+          >
             {% csrf_token %}
-            <input type="hidden" name="registro_id" id="registroIdInput" value="" />
-            <button type="submit" class="btn btn-danger">Confirmar Descautela</button>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancelar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Descautela Armamento (C/A) -->
-<div
-  class="modal fade"
-  id="descautelarCAModal"
-  tabindex="-1"
-  aria-labelledby="descautelarCAModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="descautelarCAModalLabel">
-          Descautela C/A - Armamento
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Descautela de Armamento para
-          <span id="categoriaArmamentoModal"></span> -
-          <span id="subcategoriaArmamentoModal"></span>
-        </p>
-
-        <form
-          method="POST"
-          action="{% url 'descautelar_ca' %}"
-          id="formDescautelarCA"
-        >
-          {% csrf_token %}
-          <input
-            type="hidden"
-            name="registro_id"
-            id="registroIdInputCA"
-            value=""
-          />
-
-          <!-- Campo para Situação -->
-          <div class="mb-3">
-            <label for="situacaoSelect" class="form-label"
-              >Situação do Armamento</label
-            >
-            <select class="form-select" id="situacaoSelect" name="situacao">
-              <option value="disponivel">Disponível</option>
-              <option value="cautelada">Cautelada</option>
-              <option value="extraviado">Extraviado</option>
-              <option value="roubado">Roubado</option>
-              <option value="quebrado">Quebrado</option>
-              <option value="furado">Furado</option>
-              <option value="disparado">Disparado</option>
-            </select>
-          </div>
-
-          <!-- Novo campo de Observações -->
-          <div class="mb-3">
-            <label for="observacaoInput" class="form-label">Observações</label>
-            <textarea
-              class="form-control"
-              id="observacaoInput"
-              name="observacao"
-              rows="3"
-              placeholder="Adicione observações, se necessário"
-            ></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-primary">
-            Confirmar Descautela
-          </button>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancelar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Descautela Munição (C/A) -->
-<div
-  class="modal fade"
-  id="descautelarMunicaoModal"
-  tabindex="-1"
-  aria-labelledby="descautelarMunicaoModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="descautelarMunicaoModalLabel">
-          Descautela C/A - Munição
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <p>
-          Descautela de Munição da categoria
-          <span id="categoriaMunicaoModal"></span> -
-          <span id="subcategoriaMunicaoModal"></span>
-        </p>
-
-        <form
-          method="POST"
-          action="{% url 'descautelar_ca' %}"
-          id="formDescautelarMunicaoCA"
-        >
-          {% csrf_token %}
-          <input
-            type="hidden"
-            name="registro_id"
-            id="registroIdInputMunicaoCA"
-            value=""
-          />
-          <input
-            type="hidden"
-            name="quantidade_atual"
-            id="quantidadeAtualInputMunicaoCA"
-            value=""
-          />
-          <div class="mb-3">
-            <label for="quantidadeMunicaoInput" class="form-label"
-              >Quantidade de Munição</label
-            >
             <input
-              type="number"
-              class="form-control"
-              id="quantidadeMunicaoInput"
-              name="quantidade_municao"
-              min="1"
-              required
+              type="hidden"
+              name="registro_id"
+              id="registroIdInput"
+              value=""
             />
-          </div>
-          <!-- Campo para Situação -->
-          <div class="mb-3">
-            <label for="situacaoSelect" class="form-label"
-              >Situação do Armamento</label
-            >
-            <select class="form-select" id="situacaoSelect" name="situacao">
-              <option value="disponivel">Disponível</option>
-              <option value="cautelada">Cautelada</option>
-              <option value="extraviado">Extraviado</option>
-              <option value="roubado">Roubado</option>
-              <option value="quebrado">Quebrado</option>
-              <option value="furado">Furado</option>
-              <option value="disparado">Disparado</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary">
-            Confirmar Descautela
+            <button type="submit" class="btn btn-danger">
+              Confirmar Descautela
+            </button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
           </button>
-        </form>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          Cancelar
-        </button>
+    </div>
+  </div>
+
+  <!-- Modal Descautela Armamento (C/A) -->
+  <div
+    class="modal fade"
+    id="descautelarCAModal"
+    tabindex="-1"
+    aria-labelledby="descautelarCAModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="descautelarCAModalLabel">
+            Descautela C/A - Armamento
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Descautela de Armamento para
+            <span id="categoriaArmamentoModal"></span> -
+            <span id="subcategoriaArmamentoModal"></span>
+          </p>
+
+          <form
+            method="POST"
+            action="{% url 'descautelar_ca' %}"
+            id="formDescautelarCA"
+          >
+            {% csrf_token %}
+            <input
+              type="hidden"
+              name="registro_id"
+              id="registroIdInputCA"
+              value=""
+            />
+
+            <!-- Campo para Situação -->
+            <div class="mb-3">
+              <label for="situacaoSelect" class="form-label"
+                >Situação do Armamento</label
+              >
+              <select class="form-select" id="situacaoSelect" name="situacao">
+                <option value="disponivel">Disponível</option>
+                <option value="cautelada">Cautelada</option>
+                <option value="extraviado">Extraviado</option>
+                <option value="roubado">Roubado</option>
+                <option value="quebrado">Quebrado</option>
+                <option value="furado">Furado</option>
+                <option value="disparado">Disparado</option>
+              </select>
+            </div>
+
+            <!-- Novo campo de Observações -->
+            <div class="mb-3">
+              <label for="observacaoInput" class="form-label"
+                >Observações</label
+              >
+              <textarea
+                class="form-control"
+                id="observacaoInput"
+                name="observacao"
+                rows="3"
+                placeholder="Adicione observações, se necessário"
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              Confirmar Descautela
+            </button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Descautela Munição (C/A) -->
+  <div
+    class="modal fade"
+    id="descautelarMunicaoModal"
+    tabindex="-1"
+    aria-labelledby="descautelarMunicaoModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="descautelarMunicaoModalLabel">
+            Descautela C/A - Munição
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Descautela de Munição da categoria
+            <span id="categoriaMunicaoModal"></span> -
+            <span id="subcategoriaMunicaoModal"></span>
+          </p>
+
+          <form
+            method="POST"
+            action="{% url 'descautelar_municao_ca' %}"
+            <!--
+            Certifique-se
+            de
+            que
+            a
+            URL
+            está
+            correta
+            -- >
+            id="formDescautelarMunicaoCA" > {% csrf_token %}
+            <input
+              type="hidden"
+              name="registro_id"
+              id="registroIdInputMunicao"
+              value=""
+            />
+
+            <!-- Novo campo de Observações -->
+            <div class="mb-3">
+              <label for="observacaoInput" class="form-label"
+                >Observações</label
+              >
+              <textarea
+                class="form-control"
+                id="observacaoInput"
+                name="observacao"
+                rows="3"
+                placeholder="Adicione observações, se necessário"
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              Confirmar Descautela
+            </button>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
 
+  {% comment %}
+  *****************************************************************************************************
+  ***************************************************** SCRIPTS
+  *****************************************************
+  ***************************************************************************************************
+  {% endcomment %}
 
+  <script>
+        {% comment %} ################################################################################### {% endcomment %}
 
-{% comment %} *****************************************************************************************************
-***************************************************** SCRIPTS *****************************************************
-*************************************************************************************************** {% endcomment %}
+        // Função para submissão do formulário de descautela S/A via AJAX
 
-<script>
-{% comment %} ################################################################################### {% endcomment %}
+        function openDescautelarSAModal(registroId, policialNome) {
+            // Define o ID do registro e o nome do policial no modal
+            document.getElementById("registroIdInput").value = registroId;
+            document.getElementById("policialNomeModal").innerText = policialNome;
 
-// Função para submissão do formulário de descautela S/A via AJAX
+            // Exibe o modal de descautela S/A
+            var myModal = new bootstrap.Modal(document.getElementById("descautelarSAModal"));
+            myModal.show();
+        }
+        document.getElementById('formDescautelarSA').addEventListener('submit', function(e) {
+            e.preventDefault(); // Previne o comportamento padrão de envio do formulário
 
-function openDescautelarSAModal(registroId, policialNome) {
-    // Define o ID do registro e o nome do policial no modal
-    document.getElementById("registroIdInput").value = registroId;
-    document.getElementById("policialNomeModal").innerText = policialNome;
+            var form = this;
+            var registroId = document.getElementById("registroIdInput").value;
 
-    // Exibe o modal de descautela S/A
-    var myModal = new bootstrap.Modal(document.getElementById("descautelarSAModal"));
-    myModal.show();
-}
-document.getElementById('formDescautelarSA').addEventListener('submit', function(e) {
-    e.preventDefault(); // Previne o comportamento padrão de envio do formulário
-    
-    var form = this;
-    var registroId = document.getElementById("registroIdInput").value;
-    
-    // Envia a requisição via AJAX
-    fetch(form.action, {
-      method: 'POST',
-      body: new FormData(form),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Fecha o modal após o sucesso
-            var myModalSA = bootstrap.Modal.getInstance(document.getElementById("descautelarSAModal"));
-            myModalSA.hide();
-  
-            // Remove a linha correspondente da tabela
-            var row = document.querySelector(`tr[data-registro-id="${registroId}"]`);
-            if (row) {
-                row.remove();
+            // Envia a requisição via AJAX
+            fetch(form.action, {
+              method: 'POST',
+              body: new FormData(form),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fecha o modal após o sucesso
+                    var myModalSA = bootstrap.Modal.getInstance(document.getElementById("descautelarSAModal"));
+                    myModalSA.hide();
+
+                    // Remove a linha correspondente da tabela
+                    var row = document.querySelector(`tr[data-registro-id="${registroId}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+                } else {
+                    alert('Erro ao processar a descautela: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro ao processar a descautela.');
+            });
+        });
+
+        {% comment %} ################################################################################### {% endcomment %}
+
+        // Função para abrir o modal de Descautela C/A - Armamento
+        function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcategoriaArmamento) {
+            document.getElementById("registroIdInputCA").value = registroId;
+            document.getElementById("categoriaArmamentoModal").innerText = categoriaArmamento;
+            document.getElementById("subcategoriaArmamentoModal").innerText = subcategoriaArmamento;
+
+            // Exibe o modal
+            var myModalCA = new bootstrap.Modal(document.getElementById("descautelarCAModal"));
+            myModalCA.show();
+        }
+
+        // Função para obter o token CSRF para o envio via AJAX
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken=')) {
+                        cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                        break;
+                    }
+                }
             }
-        } else {
-            alert('Erro ao processar a descautela: ' + data.message);
+            return cookieValue;
         }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        alert('Ocorreu um erro ao processar a descautela.');
-    });
-});
 
-{% comment %} ################################################################################### {% endcomment %}
+        // Função para submissão do formulário de descautela
+        document.getElementById('formDescautelarCA').addEventListener('submit', function (e) {
+            e.preventDefault(); // Previne o comportamento padrão do formulário
 
-// Função para abrir o modal de Descautela C/A - Armamento 
-function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcategoriaArmamento) {
-    document.getElementById("registroIdInputCA").value = registroId;
-    document.getElementById("categoriaArmamentoModal").innerText = categoriaArmamento;
-    document.getElementById("subcategoriaArmamentoModal").innerText = subcategoriaArmamento;
+            var form = this;
+            var registroId = document.getElementById("registroIdInputCA").value;
 
-    // Exibe o modal
-    var myModalCA = new bootstrap.Modal(document.getElementById("descautelarCAModal"));
-    myModalCA.show();
-}
+            // Envia a requisição via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-CSRFToken': getCSRFToken()  // Inclui o CSRF token no cabeçalho
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fechar o modal após o sucesso
+                    var myModalCA = bootstrap.Modal.getInstance(document.getElementById("descautelarCAModal"));
+                    myModalCA.hide();
 
-// Função para obter o token CSRF para o envio via AJAX
-function getCSRFToken() {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken=')) {
-                cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+                    // Remove a linha correspondente da tabela (se aplicável)
+                    var row = document.querySelector(`tr[data-registro-id="${registroId}"]`);
+                    if (row) {
+                        row.remove();
+                    }
+                } else {
+                    alert('Erro ao processar a descautela: ' + (data.error || 'Desconhecido.'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Ocorreu um erro durante a solicitação.');
+            });
+        });
 
-// Função para submissão do formulário de descautela
-document.getElementById('formDescautelarCA').addEventListener('submit', function (e) {
-    e.preventDefault(); // Previne o comportamento padrão do formulário
 
-    var form = this;
-    var registroId = document.getElementById("registroIdInputCA").value;
 
-    // Envia a requisição via AJAX
-    fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: {
-            'X-CSRFToken': getCSRFToken()  // Inclui o CSRF token no cabeçalho
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Fechar o modal após o sucesso
-            var myModalCA = bootstrap.Modal.getInstance(document.getElementById("descautelarCAModal"));
-            myModalCA.hide();
+        {% comment %} ################################################################################### {% endcomment %}
 
-            // Remove a linha correspondente da tabela (se aplicável)
-            var row = document.querySelector(`tr[data-registro-id="${registroId}"]`);
-            if (row) {
-                row.remove();
-            }
-        } else {
-            alert('Erro ao processar a descautela: ' + (data.error || 'Desconhecido.'));
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        alert('Ocorreu um erro durante a solicitação.');
-    });
-});
-
-  
-
-{% comment %} ################################################################################### {% endcomment %}
-
-// Função para abrir o modal de Descautela C/A - Munição
-function openDescautelarMunicaoModal(
-  registroId,
-  categoriaMunicao,
-  subcategoriaMunicao,
-  quantidadeMunicao
-) {
-  // Atualiza os campos do modal com os valores correspondentes
-  document.getElementById("registroIdInputMunicaoCA").value = registroId;
-  document.getElementById("categoriaMunicaoModal").innerText = categoriaMunicao;
-  document.getElementById("subcategoriaMunicaoModal").innerText = subcategoriaMunicao;
-  document.getElementById("quantidadeMunicaoInput").value = quantidadeMunicao;
-
-  // Exibe o modal
-  var myModalMunicao = new bootstrap.Modal(document.getElementById("descautelarMunicaoModal"));
-  myModalMunicao.show();
-
-  // Remover o listener anterior, se houver
-  document.getElementById("formDescautelarMunicaoCA").onsubmit = function (event) {
-    event.preventDefault(); // Impede a submissão padrão do formulário
-
-    // Obter a quantidade atual de munição
-    var quantidadeAtual = parseInt(quantidadeMunicao);
-    var quantidadeDescautela = parseInt(document.getElementById("quantidadeMunicaoInput").value);
-
-    // Verifique se a quantidade a ser descautelada é válida
-    if (quantidadeDescautela > quantidadeAtual) {
-      alert('A quantidade a ser descautelada não pode ser maior que a quantidade atual.');
-      return;
+    // Função para abrir o modal manualmente
+    function abrirModalDescautelarMunicao() {
+        var myModal = new bootstrap.Modal(document.getElementById('descautelarMunicaoModal'), {});
+        myModal.show();
     }
 
-    // Calcular nova quantidade
-    var novaQuantidade = quantidadeAtual - quantidadeDescautela;
+    // Função para capturar e submeter os dados
+    document.getElementById("formDescautelarMunicaoCA").addEventListener("submit", function(event) {
+        event.preventDefault();  // Impede o comportamento padrão de recarregar a página
 
-    // Atualizar o valor do input com a nova quantidade
-    document.getElementById("quantidadeMunicaoInput").value = novaQuantidade;
+        // Captura o valor do campo de quantidade de munição
+        var quantidadeMunicao = document.getElementById("quantidadeMunicaoInput").value;
 
-    // Enviar o formulário via AJAX
-    var formData = new FormData(event.target);
-    fetch(event.target.action, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',  // Importante para Django reconhecer como AJAX
-        'X-CSRFToken': getCookie('csrftoken'), // Envia o CSRF Token
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert('Descautela realizada com sucesso!');
-        myModalMunicao.hide();
-        location.reload(); // Atualiza a página para refletir as mudanças
-      } else {
-        alert('Erro ao realizar descautela: ' + (data.message || ''));
-      }
-    })
-    .catch(error => {
-      console.error('Erro:', error);
+        // Captura outros dados do formulário (exemplo: registro_id)
+        var registroId = document.getElementById("registroIdInputMunicaoCA").value;
+
+        // Envia os dados via AJAX (fetch) para o backend sem recarregar a página
+        fetch("{% url 'descautelar_municao_ca' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                quantidade_municao: quantidadeMunicao,
+                registro_id: registroId
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert("Descautela realizada com sucesso!");
+                  // Atualize a página ou feche o modal conforme necessário
+                  location.reload();
+              } else {
+                  alert("Erro ao realizar descautela.");
+              }
+          }).catch((error) => {
+            console.error("Erro:", error);
+          });
     });
-  };
-}
+  </script>
 
-// Função para obter o cookie CSRF
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      // Verifica se este cookie começa com o nome que procuramos
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
-
-
-
-
-</script>
+</div>
 {% endblock %}

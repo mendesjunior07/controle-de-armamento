@@ -387,14 +387,9 @@ def descautelar_ca(request):
         # Captura as observações do modal
         observacao = request.POST.get('observacao', '')  # Observação pode estar vazia
         
-        # Verifica se a quantidade de munição foi enviada, se não, atribui 0
-        quantidade_descautela = request.POST.get("quantidade_municao", "0")  # Se não enviada, define como "0"
-
-        try:
-            # Converte a quantidade de munição para um inteiro
-            quantidade_descautela = int(quantidade_descautela)
-        except ValueError:
-            return JsonResponse({'error': 'Quantidade de munição inválida.'}, status=400)
+        # Captura a nova quantidade de munição após descautela
+        nova_quantidade_municao = int(request.POST.get("nova_quantidade_municao", 0))  # Valor após a descautela
+        quantidade_descautela = int(request.POST.get("quantidade_descautela", 0))  # Quantidade descautelada
 
         try:
             # Obter o registro do banco de dados de RegistroCautelaCompleta
@@ -415,10 +410,14 @@ def descautelar_ca(request):
                     categoria__nome=registro.categoria_municao,
                     subcategoria__nome=registro.subcategoria_municao
                 )
-                # Atualiza a quantidade de munição
-                nova_quantidade = cautela.quantidade + quantidade_descautela
-                cautela.quantidade = nova_quantidade
+                # Atualiza a quantidade de munição no registro
+                cautela.quantidade = nova_quantidade_municao
                 cautela.save()
+
+                # Atualiza o valor total no estoque de SubcategoriaMunicao
+                subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
+                subcategoria_municao.total_de_municoes += quantidade_descautela  # Adiciona a quantidade descautelada ao estoque
+                subcategoria_municao.save()
 
             # Registrar o descautelamento no banco de dados com as observações
             RegistroDescautelamento.objects.create(
@@ -449,32 +448,51 @@ def descautelar_ca(request):
     return JsonResponse({'error': 'Método inválido'}, status=400)
 
 
-
-
-def atualizar_quantidade_municao(request):
+def descautelar_municao_ca(request):
     if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            registro_id = data.get('registro_id')
-            nova_quantidade = int(data.get('nova_quantidade'))
-
-            if registro_id is None or nova_quantidade is None:
-                return HttpResponseBadRequest("ID do registro ou nova quantidade não podem ser nulos.")
-
-            # Atualiza a quantidade de munição no banco de dados
-            cautela = get_object_or_404(CautelaDeMunicoes, id=registro_id)
-
-            # Certifique-se de que a quantidade de munição não se torna negativa
-            if cautela.quantidade + nova_quantidade < 0:
-                return JsonResponse({'error': 'Quantidade inválida, estoque não pode ser negativo.'}, status=400)
-
-            cautela.quantidade += nova_quantidade  # Atualiza a quantidade de munição
-            cautela.save()
-            
-            return JsonResponse({'success': True})
+        registro_id = request.POST.get("registro_id")
+        quantidade_municao = request.POST.get("quantidade_municao")
         
-        except Exception as e:
-            return HttpResponseBadRequest(f"Erro: {str(e)}")
+        # Busque o registro correspondente
+        try:
+            subcategoria_municao = SubcategoriaMunicao.objects.get(id=registro_id)
+            
+            # Atualize o campo 'total_de_municoes'
+            subcategoria_municao.total_de_municoes = quantidade_municao
+            subcategoria_municao.save()
 
-    return JsonResponse({'error': 'Método não permitido'}, status=405)
+            return JsonResponse({"success": True})
+        
+        except SubcategoriaMunicao.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Registro não encontrado"})
+    
+    return JsonResponse({"success": False, "message": "Método inválido"})
+
+
+# def atualizar_quantidade_municao(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             registro_id = data.get('registro_id')
+#             nova_quantidade = int(data.get('nova_quantidade'))
+
+#             if registro_id is None or nova_quantidade is None:
+#                 return HttpResponseBadRequest("ID do registro ou nova quantidade não podem ser nulos.")
+
+#             # Atualiza a quantidade de munição no banco de dados
+#             cautela = get_object_or_404(CautelaDeMunicoes, id=registro_id)
+
+#             # Certifique-se de que a quantidade de munição não se torna negativa
+#             if cautela.quantidade + nova_quantidade < 0:
+#                 return JsonResponse({'error': 'Quantidade inválida, estoque não pode ser negativo.'}, status=400)
+
+#             cautela.quantidade += nova_quantidade  # Atualiza a quantidade de munição
+#             cautela.save()
+            
+#             return JsonResponse({'success': True})
+        
+#         except Exception as e:
+#             return HttpResponseBadRequest(f"Erro: {str(e)}")
+
+#     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
