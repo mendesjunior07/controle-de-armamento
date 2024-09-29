@@ -33,6 +33,7 @@ from .models import (
     CautelaDeArmamento, 
     Subcategoria, 
     Policial, 
+
     CategoriaMunicao, 
     SubcategoriaMunicao, 
     CautelaDeMunicoes,
@@ -254,7 +255,8 @@ def sucesso_view(request):
 ###########################################################
 
 def descautelar_sa(request):
-    if request.method == "POST":
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método não permitido'}, status=405)
         registro_id = request.POST.get('registro_id')
         registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
 
@@ -293,206 +295,164 @@ def descautelar_sa(request):
             registro.delete()
 
             # Resposta de sucesso como JSON
-            return JsonResponse({'success': True})
+            return JsonResponse({'success': True, 'registro_id': registro_id})
 
         except Exception as e:
-            # Retorna erro com JSON
             return JsonResponse({'success': False, 'message': f'Erro ao descautelar: {str(e)}'}, status=400)
 
     return JsonResponse({'error': 'Método não permitido'}, status=405)
 
-# def descautelar_ca(request):
-#     if request.method == "POST":
-#         # Captura o ID do registro e outras informações do POST
-#         registro_id = request.POST.get('registro_id', '').strip()
-#         situacao = request.POST.get('situacao', '').strip()
-#         quantidade = request.POST.get('quantidade', '').strip()
-#         observacao = request.POST.get('observacao', '').strip()
-
-#         # Verifica se o ID do registro foi fornecido
-#         if not registro_id:
-#             return HttpResponseBadRequest("O ID do registro não pode estar vazio.")
-
-#         try:
-#             # Tenta converter o registro_id para inteiro
-#             registro_id = int(registro_id)
-#         except ValueError:
-#             return HttpResponseBadRequest("ID inválido.")
-
-#         # Recupera o registro de cautela ou retorna erro 404
-#         registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
-
-#         # Verifica se há armamento associado ao registro e atualiza a situação
-#         if registro.categoria_armamento and registro.subcategoria_armamento:
-#             subcategoria_armamento = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-#             if situacao:
-#                 subcategoria_armamento.situacao = situacao
-#                 subcategoria_armamento.save()
-
-#         # Verifica se há munições associadas e atualiza a quantidade
-#         if registro.categoria_municao and registro.subcategoria_municao:
-#             subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
-
-#             try:
-#                 nova_quantidade = int(quantidade)
-#             except ValueError:
-#                 return HttpResponseBadRequest("Quantidade de munição inválida.")
-
-#             # Verifica se a quantidade de munição é válida e não excede o disponível
-#             if nova_quantidade <= 0:
-#                 return HttpResponseBadRequest("A quantidade deve ser maior que zero.")
-#             elif nova_quantidade > subcategoria_municao.total_de_municoes:
-#                 return HttpResponseBadRequest("A quantidade solicitada excede o total disponível.")
-
-#             # Atualiza o total de munições após descautela
-#             subcategoria_municao.total_de_municoes -= nova_quantidade
-#             subcategoria_municao.save()
-
-#         # Registra o descautelamento no banco de dados
-#         RegistroDescautelamento.objects.create(
-#             data_hora_cautela=registro.data_hora,
-#             policial=registro.policial,
-#             tipo_servico=registro.tipo_servico,
-#             categoria_armamento=registro.categoria_armamento,
-#             subcategoria_armamento=registro.subcategoria_armamento,
-#             categoria_municao=registro.categoria_municao,
-#             subcategoria_municao=registro.subcategoria_municao,
-#             quantidade_municao=nova_quantidade,
-#             armeiro=registro.armeiro,
-#             data_descautelamento=timezone.now().date(),
-#             hora_descautelamento=timezone.now().time(),
-#             observacao=observacao,  # Adiciona observação ao registro de descautelamento
-#         )
-
-#         # Exclui o registro de cautela original
-#         registro.delete()
-
-#         return JsonResponse({'success': True})
-
-#     # Retorna erro se o método não for POST
-#     return JsonResponse({'error': 'Método não permitido'}, status=405)
+#csrf_exempt View para processar a descautela com armamento (C/A)
 
 def descautelar_ca(request):
     if request.method == 'POST':
-        # Verifica se o ID do registro foi enviado
-        registro_id = request.POST.get('registro_id')
-        if not registro_id:
-            return JsonResponse({'error': 'ID do registro não foi fornecido.'}, status=400)
-
-        # Verifica se a nova situação foi enviada
-        nova_situacao = request.POST.get('situacao')
-        if not nova_situacao:
-            return JsonResponse({'error': 'A nova situação não foi fornecida.'}, status=400)
-
-        # Captura as observações do modal
-        observacao = request.POST.get('observacao', '')  # Observação pode estar vazia
-        
-        # Captura a nova quantidade de munição após descautela
-        nova_quantidade_municao = int(request.POST.get("nova_quantidade_municao", 0))  # Valor após a descautela
-        quantidade_descautela = int(request.POST.get("quantidade_descautela", 0))  # Quantidade descautelada
-
         try:
-            # Obter o registro do banco de dados de RegistroCautelaCompleta
-            registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
+            # Adicione um print para ver o corpo da requisição e depurar
+            print(f"Request Body: {request.body}")
 
-            # Atualiza a situação do armamento
-            if registro.categoria_armamento and registro.subcategoria_armamento:
-                subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-                subcategoria.situacao = nova_situacao
-                subcategoria.save()
+            # Lê o corpo da requisição como JSON
+            data = json.loads(request.body)
 
-            # Verifica se há munição cautelada e processa
-            if registro.categoria_municao and registro.subcategoria_municao:
-                # Buscar pela subcategoria de munição e o policial para garantir que está acessando o item correto
-                cautela = get_object_or_404(
-                    CautelaDeMunicoes,
-                    policial=registro.policial,
-                    categoria__nome=registro.categoria_municao,
-                    subcategoria__nome=registro.subcategoria_municao
-                )
-                # Atualiza a quantidade de munição no registro
-                cautela.quantidade = nova_quantidade_municao
-                cautela.save()
+            # Print para depuração
+            print(f"Dados recebidos: {data}")
 
-                # Atualiza o valor total no estoque de SubcategoriaMunicao
-                subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
-                subcategoria_municao.total_de_municoes += quantidade_descautela  # Adiciona a quantidade descautelada ao estoque
-                subcategoria_municao.save()
+            # Obtém o registro específico usando o ID fornecido
+            registro = get_object_or_404(RegistroCautelaCompleta, pk=data['registro_id'])
 
-            # Registrar o descautelamento no banco de dados com as observações
-            RegistroDescautelamento.objects.create(
+            # Obtém o policial associado ao registro
+            policial = get_object_or_404(Policial, nome=data['policial'])
+
+            # Obtém o usuário atual como armeiro descautelante
+            armeiro_descautela = request.user
+
+            # Cria um novo registro de descautelamento
+            novo_descautelamento = RegistroDescautelamento.objects.create(
                 data_hora_cautela=registro.data_hora,
-                policial=registro.policial,
-                tipo_servico=registro.tipo_servico,
-                categoria_armamento=registro.categoria_armamento,
-                subcategoria_armamento=registro.subcategoria_armamento,
-                quantidade_municao=quantidade_descautela,  # Usamos a quantidade descautelada aqui
-                situacao_armamento=nova_situacao,
-                observacao=observacao,  # Salva as observações do modal
+                policial=policial,
+                tipo_servico=data['tipo_servico'],
+                categoria_armamento=data['categoria_armamento'],
+                subcategoria_armamento=data['subcategoria_armamento'],
+                categoria_municao=data['categoria_municao'],
+                subcategoria_municao=data['subcategoria_municao'],
+                quantidade_municao=int(data['quantidade_municao']),
+                situacao_armamento=data['situacao_armamento'],
+                observacao=data.get('observacao', ''),  # Observação é opcional
                 armeiro=registro.armeiro,
-                data_descautelamento=timezone.now().date(),
-                hora_descautelamento=timezone.now().time(),
-                armeiro_descautela=request.user  # Associa o usuário que realizou a descautela
+                armeiro_descautela=armeiro_descautela,
             )
 
-            # Exclui o registro de cautela do banco de dados
-            registro.delete()
-
-            # Retorna uma resposta JSON de sucesso
-            return JsonResponse({'success': True})
+            # Retorna uma resposta de sucesso
+            return JsonResponse({'success': True, 'descautelamento_id': novo_descautelamento.id})
 
         except Exception as e:
-            # Em caso de erro, retorne uma mensagem de erro detalhada
-            return JsonResponse({'error': f'Erro no processamento: {str(e)}'}, status=500)
+            return JsonResponse({'success': False, 'error': str(e)})
 
-    return JsonResponse({'error': 'Método inválido'}, status=400)
-
-
-def descautelar_municao_ca(request):
-    if request.method == "POST":
-        registro_id = request.POST.get("registro_id")
-        quantidade_municao = request.POST.get("quantidade_municao")
-        
-        # Busque o registro correspondente
-        try:
-            subcategoria_municao = SubcategoriaMunicao.objects.get(id=registro_id)
-            
-            # Atualize o campo 'total_de_municoes'
-            subcategoria_municao.total_de_municoes = quantidade_municao
-            subcategoria_municao.save()
-
-            return JsonResponse({"success": True})
-        
-        except SubcategoriaMunicao.DoesNotExist:
-            return JsonResponse({"success": False, "message": "Registro não encontrado"})
-    
-    return JsonResponse({"success": False, "message": "Método inválido"})
+    return JsonResponse({'success': False, 'error': 'Método não suportado'})
 
 
-# def atualizar_quantidade_municao(request):
+# def descautelar_ca(request):
+#     # Verificar se é uma requisição POST
 #     if request.method == "POST":
+#         print("Recebido POST para descautela")
+#         registro_id = request.POST.get('registro_id', '').strip()
+#         situacao = request.POST.get('situacao', '').strip()
+#         quantidade = request.POST.get('quantidade_municao', '').strip()
+#         observacao = request.POST.get('observacao', '').strip()
+
+#         # Exibir os valores recebidos
+#         print(f"Valores recebidos - registro_id: {registro_id}, situacao: {situacao}, quantidade: {quantidade}, observacao: {observacao}")
+
+#         # Validar se o ID do registro foi fornecido
+#         if not registro_id:
+#             print("ID do registro não fornecido!")
+#             return HttpResponseBadRequest("O ID do registro não pode estar vazio.")
+
 #         try:
-#             data = json.loads(request.body)
-#             registro_id = data.get('registro_id')
-#             nova_quantidade = int(data.get('nova_quantidade'))
+#             # Tentar converter o ID para um inteiro
+#             registro_id = int(registro_id)
+#         except ValueError:
+#             print("ID inválido. Valor recebido: ", registro_id)
+#             return JsonResponse({'error': 'ID inválido. Insira um número válido.'}, status=400)
 
-#             if registro_id is None or nova_quantidade is None:
-#                 return HttpResponseBadRequest("ID do registro ou nova quantidade não podem ser nulos.")
-
-#             # Atualiza a quantidade de munição no banco de dados
-#             cautela = get_object_or_404(CautelaDeMunicoes, id=registro_id)
-
-#             # Certifique-se de que a quantidade de munição não se torna negativa
-#             if cautela.quantidade + nova_quantidade < 0:
-#                 return JsonResponse({'error': 'Quantidade inválida, estoque não pode ser negativo.'}, status=400)
-
-#             cautela.quantidade += nova_quantidade  # Atualiza a quantidade de munição
-#             cautela.save()
-            
-#             return JsonResponse({'success': True})
-        
+#         # Recuperar o registro de cautela completa
+#         try:
+#             registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
+#             print("Registro encontrado:", registro)
 #         except Exception as e:
-#             return HttpResponseBadRequest(f"Erro: {str(e)}")
+#             print("Erro ao recuperar registro:", e)
+#             return JsonResponse({'error': f'Registro não encontrado. Detalhe: {str(e)}'}, status=404)
 
-#     return JsonResponse({'error': 'Método não permitido'}, status=405)
+#         # Atualizar situação do armamento
+#         if registro.categoria_armamento and registro.subcategoria_armamento:
+#             try:
+#                 subcategoria_armamento = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+#                 print("Subcategoria de armamento encontrada:", subcategoria_armamento)
+#                 if situacao:
+#                     subcategoria_armamento.situacao = situacao
+#                     subcategoria_armamento.save()
+#                     print("Situação do armamento atualizada para:", situacao)
+#             except Exception as e:
+#                 print("Erro ao atualizar a situação do armamento:", e)
+#                 return JsonResponse({'error': f'Erro ao atualizar situação do armamento: {str(e)}'}, status=400)
+
+#         # Caso tenha munição associada, atualizar a quantidade
+#         nova_quantidade = 0
+#         if registro.categoria_municao and registro.subcategoria_municao:
+#             try:
+#                 nova_quantidade = int(quantidade)
+#                 print("Nova quantidade de munição:", nova_quantidade)
+#             except ValueError:
+#                 print("Quantidade de munição inválida:", quantidade)
+#                 return HttpResponseBadRequest("Quantidade de munição inválida. Insira um valor numérico.")
+
+#             # Lógica de descautelamento de munição
+#             try:
+#                 quantidade_total_disponivel = registro.quantidade_municao
+#                 if nova_quantidade <= 0:
+#                     return HttpResponseBadRequest("A quantidade deve ser maior que zero.")
+#                 elif nova_quantidade > quantidade_total_disponivel:
+#                     return HttpResponseBadRequest(
+#                         f"A quantidade solicitada ({nova_quantidade}) excede o total disponível ({quantidade_total_disponivel})."
+#                     )
+
+#                 registro.quantidade_municao -= nova_quantidade
+#                 registro_completo_excluido = registro.quantidade_municao == 0
+#                 if registro_completo_excluido:
+#                     registro.delete()
+#                 else:
+#                     registro.save()
+#                 print("Munição atualizada. Nova quantidade no registro:", registro.quantidade_municao)
+#             except Exception as e:
+#                 print("Erro ao processar a descautela de munição:", e)
+#                 return JsonResponse({'error': f'Erro ao processar a descautela de munição: {str(e)}'}, status=400)
+
+#         # Registrar descautelamento
+#         try:
+#             RegistroDescautelamento.objects.create(
+#                 data_hora_cautela=registro.data_hora,
+#                 policial=registro.policial,
+#                 tipo_servico=registro.tipo_servico,
+#                 categoria_armamento=registro.categoria_armamento,
+#                 subcategoria_armamento=registro.subcategoria_armamento,
+#                 categoria_municao=registro.categoria_municao,
+#                 subcategoria_municao=registro.subcategoria_municao,
+#                 quantidade_municao=nova_quantidade,
+#                 armeiro=registro.armeiro,
+#                 data_descautelamento=timezone.now().date(),
+#                 hora_descautelamento=timezone.now().time(),
+#                 observacao=observacao,
+#             )
+#             print("Registro de descautelamento criado com sucesso.")
+#         except Exception as e:
+#             print("Erro ao registrar descautelamento:", e)
+#             return JsonResponse({'error': f'Erro ao registrar descautelamento: {str(e)}'}, status=400)
+
+#         return JsonResponse({'success': True, 'registro_completo_excluido': registro_completo_excluido})
+#     else:
+#         print("Método não permitido. Apenas POST é aceito.")
+#         return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+
+
+
 
