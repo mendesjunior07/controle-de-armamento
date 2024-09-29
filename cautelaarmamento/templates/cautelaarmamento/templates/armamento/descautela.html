@@ -398,6 +398,12 @@ function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcatego
         if (data.success) {
           alert('Descautela realizada com sucesso!');
           descautelarCAModal.hide();
+
+          // Atualiza a situação no BD após a descautela ser realizada com sucesso
+          updateSubcategoriaSituacao(subcategoriaArmamento, situacaoArmamento);
+
+          // Remove a linha da tabela correspondente ao registro descautelado
+          linhaRegistro.remove();
         } else {
           alert('Erro ao realizar a descautela: ' + data.error);
         }
@@ -405,6 +411,30 @@ function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcatego
       .catch(error => console.error('Erro:', error));
   };
 }
+
+// Função para atualizar a situação da subcategoria no BD
+function updateSubcategoriaSituacao(subcategoriaArmamento, situacaoArmamento) {
+  fetch('/atualizar_situacao_subcategoria/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      subcategoria_armamento: subcategoriaArmamento,
+      situacao: situacaoArmamento
+    })
+  }).then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('Situação da subcategoria atualizada com sucesso!');
+      } else {
+        console.error('Erro ao atualizar a situação da subcategoria: ' + data.error);
+      }
+    })
+    .catch(error => console.error('Erro:', error));
+}
+
 
 
 // #####################################################

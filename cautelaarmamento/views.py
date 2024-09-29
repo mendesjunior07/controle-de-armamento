@@ -307,20 +307,23 @@ def descautelar_sa(request):
 def descautelar_ca(request):
     if request.method == 'POST':
         try:
-            # Adicione um print para ver o corpo da requisição e depurar
-            print(f"Request Body: {request.body}")
-
             # Lê o corpo da requisição como JSON
             data = json.loads(request.body)
 
-            # Print para depuração
-            print(f"Dados recebidos: {data}")
+            # Debug: Verificar os dados recebidos
+            print(f"Dados recebidos no request: {data}")
 
             # Obtém o registro específico usando o ID fornecido
             registro = get_object_or_404(RegistroCautelaCompleta, pk=data['registro_id'])
 
+            # Debug: Verificar se o registro foi recuperado corretamente
+            print(f"Registro encontrado: {registro}")
+
             # Obtém o policial associado ao registro
             policial = get_object_or_404(Policial, nome=data['policial'])
+
+            # Debug: Verificar se o policial foi encontrado
+            print(f"Policial encontrado: {policial}")
 
             # Obtém o usuário atual como armeiro descautelante
             armeiro_descautela = request.user
@@ -341,14 +344,30 @@ def descautelar_ca(request):
                 armeiro_descautela=armeiro_descautela,
             )
 
+            # Atualiza o campo `situacao` na tabela `Subcategoria`
+            subcategoria = get_object_or_404(Subcategoria, nome=data['subcategoria_armamento'])
+            subcategoria.situacao = data['situacao_armamento']
+            subcategoria.save()
+
+            # Exclui o registro de cautela completa após descautela
+            print(f"Excluindo o registro de cautela: {registro}")
+            registro.delete()
+
+            # Debug: Confirmar exclusão
+            if not RegistroCautelaCompleta.objects.filter(pk=data['registro_id']).exists():
+                print("Registro excluído com sucesso!")
+            else:
+                print("Erro: O registro ainda existe no banco de dados!")
+
             # Retorna uma resposta de sucesso
             return JsonResponse({'success': True, 'descautelamento_id': novo_descautelamento.id})
 
         except Exception as e:
+            # Debug: Mostrar o erro no servidor
+            print(f"Erro: {str(e)}")
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Método não suportado'})
-
 
 # def descautelar_ca(request):
 #     # Verificar se é uma requisição POST
