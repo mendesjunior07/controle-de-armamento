@@ -369,6 +369,26 @@ def descautelar_ca(request):
 
     return JsonResponse({'success': False, 'error': 'Método não suportado'})
 
+def descautelar_municao_ca(request):
+    if request.method == 'POST':
+        print("Função descautelar_municao_ca foi chamada")  # Verifique se isto aparece no terminal
+        # Seus dados aqui...
+        registro_id = request.POST.get('registro_id')
+        quantidade_municao = request.POST.get('quantidade_municao')
+        situacao = request.POST.get('situacao')
+        quantidade_atual = request.POST.get('quantidade_atual')
+
+        # Exibindo os dados no terminal
+        print(f"Registro ID: {registro_id}")
+        print(f"Quantidade de Munição: {quantidade_municao}")
+        print(f"Situação do Armamento: {situacao}")
+        print(f"Quantidade Atual: {quantidade_atual}")
+
+        # Retornar uma resposta de sucesso como JSON
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'message': 'Método inválido'}, status=400)
+
 # def descautelar_ca(request):
 #     # Verificar se é uma requisição POST
 #     if request.method == "POST":

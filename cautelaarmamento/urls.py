@@ -10,6 +10,7 @@ from .views import (
     listar_registros_cautela,  # Esta é a função correta
     descautelar_sa,
     descautelar_ca,
+    descautelar_municao_ca
     # atualizar_quantidade_municao,
     # descautelar_municao_ca,
     # atualizar_quantidade_municao
@@ -27,6 +28,7 @@ urlpatterns = [
     path('descautelar_sa/', descautelar_sa, name='descautelar_sa'),
     # path('descautelar-ca/', descautelar_ca, name='descautelar_ca'),
     path('descautelar_ca/', descautelar_ca, name='descautelar_ca'),
+    path('descautelar-municao/', descautelar_municao_ca, name='descautelar_municao_ca'),
     # path('atualizar-quantidade-municao/', atualizar_quantidade_municao, name='atualizar_quantidade_municao'),
     # path('sua-url-para-atualizar-quantidade/', atualizar_quantidade_municao, name='atualizar_quantidade_municao'),
     # path('descautelar_municao/', descautelar_municao_ca, name='descautelar_municao_ca'),
