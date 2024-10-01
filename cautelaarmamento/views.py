@@ -27,6 +27,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.contrib import messages
 import json
+import logging
 from django.utils import timezone
 from .models import (
     Categoria, 
@@ -253,56 +254,34 @@ def sucesso_view(request):
 
 #############################################################
 ###########################################################
-
 def descautelar_sa(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Método não permitido'}, status=405)
+    if request.method == 'POST':
         registro_id = request.POST.get('registro_id')
+        
+        # Buscando o registro no banco de dados com base no ID
         registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
-
-        try:
-            # Verifica se há armamentos cautelados
-            if registro.categoria_armamento and registro.subcategoria_armamento:
-                subcategoria_armamento = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-                subcategoria_armamento.situacao = 'disponivel'
-                subcategoria_armamento.save()
-
-            # Verifica se há munições cauteladas
-            if registro.categoria_municao and registro.subcategoria_municao:
-                subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
-                
-                # Retorna a quantidade ao estoque
-                if registro.quantidade_municao > 0:
-                    subcategoria_municao.total_de_municoes += registro.quantidade_municao
-                    subcategoria_municao.save()
-
-            # Registra o descautelamento
-            RegistroDescautelamento.objects.create(
-                data_hora_cautela=registro.data_hora,
-                policial=registro.policial,
-                tipo_servico=registro.tipo_servico,
-                categoria_armamento=registro.categoria_armamento,
-                subcategoria_armamento=registro.subcategoria_armamento,
-                categoria_municao=registro.categoria_municao,
-                subcategoria_municao=registro.subcategoria_municao,
-                quantidade_municao=registro.quantidade_municao,
-                armeiro=registro.armeiro,
-                data_descautelamento=timezone.now().date(),
-                hora_descautelamento=timezone.now().time(),
-            )
-
-            # Exclui o registro de cautela após o descautelamento
-            registro.delete()
-
-            # Resposta de sucesso como JSON
-            return JsonResponse({'success': True, 'registro_id': registro_id})
-
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': f'Erro ao descautelar: {str(e)}'}, status=400)
-
-    return JsonResponse({'error': 'Método não permitido'}, status=405)
-
-#csrf_exempt View para processar a descautela com armamento (C/A)
+        
+        # Verificar se a categoria de armamento está presente
+        if registro.categoria_armamento:
+            # Buscar a subcategoria de armamento associada ao registro
+            subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+            
+            # Alterar o campo situacao para 'disponivel'
+            subcategoria.situacao = 'disponivel'
+            subcategoria.save()
+            
+            # Imprimir o valor da categoria armamento no terminal
+            print(f"Categoria de Armamento: {registro.categoria_armamento}")
+            print(f"Subcategoria '{subcategoria.nome}' alterada para situação: {subcategoria.situacao}")
+            
+            # Retornar uma resposta de sucesso
+            return JsonResponse({'status': 'success', 'categoria_armamento': registro.categoria_armamento})
+        
+        # Caso a categoria de armamento seja None
+        return JsonResponse({'status': 'failed', 'message': 'Categoria de Armamento não encontrada'})
+    
+    # Caso não seja POST, retornar uma resposta de erro
+    return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
 
 def descautelar_ca(request):
     if request.method == 'POST':

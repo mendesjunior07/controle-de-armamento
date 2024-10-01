@@ -1,10 +1,4 @@
-{% extends 'base_html/base.html' %}
-
-{% block title %}
-  Lista de Cautelas
-{% endblock %}
-
-{% block content %}
+{% extends 'base_html/base.html' %} {% block title %} Lista de Cautelas {%endblock %} {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4 text-center">Registros de Cautelas</h2>
 
@@ -36,7 +30,8 @@
         <th>Subcategoria Munição</th>
         <th>Quantidade Munição</th>
         <th>Armeiro</th>
-        <th>Ações</th> <!-- Coluna para os botões de ação -->
+        <th>Ações</th>
+        <!-- Coluna para os botões de ação -->
       </tr>
     </thead>
 
@@ -57,21 +52,24 @@
         <!-- Coluna de Ações com botões -->
         <td>
           <button
-            class="btn btn-danger btn-sm"
-            onclick="openDescautelarSAModal({{ registro.id }}, '{{ registro.policial.nome }}')">
-            Descautela S/A
-          </button>
+          class="btn btn-danger btn-sm"
+          onclick="openDescautelarSAModal({{ registro.id }}, '{{ registro.policial.nome }}')"
+        >
+          Descautela S/A
+        </button>
 
           {% if registro.categoria_armamento %}
           <button
             class="btn btn-primary btn-sm"
-            onclick="openDescautelarArmamentoModal({{ registro.id }}, '{{ registro.categoria_armamento }}', '{{ registro.subcategoria_armamento }}')">
+            onclick="openDescautelarArmamentoModal({{ registro.id }}, '{{ registro.categoria_armamento }}', '{{ registro.subcategoria_armamento }}')"
+          >
             Descautela C/A
           </button>
           {% else %}
           <button
             class="btn btn-primary btn-sm"
-            onclick="openDescautelarMunicaoModal({{ registro.id }}, '{{ registro.categoria_municao }}', '{{ registro.subcategoria_municao }}', '{{ registro.quantidade_municao }}')">
+            onclick="openDescautelarMunicaoModal({{ registro.id }}, '{{ registro.categoria_municao }}', '{{ registro.subcategoria_municao }}', '{{ registro.quantidade_municao }}')"
+          >
             Descautela C/A - Munição
           </button>
           {% endif %}
@@ -86,19 +84,20 @@
   </table>
 
   <!-- #################### Modal Descautela S/A ####################-->
-  <div
+<!-- #################### Modal Descautela S/A ####################-->
+<div
   class="modal fade"
-  id="descautelarMunicaoModal"
+  id="descautelarSAModal"
   tabindex="-1"
-  aria-labelledby="descautelarMunicaoModalLabel"
+  aria-labelledby="descautelarSAModalLabel"
   aria-hidden="true"
 >
   <div class="modal-dialog">
     <div class="modal-content">
       <!-- Cabeçalho do Modal -->
       <div class="modal-header">
-        <h5 class="modal-title" id="descautelarMunicaoModalLabel">
-          Descautela C/A - Munição
+        <h5 class="modal-title" id="descautelarSAModalLabel">
+          Descautela S/A
         </h5>
         <button
           type="button"
@@ -110,71 +109,84 @@
 
       <!-- Corpo do Modal -->
       <div class="modal-body">
-        <p>
-          Descautela de Munição da categoria
-          <span id="categoriaMunicaoModal"></span> -
-          <span id="subcategoriaMunicaoModal"></span>
-        </p>
+        <p>Descautela de S/A para o policial <span id="policialNomeModalSA"></span></p>
 
         <!-- Formulário para enviar os dados via POST -->
-        <form id="formDescautelarMunicaoCA">
-          <input type="hidden" name="registro_id" id="registroIdInputMunicaoCA" />
-          <input
-            type="hidden"
-            name="quantidade_atual"
-            id="quantidadeAtualInputMunicaoCA"
-          />
-
-          <div class="mb-3">
-            <label for="quantidadeMunicaoInput" class="form-label"
-              >Quantidade de Munição</label
-            >
-            <input
-              type="number"
-              class="form-control"
-              id="quantidadeMunicaoInput"
-              name="quantidade_municao"
-              min="1"
-              required
-            />
-          </div>
-
-          <!-- Botão para confirmar a descautela -->
-          <button
-            type="button"
-            class="btn btn-primary"
-            id="btnConfirmarDescautela"
-          >
-            Confirmar Descautela
-          </button>
+        <form id="formDescautelarSAModal" method="POST" action="{% url 'descautelar_sa' %}">
+          {% csrf_token %}
+          <input type="hidden" name="registro_id" id="registroIdInputSA" />
         </form>
       </div>
 
+      <!-- Rodapé do Modal com botões -->
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <!-- Botão para cancelar, agora com coloração vermelha -->
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
           Cancelar
+        </button>
+
+        <!-- Botão confirmar descautela com coloração verde para destaque -->
+        <button
+          type="button"
+          class="btn btn-success"
+          id="btnConfirmarDescautelaSAModal"
+        >
+          Confirmar Descautela
         </button>
       </div>
     </div>
   </div>
 </div>
 
+
   <!-- ################  Modal Descautela Armamento (C/A) ################ -->
-  <div class="modal fade" id="descautelarCAModal" tabindex="-1" aria-labelledby="descautelarCAModalLabel" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="descautelarCAModal"
+    tabindex="-1"
+    aria-labelledby="descautelarCAModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="descautelarCAModalLabel">Descautela C/A - Armamento</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar Modal"></button>
+          <h5 class="modal-title" id="descautelarCAModalLabel">
+            Descautela C/A - Armamento
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Fechar Modal"
+          ></button>
         </div>
         <div class="modal-body">
-          <p>Descautela de Armamento para <span id="categoriaArmamentoModal"></span> - <span id="subcategoriaArmamentoModal"></span></p>
-          <form method="POST" action="{% url 'descautelar_ca' %}" id="formDescautelarCA">
+          <p>
+            Descautela de Armamento para
+            <span id="categoriaArmamentoModal"></span> -
+            <span id="subcategoriaArmamentoModal"></span>
+          </p>
+          <form
+            method="POST"
+            action="{% url 'descautelar_ca' %}"
+            id="formDescautelarCA"
+          >
             {% csrf_token %}
-            <input type="hidden" name="registro_id" id="registroIdInputCA" value="" />
+            <input
+              type="hidden"
+              name="registro_id"
+              id="registroIdInputCA"
+              value=""
+            />
             <div class="mb-3">
-              <label for="situacaoSelectArmamento" class="form-label">Situação do Armamento</label>
-              <select class="form-select" id="situacaoSelectArmamento" name="situacao">
+              <label for="situacaoSelectArmamento" class="form-label"
+                >Situação do Armamento</label
+              >
+              <select
+                class="form-select"
+                id="situacaoSelectArmamento"
+                name="situacao"
+              >
                 <option value="disponivel">Disponível</option>
                 <option value="cautelada">Cautelada</option>
                 <option value="extraviado">Extraviado</option>
@@ -185,40 +197,102 @@
               </select>
             </div>
             <div class="mb-3">
-              <label for="observacaoInput" class="form-label">Observações</label>
-              <textarea class="form-control" id="observacaoInput" name="observacao" rows="3" placeholder="Adicione observações, se necessário"></textarea>
+              <label for="observacaoInput" class="form-label"
+                >Observações</label
+              >
+              <textarea
+                class="form-control"
+                id="observacaoInput"
+                name="observacao"
+                rows="3"
+                placeholder="Adicione observações, se necessário"
+              ></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Confirmar Descautela</button>
+            <button type="submit" class="btn btn-primary">
+              Confirmar Descautela
+            </button>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ################  Modal Descautela Munição (C/A) ################ -->
-  <div class="modal fade" id="descautelarMunicaoModal" tabindex="-1" aria-labelledby="descautelarMunicaoModalLabel" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="descautelarMunicaoModal"
+    tabindex="-1"
+    aria-labelledby="descautelarMunicaoModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="descautelarMunicaoModalLabel">Descautela C/A - Munição</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar Modal"></button>
+          <h5 class="modal-title" id="descautelarMunicaoModalLabel">
+            Descautela C/A - Munição
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Fechar Modal"
+          ></button>
         </div>
         <div class="modal-body">
-          <p>Descautela de Munição da categoria <span id="categoriaMunicaoModal"></span> - <span id="subcategoriaMunicaoModal"></span></p>
-          <form method="POST" action="{% url 'descautelar_ca' %}" id="formDescautelarMunicaoCA">
+          <p>
+            Descautela de Munição da categoria
+            <span id="categoriaMunicaoModal"></span> -
+            <span id="subcategoriaMunicaoModal"></span>
+          </p>
+          <form
+            method="POST"
+            action="{% url 'descautelar_ca' %}"
+            id="formDescautelarMunicaoCA"
+          >
             {% csrf_token %}
-            <input type="hidden" name="registro_id" id="registroIdInputMunicaoCA" value="" />
-            <input type="hidden" name="quantidade_atual" id="quantidadeAtualInputMunicaoCA" value="" />
+            <input
+              type="hidden"
+              name="registro_id"
+              id="registroIdInputMunicaoCA"
+              value=""
+            />
+            <input
+              type="hidden"
+              name="quantidade_atual"
+              id="quantidadeAtualInputMunicaoCA"
+              value=""
+            />
             <div class="mb-3">
-              <label for="quantidadeMunicaoInput" class="form-label">Quantidade de Munição</label>
-              <input type="number" class="form-control" id="quantidadeMunicaoInput" name="quantidade_municao" min="1" required/>
+              <label for="quantidadeMunicaoInput" class="form-label"
+                >Quantidade de Munição</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="quantidadeMunicaoInput"
+                name="quantidade_municao"
+                min="1"
+                required
+              />
             </div>
             <div class="mb-3">
-              <label for="situacaoSelectMunicao" class="form-label">Situação do Armamento</label>
-              <select class="form-select" id="situacaoSelectMunicao" name="situacao">
+              <label for="situacaoSelectMunicao" class="form-label"
+                >Situação do Armamento</label
+              >
+              <select
+                class="form-select"
+                id="situacaoSelectMunicao"
+                name="situacao"
+              >
                 <option value="disponivel">Disponível</option>
                 <option value="cautelada">Cautelada</option>
                 <option value="extraviado">Extraviado</option>
@@ -228,54 +302,95 @@
                 <option value="disparado">Disparado</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-primary">Confirmar Descautela</button>
+            <button type="submit" class="btn btn-primary">
+              Confirmar Descautela
+            </button>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 <script>
+  //###################################################################################
+  //################################ SCRIPT PARA MODAL ################################
+  //###################################################################################
 
-// Função para abrir o modal de descautela S/A
-function openDescautelarSAModal(registroId, policialNome) {
-  // Exibir mensagem de confirmação com o nome do policial
-  const confirmarDescautelaSA = confirm(`Confirmar descautela sem armamento para o policial ${policialNome}?`);
+  // ####################################################################
+  //########## 1. Script para abrir o modal de Descautela S/A: ##########
+  // ####################################################################
+
+  function openDescautelarSAModal(registroId, policialNome) {
+    // Definir os valores no modal
+    document.getElementById("registroIdInputSA").value = registroId;
+    document.getElementById("policialNomeModalSA").textContent = policialNome;
   
-  if (confirmarDescautelaSA) {
-    // Lógica para realizar a descautela
-    console.log(`Descautela S/A para o registro ID: ${registroId}`);
-    // Aqui você pode implementar a lógica para enviar o pedido para o backend
+    // Abrir o modal
+    var modal = new bootstrap.Modal(document.getElementById('descautelarSAModal'));
+    modal.show();
   }
-}
 
-// Função para abrir o modal de descautela de armamento (C/A)
-function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcategoriaArmamento) {
-  // Atualizar os campos no modal com os dados do armamento
-  document.getElementById('registroIdInputCA').value = registroId;
-  document.getElementById('categoriaArmamentoModal').textContent = categoriaArmamento;
-  document.getElementById('subcategoriaArmamentoModal').textContent = subcategoriaArmamento;
+  document.getElementById("btnConfirmarDescautelaSAModal").addEventListener("click", function () {
+    var form = document.getElementById("formDescautelarSAModal");
+    var formData = new FormData(form);
+    
+    fetch("{% url 'descautelar_sa' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": formData.get('csrfmiddlewaretoken'),
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            console.log("Descautela realizada com sucesso. Categoria Armamento: ", data.categoria_armamento);
+        } else {
+            console.log("Erro na descautela:", data.message);
+        }
+    })
+    .catch(error => console.error("Erro na requisição:", error));
+});
+  
+  // ####################################################################
+  //## 2. Script para abrir o modal de Descautela de Armamento (C/A): ###
+  // ####################################################################
 
-  // Exibir o modal de descautela de armamento
-  const descautelarCAModal = new bootstrap.Modal(document.getElementById('descautelarCAModal'));
-  descautelarCAModal.show();
-}
+  function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcategoriaArmamento) {
+    // Definir os valores no modal
+    document.getElementById("registroIdInputCA").value = registroId;
+    document.getElementById("categoriaArmamentoModal").textContent = categoriaArmamento;
+    document.getElementById("subcategoriaArmamentoModal").textContent = subcategoriaArmamento;
+  
+    // Abrir o modal
+    var modal = new bootstrap.Modal(document.getElementById('descautelarCAModal'));
+    modal.show();
+  }
+  
+  // ####################################################################
+  //### 3. Script para abrir o modal de Descautela de Munição (C/A): ####
+  // ####################################################################
 
-// Função para abrir o modal de descautela de munição (C/A)
-function openDescautelarMunicaoModal(registroId, categoriaMunicao, subcategoriaMunicao, quantidadeMunicao) {
-  // Atualizar os campos no modal com os dados da munição
-  document.getElementById('registroIdInputMunicaoCA').value = registroId;
-  document.getElementById('categoriaMunicaoModal').textContent = categoriaMunicao;
-  document.getElementById('subcategoriaMunicaoModal').textContent = subcategoriaMunicao;
-  document.getElementById('quantidadeAtualInputMunicaoCA').value = quantidadeMunicao;
-
-  // Exibir o modal de descautela de munição
-  const descautelarMunicaoModal = new bootstrap.Modal(document.getElementById('descautelarMunicaoModal'));
-  descautelarMunicaoModal.show();
-}
+  function openDescautelarMunicaoModal(registroId, categoriaMunicao, subcategoriaMunicao, quantidadeMunicao) {
+    // Definir os valores no modal
+    document.getElementById("registroIdInputMunicaoCA").value = registroId;
+    document.getElementById("categoriaMunicaoModal").textContent = categoriaMunicao;
+    document.getElementById("subcategoriaMunicaoModal").textContent = subcategoriaMunicao;
+    document.getElementById("quantidadeAtualInputMunicaoCA").value = quantidadeMunicao;
+  
+    // Abrir o modal
+    var modal = new bootstrap.Modal(document.getElementById('descautelarMunicaoModal'));
+    modal.show();
+  }
 </script>
-
 {% endblock %}
