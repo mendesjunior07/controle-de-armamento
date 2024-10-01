@@ -355,6 +355,10 @@
     .then(data => {
         if (data.status === "success") {
             console.log("Descautela realizada com sucesso. Categoria Armamento: ", data.categoria_armamento);
+
+            // Atualiza a página automaticamente após sucesso
+            location.reload();  // Recarregar a página
+            
         } else {
             console.log("Erro na descautela:", data.message);
         }

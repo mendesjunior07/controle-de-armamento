@@ -273,12 +273,26 @@ def descautelar_sa(request):
             # Imprimir o valor da categoria armamento no terminal
             print(f"Categoria de Armamento: {registro.categoria_armamento}")
             print(f"Subcategoria '{subcategoria.nome}' alterada para situação: {subcategoria.situacao}")
-            
-            # Retornar uma resposta de sucesso
-            return JsonResponse({'status': 'success', 'categoria_armamento': registro.categoria_armamento})
         
-        # Caso a categoria de armamento seja None
-        return JsonResponse({'status': 'failed', 'message': 'Categoria de Armamento não encontrada'})
+        # Caso a categoria de armamento seja None, trabalhar com munição
+        elif registro.categoria_armamento is None and registro.quantidade_municao > 0:
+            # Buscar a subcategoria de munição associada ao registro
+            subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
+            
+            # Atualizar o total de munições
+            subcategoria_municao.total_de_municoes += registro.quantidade_municao
+            subcategoria_municao.save()
+            
+            # Imprimir o valor da quantidade de munições no terminal
+            print(f"Quantidade de Munição: {registro.quantidade_municao}")
+            print(f"Subcategoria de Munição '{subcategoria_municao.nome}' agora tem {subcategoria_municao.total_de_municoes} munições.")
+        
+        # Após o processo, excluir o registro de cautela completa
+        registro.delete()
+        print(f"Registro de cautela completa {registro_id} excluído do banco de dados.")
+        
+        # Retornar uma resposta de sucesso
+        return JsonResponse({'status': 'success', 'registro_id': registro_id})
     
     # Caso não seja POST, retornar uma resposta de erro
     return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
