@@ -381,6 +381,38 @@
     modal.show();
   }
   
+  document.getElementById("formDescautelarCA").addEventListener("submit", function (event) {
+    event.preventDefault();  // Evitar o envio padrão do formulário
+    
+    var form = event.target;
+    var formData = new FormData(form);
+
+    var data = {
+        'registro_id': formData.get('registro_id'),
+        'situacao_armamento': formData.get('situacao'),
+        'observacao': formData.get('observacao'),
+        // Adicione outras variáveis aqui conforme necessário
+    };
+
+    fetch("{% url 'descautelar_ca' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": formData.get('csrfmiddlewaretoken'),
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("Descautela realizada com sucesso!");
+            location.reload();  // Recarregar a página após o sucesso
+        } else {
+            console.log("Erro na descautela:", data.error);
+        }
+    })
+    .catch(error => console.error("Erro na requisição:", error));
+});
   // ####################################################################
   //### 3. Script para abrir o modal de Descautela de Munição (C/A): ####
   // ####################################################################

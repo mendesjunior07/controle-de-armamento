@@ -297,26 +297,23 @@ def descautelar_sa(request):
     # Caso não seja POST, retornar uma resposta de erro
     return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
 
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from .models import RegistroCautelaCompleta, Subcategoria, RegistroDescautelamento
+
 def descautelar_ca(request):
     if request.method == 'POST':
         try:
-            # Lê o corpo da requisição como JSON
-            data = json.loads(request.body)
-
-            # Debug: Verificar os dados recebidos
-            print(f"Dados recebidos no request: {data}")
+            # Obter os dados diretamente de request.POST
+            registro_id = request.POST.get('registro_id')
+            situacao_armamento = request.POST.get('situacao')
+            observacao = request.POST.get('observacao', '')
 
             # Obtém o registro específico usando o ID fornecido
-            registro = get_object_or_404(RegistroCautelaCompleta, pk=data['registro_id'])
-
-            # Debug: Verificar se o registro foi recuperado corretamente
-            print(f"Registro encontrado: {registro}")
+            registro = get_object_or_404(RegistroCautelaCompleta, pk=registro_id)
 
             # Obtém o policial associado ao registro
-            policial = get_object_or_404(Policial, nome=data['policial'])
-
-            # Debug: Verificar se o policial foi encontrado
-            print(f"Policial encontrado: {policial}")
+            policial = registro.policial  # Usar diretamente o registro existente
 
             # Obtém o usuário atual como armeiro descautelante
             armeiro_descautela = request.user
@@ -325,32 +322,25 @@ def descautelar_ca(request):
             novo_descautelamento = RegistroDescautelamento.objects.create(
                 data_hora_cautela=registro.data_hora,
                 policial=policial,
-                tipo_servico=data['tipo_servico'],
-                categoria_armamento=data['categoria_armamento'],
-                subcategoria_armamento=data['subcategoria_armamento'],
-                categoria_municao=data['categoria_municao'],
-                subcategoria_municao=data['subcategoria_municao'],
-                quantidade_municao=int(data['quantidade_municao']),
-                situacao_armamento=data['situacao_armamento'],
-                observacao=data.get('observacao', ''),  # Observação é opcional
+                tipo_servico=registro.tipo_servico,
+                categoria_armamento=registro.categoria_armamento,
+                subcategoria_armamento=registro.subcategoria_armamento,
+                categoria_municao=registro.categoria_municao,
+                subcategoria_municao=registro.subcategoria_municao,
+                quantidade_municao=registro.quantidade_municao,
+                situacao_armamento=situacao_armamento,
+                observacao=observacao,
                 armeiro=registro.armeiro,
                 armeiro_descautela=armeiro_descautela,
             )
 
             # Atualiza o campo `situacao` na tabela `Subcategoria`
-            subcategoria = get_object_or_404(Subcategoria, nome=data['subcategoria_armamento'])
-            subcategoria.situacao = data['situacao_armamento']
+            subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+            subcategoria.situacao = situacao_armamento
             subcategoria.save()
 
             # Exclui o registro de cautela completa após descautela
-            print(f"Excluindo o registro de cautela: {registro}")
             registro.delete()
-
-            # Debug: Confirmar exclusão
-            if not RegistroCautelaCompleta.objects.filter(pk=data['registro_id']).exists():
-                print("Registro excluído com sucesso!")
-            else:
-                print("Erro: O registro ainda existe no banco de dados!")
 
             # Retorna uma resposta de sucesso
             return JsonResponse({'success': True, 'descautelamento_id': novo_descautelamento.id})
@@ -361,6 +351,7 @@ def descautelar_ca(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Método não suportado'})
+
 
 def descautelar_municao_ca(request):
     if request.method == 'POST':
