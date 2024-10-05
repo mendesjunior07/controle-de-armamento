@@ -126,3 +126,23 @@ class RegistroDescautelamento(models.Model):
 
     def __str__(self):
         return f"{self.policial.nome} - {self.tipo_servico} - {self.data_descautelamento} {self.hora_descautelamento}"
+
+
+class DescautelasCa(models.Model):
+    data_hora_cautela = models.DateTimeField()
+    policial = models.CharField(max_length=100)
+    tipo_servico = models.CharField(max_length=50)
+    categoria_armamento = models.CharField(max_length=50)
+    subcategoria_armamento = models.CharField(max_length=50)
+    categoria_municao = models.CharField(max_length=50, null=True)
+    subcategoria_municao = models.CharField(max_length=50, null=True)
+    quantidade_municao = models.IntegerField()
+    situacao_armamento = models.CharField(max_length=50)
+    observacao = models.TextField(blank=True, null=True)
+    armeiro = models.CharField(max_length=100)
+    armeiro_descautela = models.CharField(max_length=100)
+    data_descautelamento = models.DateField()
+    hora_descautelamento = models.TimeField()
+
+    def __str__(self):
+        return f"Descautela de {self.policial} em {self.data_hora_cautela}"
