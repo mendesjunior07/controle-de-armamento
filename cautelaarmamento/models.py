@@ -139,6 +139,7 @@ class DescautelasCa(models.Model):
     quantidade_municao = models.IntegerField()
     situacao_armamento = models.CharField(max_length=50)
     observacao = models.TextField(blank=True, null=True)
+    observacoes = models.TextField(null=True, blank=True)  # Adicione este campo
     armeiro = models.CharField(max_length=100)
     armeiro_descautela = models.CharField(max_length=100)
     data_descautelamento = models.DateField()

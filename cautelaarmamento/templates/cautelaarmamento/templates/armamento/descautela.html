@@ -313,13 +313,13 @@
           <div class="mb-3">
             <label for="observacoesInput" class="form-label">Observações</label>
             <textarea
-              class="form-control"
-              id="observacoesInput"
-              name="observacoes"
-              rows="3"
-              placeholder="Digite suas observações aqui"
+                class="form-control"
+                id="observacoesInput"
+                name="observacoes"
+                rows="3"
+                placeholder="Digite suas observações aqui"
             ></textarea>
-          </div>
+        </div>
           <button type="submit" class="btn btn-primary">
             Confirmar Descautela
           </button>
@@ -426,8 +426,9 @@
         registro_id: formData.get("registro_id"),
         situacao: formData.get("situacao"),
         observacao: formData.get("observacao"),
+        observacoes: formData.get("observacoes"), // Adicione esta linha
         csrfmiddlewaretoken: formData.get("csrfmiddlewaretoken"),
-      };
+    };
 
       // Enviar a requisição para o servidor usando fetch API
       fetch(form.action, {
@@ -473,12 +474,50 @@
       subcategoriaMunicao;
     document.getElementById("quantidadeAtualInputMunicaoCA").value =
       quantidadeMunicao;
-
+  
     // Abrir o modal
     var modal = new bootstrap.Modal(
       document.getElementById("descautelarMunicaoModal")
     );
     modal.show();
   }
+  
+  // Adicionar o listener para o envio do formulário de descautela de munição
+  document
+    .getElementById("formDescautelarMunicaoCA")
+    .addEventListener("submit", function (event) {
+      event.preventDefault(); // Evitar o envio padrão do formulário
+  
+      var form = event.target;
+      var formData = new FormData(form);
+  
+      // Enviar a requisição para o servidor usando fetch API
+      fetch(form.action, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+        },
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            console.log("Descautela realizada com sucesso!");
+  
+            // Fechar o modal após sucesso
+            var modal = bootstrap.Modal.getInstance(
+              document.getElementById("descautelarMunicaoModal")
+            );
+            modal.hide();
+  
+            // Recarregar a página para refletir as mudanças
+            location.reload();
+          } else {
+            console.log("Erro na descautela:", data.error);
+          }
+        })
+        .catch((error) => console.error("Erro na requisição:", error));
+    });
+  
 </script>
 {% endblock %}
