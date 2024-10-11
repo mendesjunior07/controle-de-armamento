@@ -2,12 +2,18 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-# Modelo para o Policial
 class Policial(models.Model):
-    nome = models.CharField(max_length=100)
+    nome_completo = models.CharField(max_length=100)
+    nome_guerra = models.CharField(max_length=50, blank=True, null=True)
+    posto_graduacao = models.CharField(max_length=50)
+    matricula = models.CharField(max_length=20, unique=True)
+    rgpm = models.CharField(max_length=20, unique=True)
+    lotacao = models.CharField(max_length=100)
+    data_nascimento = models.DateField()
+    cpf = models.CharField(max_length=14, unique=True)  # Inclui máscara de CPF se necessário
 
     def __str__(self):
-        return self.nome
+        return f"{self.nome_completo} - {self.nome_guerra if self.nome_guerra else 'Sem Nome de Guerra'}"
 
 
 # Modelo para Categoria de Armamento
@@ -16,6 +22,25 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+# # Modelo para Subcategoria de Armamento
+# class Subcategoria(models.Model):
+#     SITUACAO_CHOICES = [
+#         ('disponivel', 'Disponível'),
+#         ('cautelada', 'Cautelada'),
+#         ('extraviado', 'Extraviado'),
+#         ('roubado', 'Roubado'),
+#         ('quebrado', 'Quebrado'),
+#         ('furado', 'Furado'),
+#         ('disparado', 'Disparado'),
+#     ]
+#     nome = models.CharField(max_length=100)
+#     categoria = models.ForeignKey(Categoria, related_name='subcategorias_armamento', on_delete=models.CASCADE)
+#     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')
+
+#     def __str__(self):
+#         return f"{self.nome} ({self.categoria})"
 
 
 # Modelo para Subcategoria de Armamento
@@ -29,13 +54,26 @@ class Subcategoria(models.Model):
         ('furado', 'Furado'),
         ('disparado', 'Disparado'),
     ]
+
     nome = models.CharField(max_length=100)
+    marca = models.CharField(max_length=100, blank=True, null=True)  # Marca da arma
+    modelo = models.CharField(max_length=100, blank=True, null=True)  # Modelo da arma
+    cal = models.CharField(max_length=50, blank=True, null=True)  # Calibre da arma
+    ct = models.CharField(max_length=50, blank=True, null=True)  # Campo específico, ajustar conforme necessário
+    num_arma = models.CharField(max_length=100, verbose_name="Nº ARMA", blank=True, null=True)  # Número da arma
+    num_pmma = models.CharField(max_length=100, verbose_name="Nº PMMA", blank=True, null=True)  # Número de registro PMMA
+    localizacao = models.CharField(max_length=200, blank=True, null=True)  # Localização atual da arma
+    tombo
+    estado_conservacao = models.CharField(max_length=100, verbose_name="EST. DE CONSERVAÇÃO", blank=True, null=True)  # Estado de conservação da arma
+    gr = models.CharField(max_length=50, verbose_name="G.R", blank=True, null=True)  # Campo específico, ajustar conforme necessário
+    proc = models.CharField(max_length=100, verbose_name="PROC", blank=True, null=True)  # Campo específico, ajustar conforme necessário
+    observacao = models.TextField(verbose_name="OBSERVAÇÃO", blank=True, null=True)  # Observações adicionais
+
     categoria = models.ForeignKey(Categoria, related_name='subcategorias_armamento', on_delete=models.CASCADE)
     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')
 
     def __str__(self):
-        return f"{self.nome} ({self.categoria})"
-
+        return f"{self.num_arma} ({self.categoria})"
 
 # Modelo para Categoria de Munição
 class CategoriaMunicao(models.Model):

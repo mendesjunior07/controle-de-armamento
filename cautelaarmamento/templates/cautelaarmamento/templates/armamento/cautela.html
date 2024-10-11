@@ -175,7 +175,7 @@ de Armamento {% endblock %} {% block content %}
             if (subcategoria.situacao === "disponivel") {
               var option = document.createElement("option");
               option.value = subcategoria.id;
-              option.textContent = subcategoria.nome;
+              option.textContent = subcategoria.num_arma;
               subcategoriaSelect.appendChild(option);
             }
           });
@@ -364,7 +364,7 @@ de Armamento {% endblock %} {% block content %}
       >
         <option value="">Selecione um Policial</option>
         {% for policial in policiais %}
-        <option value="{{ policial.id }}">{{ policial.nome }}</option>
+        <option value="{{ policial.id }}">{{ policial.nome_guerra }}</option>
         {% endfor %}
       </select>
       <div class="invalid-feedback">Por favor, selecione um policial.</div>

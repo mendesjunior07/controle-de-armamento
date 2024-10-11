@@ -26,6 +26,7 @@ from django.db.models import Sum
 from django.db import transaction
 from django.urls import reverse
 from django.contrib import messages
+from django.db import IntegrityError
 import json
 import logging
 from django.utils import timezone
@@ -187,7 +188,7 @@ def get_subcategorias_armamento(request, categoria_id):
     except Categoria.DoesNotExist:
         return JsonResponse({'error': 'Categoria não encontrada'}, status=404)
     
-    data = [{"id": subcategoria.id, "nome": subcategoria.nome} for subcategoria in subcategorias]
+    data = [{"id": subcategoria.id, "nome": subcategoria.num_arma} for subcategoria in subcategorias]
     return JsonResponse(data, safe=False)
 
 # busca todas as subcategorias relacionadas a munição
@@ -242,11 +243,45 @@ def listar_registros_cautela(request):
 def cadastrar_pessoa(request):
     if request.method == 'POST':
         nome_completo = request.POST.get('nome_completo')
+        nome_guerra = request.POST.get('nome_guerra')
+        posto_graduacao = request.POST.get('posto_graduacao')
         matricula = request.POST.get('matricula')
-        # Lógica de salvamento do policial
-        return redirect('sucesso_cadastro')
-    return render(request, 'armamento\cadastrar_pessoa.html')
+        rgpm = request.POST.get('rgpm')
+        lotacao = request.POST.get('lotacao')
+        data_nascimento = request.POST.get('data_nascimento')
+        cpf = request.POST.get('cpf')
 
+        try:
+            # Verificar se já existe um policial com o mesmo CPF
+            if Policial.objects.filter(cpf=cpf).exists():
+                return render(request, 'armamento/cadastrar_pessoa.html', {
+                    'error': 'Um policial com este CPF já está cadastrado.'
+                })
+
+            # Criar e salvar o novo policial
+            policial = Policial(
+                nome_completo=nome_completo,
+                nome_guerra=nome_guerra,
+                posto_graduacao=posto_graduacao,
+                matricula=matricula,
+                rgpm=rgpm,
+                lotacao=lotacao,
+                data_nascimento=data_nascimento,
+                cpf=cpf
+            )
+            policial.save()
+
+            # Redirecionar para a página de sucesso
+            return redirect('sucesso')
+
+        except IntegrityError:
+            # Renderizar a página com uma mensagem de erro caso ocorra um problema de integridade
+            return render(request, 'armamento/cadastrar_pessoa.html', {
+                'error': 'Ocorreu um erro ao tentar salvar o policial. Verifique os dados e tente novamente.'
+            })
+
+    # Renderizar a página de cadastro se a requisição for GET
+    return render(request, 'armamento/cadastrar_pessoa.html')
 
 
 def sucesso_view(request):
