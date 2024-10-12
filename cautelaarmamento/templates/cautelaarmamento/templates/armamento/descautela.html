@@ -39,7 +39,7 @@
     <!-- Corpo da Tabela -->
     <tbody id="registros_tbody">
       {% for registro in registros %}
-      <tr data-registro-id="{{ registro.id }}">
+      <tr id="registro-row-{{ registroId }}">
         <td>{{ registro.data_hora }}</td>
         <td>{{ registro.policial.nome }}</td>
         <td>{{ registro.tipo_servico }}</td>
@@ -53,7 +53,7 @@
         <!-- Coluna de Ações com botões -->
         <td>
           <button
-            class="btn btn-danger btn-sm"
+            class="btn btn-primary btn-sm"
             onclick="openDescautelarSAModal({{ registro.id }}, '{{ registro.policial.nome }}')"
           >
             Descautela S/A
@@ -61,14 +61,14 @@
 
           {% if registro.categoria_armamento %}
           <button
-            class="btn btn-primary btn-sm"
+            class="btn btn-danger btn-sm"
             onclick="openDescautelarArmamentoModal({{ registro.id }}, '{{ registro.categoria_armamento }}', '{{ registro.subcategoria_armamento }}')"
           >
             Descautela C/A
           </button>
           {% else %}
           <button
-            class="btn btn-primary btn-sm"
+            class="btn btn-danger btn-sm"
             onclick="openDescautelarMunicaoModal({{ registro.id }}, '{{ registro.categoria_municao }}', '{{ registro.subcategoria_municao }}', '{{ registro.quantidade_municao }}')"
           >
             Descautela C/A - Munição
@@ -414,48 +414,55 @@
   }
 
   document
-    .getElementById("formDescautelarCA")
-    .addEventListener("submit", function (event) {
-      event.preventDefault(); // Evitar o envio padrão do formulário
+  .getElementById("formDescautelarCA")
+  .addEventListener("submit", function (event) {
+    event.preventDefault(); // Evitar o envio padrão do formulário
 
-      var form = event.target;
-      var formData = new FormData(form);
+    var form = event.target;
+    var formData = new FormData(form);
 
-      // Construa o objeto de dados para envio
-      var data = {
-        registro_id: formData.get("registro_id"),
-        situacao: formData.get("situacao"),
-        observacao: formData.get("observacao"),
-        observacoes: formData.get("observacoes"), // Adicione esta linha
-        csrfmiddlewaretoken: formData.get("csrfmiddlewaretoken"),
+    // Construa o objeto de dados para envio
+    var data = {
+      registro_id: formData.get("registro_id"),
+      situacao: formData.get("situacao"),
+      observacao: formData.get("observacao"),
+      observacoes: formData.get("observacoes"), // Adicione esta linha
+      csrfmiddlewaretoken: formData.get("csrfmiddlewaretoken"),
     };
 
-      // Enviar a requisição para o servidor usando fetch API
-      fetch(form.action, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": data["csrfmiddlewaretoken"],
-        },
-        body: formData,
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            console.log("Descautela realizada com sucesso!");
-            location.reload(); // Recarregar a página após o sucesso
-          } else if (data.limite_municao !== undefined) {
-            // Caso a quantidade de munição seja retornada como limite, ajustar no modal
-            document.getElementById("quantidadeMuniçãoInput").max =
-              data.limite_municao; // Definir o limite máximo no campo correspondente
-            console.log(
-              `Limite de munição ajustado para: ${data.limite_municao}`
-            );
-          } else {
-            console.log("Erro na descautela:", data.error);
+    // Enviar a requisição para o servidor usando fetch API
+    fetch(form.action, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": data["csrfmiddlewaretoken"],
+      },
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          console.log("Descautela realizada com sucesso!");
+
+          // Remover a linha da tabela correspondente ao registroId
+          var registroRow = document.getElementById("registro-row-" + data.registro_id);
+          if (registroRow) {
+            registroRow.remove(); // Remove a linha do DOM
           }
-        })
-        .catch((error) => console.error("Erro na requisição:", error));
-    });
+
+          // Fechar o modal
+          var modal = bootstrap.Modal.getInstance(document.getElementById("descautelarCAModal"));
+          modal.hide();
+
+        } else if (data.limite_municao !== undefined) {
+          // Caso a quantidade de munição seja retornada como limite, ajustar no modal
+          document.getElementById("quantidadeMuniçãoInput").max = data.limite_municao; // Definir o limite máximo no campo correspondente
+          console.log(`Limite de munição ajustado para: ${data.limite_municao}`);
+        } else {
+          console.log("Erro na descautela:", data.error);
+        }
+      })
+      .catch((error) => console.error("Erro na requisição:", error));
+  });
   // ####################################################################
   //### 3. Script para abrir o modal de Descautela de Munição (C/A): ####
   // ####################################################################

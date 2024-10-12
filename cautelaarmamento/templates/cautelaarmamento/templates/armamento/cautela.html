@@ -189,7 +189,7 @@ de Armamento {% endblock %} {% block content %}
             if (subcategoria.situacao === "disponivel") {
               var option = document.createElement("option");
               option.value = subcategoria.id;
-              option.textContent = subcategoria.num_arma;
+              option.textContent = subcategoria.descricao_completa; // Correção
               subcategoriaSelect.appendChild(option);
             }
           });
@@ -410,7 +410,7 @@ de Armamento {% endblock %} {% block content %}
 
     <!-- Seção de Armamento e Equipamentos -->
     <div class="table-responsive">
-      <h5>ARMAMENTO E EQUIPAMENTOS</h5>
+      <h5>ARMAMENTO / VTR's E EQUIPAMENTOS</h5>
       <table id="form-table" class="table table-bordered">
         <thead class="table-light">
           <tr>

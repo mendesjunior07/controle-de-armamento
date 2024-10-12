@@ -100,8 +100,8 @@ def cautela_de_armamento_view(request):
                             RegistroCautelaCompleta.objects.create(
                                 policial=policial,
                                 tipo_servico=tipo_servico,
-                                categoria_armamento=categoria_armamento.nome,
-                                subcategoria_armamento=subcategoria_armamento.nome,
+                                categoria_armamento=categoria_armamento.nome,  # Aqui pode permanecer igual
+                                subcategoria_armamento=subcategoria_armamento.descricao_completa,  # Mudança feita aqui
                                 categoria_municao=None,
                                 subcategoria_municao=None,
                                 quantidade_municao=0,
@@ -134,14 +134,14 @@ def cautela_de_armamento_view(request):
                                 quantidade=quantidade
                             )
 
-                            # Registro na nova model com todos os detalhes para cada linha
+                            # Registro na nova model com todos os detalhes para cada linha - Munição
                             RegistroCautelaCompleta.objects.create(
                                 policial=policial,
                                 tipo_servico=tipo_servico,
                                 categoria_armamento=None,
                                 subcategoria_armamento=None,
-                                categoria_municao=categoria_municao.nome,
-                                subcategoria_municao=subcategoria_municao.nome,
+                                categoria_municao=categoria_municao.nome,  # Aqui pode permanecer igual
+                                subcategoria_municao=subcategoria_municao.nome,  # Atualize aqui para o atributo correto
                                 quantidade_municao=quantidade,
                                 armeiro=armeiro
                             )
@@ -180,22 +180,22 @@ def cautela_de_armamento_view(request):
 ############################# AJAX ###################################
 ######################################################################
 # busca todas as subcategorias relacionadas a armamento
-
 def get_subcategorias_armamento(request, categoria_id):
     try:
         categoria = Categoria.objects.get(id=categoria_id)
         subcategorias = categoria.subcategorias_armamento.filter(situacao='disponivel')
     except Categoria.DoesNotExist:
         return JsonResponse({'error': 'Categoria não encontrada'}, status=404)
-    
-    data = [{"id": subcategoria.id, "nome": subcategoria.num_arma} for subcategoria in subcategorias]
+
+    # Altere o valor aqui de subcategoria.nome para subcategoria.descricao_completa
+    data = [{"id": subcategoria.id, "nome": subcategoria.descricao_completa} for subcategoria in subcategorias]
     return JsonResponse(data, safe=False)
 
 # busca todas as subcategorias relacionadas a munição
-
 def get_subcategorias_municao(request, categoria_id):
     categoria = get_object_or_404(CategoriaMunicao, id=categoria_id)
     subcategorias = categoria.subcategorias.all()
+    # Altere "nome" para "descricao_completa" abaixo:
     data = [{"id": subcategoria.id, "nome": subcategoria.nome} for subcategoria in subcategorias]
     return JsonResponse(data, safe=False)
 
@@ -303,7 +303,7 @@ def descautelar_sa(request):
         # Verificar se a categoria de armamento está presente
         if registro.categoria_armamento:
             # Buscar a subcategoria de armamento associada ao registro
-            subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+            subcategoria = get_object_or_404(Subcategoria, descricao_completa=registro.subcategoria_armamento)
             
             # Alterar o campo situacao para 'disponivel'
             subcategoria.situacao = 'disponivel'
@@ -323,7 +323,7 @@ def descautelar_sa(request):
             
             # Imprimir o valor da categoria armamento no terminal
             print(f"Categoria de Armamento: {registro.categoria_armamento}")
-            print(f"Subcategoria '{subcategoria.nome}' alterada para situação: {subcategoria.situacao}")
+            print(f"Subcategoria '{subcategoria.descricao_completa}' alterada para situação: {subcategoria.situacao}")
         
         # Caso a categoria de armamento seja None, trabalhar com munição
         elif registro.categoria_armamento is None and registro.quantidade_municao > 0:
@@ -708,12 +708,14 @@ def descautelar_ca(request):
                 ])
 
                 if registro.subcategoria_armamento:
-                    subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
+                    subcategoria = get_object_or_404(Subcategoria, descricao_completa=registro.subcategoria_armamento)
+
                     subcategoria.situacao = situacao_armamento
                     subcategoria.save()
 
                 registro.delete()
-                return JsonResponse({'success': True, 'message': 'Descautelamento realizado com sucesso.'})
+                return JsonResponse({'success': True, 'message': 'Descautelamento realizado com sucesso.', 'registro_id': registro_id})
+
             
             else:
                 quantidade_municao_disponivel = registro.quantidade_municao

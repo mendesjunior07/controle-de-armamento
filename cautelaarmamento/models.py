@@ -56,31 +56,67 @@ class Subcategoria(models.Model):
         ('disparado', 'Disparado'),
     ]
 
-    nome = models.CharField(max_length=100)
-    marca = models.CharField(max_length=100, blank=True, null=True)  # Marca da arma
-    modelo = models.CharField(max_length=100, blank=True, null=True)  # Modelo da arma
-    cal = models.CharField(max_length=50, blank=True, null=True)  # Calibre da arma
-    ct = models.CharField(max_length=50, blank=True, null=True)  # Campo específico, ajustar conforme necessário
+    # Dados do Veículo/Material
+    marca = models.CharField(max_length=100, blank=True, null=True)  # Marca do veículo/arma
+    modelo = models.CharField(max_length=100, blank=True, null=True)  # Modelo do veículo/arma
+    placa = models.CharField(max_length=20, blank=True, null=True, unique=True)  # Placa do veículo (se aplicável)
+    chassi = models.CharField(max_length=100, blank=True, null=True, unique=True)  # Chassi do veículo (se aplicável)
+    ano = models.PositiveIntegerField(blank=True, null=True)  # Ano de fabricação
+
+    # Procedência e Fornecedor
+    procedencia = models.CharField(max_length=100, blank=True, null=True)  # Procedência do item
+    fornecedor = models.CharField(max_length=100, blank=True, null=True)  # Fornecedor do item
+
+    # Aparência e Estado
+    aparencia_visual = models.TextField(verbose_name="Aparência Visual", blank=True, null=True)  # Descrição da aparência visual
+    estado_conservacao = models.CharField(max_length=100, verbose_name="EST. DE CONSERVAÇÃO", blank=True, null=True)  # Estado de conservação
+    cor = models.CharField(max_length=50, blank=True, null=True)  # Cor do item
+    tamanho = models.CharField(max_length=50, blank=True, null=True)  # Tamanho do item
+
+    # Localização e Destinação
+    localizacao = models.CharField(max_length=200, blank=True, null=True)  # Localização atual
+    destinacao = models.CharField(max_length=100, blank=True, null=True)  # Destinação do item
+    situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')  # Situação atual do item
+
+    # Informações do Material
+    tipo = models.CharField(max_length=50, blank=True, null=True)  # Tipo do material (arma, veículo, etc.)
+    cal = models.CharField(max_length=50, blank=True, null=True)  # Calibre (se aplicável)
+    ct = models.CharField(max_length=50, blank=True, null=True)  # Certificado Técnico (se aplicável)
     num_arma = models.CharField(max_length=100, verbose_name="Nº ARMA", blank=True, null=True, unique=True)  # Número da arma
-    num_pmma = models.CharField(max_length=100, verbose_name="Nº PMMA", blank=True, null=True)  # Número de registro PMMA
-    localizacao = models.CharField(max_length=200, blank=True, null=True)  # Localização atual da arma
-    tombo = models.CharField(max_length=100, blank=True, null=True)  # Número de tombo da arma
-    estado_conservacao = models.CharField(max_length=100, verbose_name="EST. DE CONSERVAÇÃO", blank=True, null=True)  # Estado de conservação da arma
-    gr = models.CharField(max_length=50, verbose_name="G.R", blank=True, null=True)  # Campo específico, ajustar conforme necessário
-    proc = models.CharField(max_length=100, verbose_name="PROC", blank=True, null=True)  # Campo específico, ajustar conforme necessário
+    num_pmma = models.CharField(max_length=100, verbose_name="Nº PMMA", blank=True, null=True)  # Número PMMA
+    tombo = models.CharField(max_length=100, blank=True, null=True)  # Número de tombo
+    gr = models.CharField(max_length=50, verbose_name="GR", blank=True, null=True)  # Guia de Remessa ou campo específico
+    
+    # Validade e Observações
+    data_vencimento = models.DateField(blank=True, null=True)  # Data de vencimento (se aplicável)
     observacao = models.TextField(verbose_name="OBSERVAÇÃO", blank=True, null=True)  # Observações adicionais
 
+    # Relação com Categoria
     categoria = models.ForeignKey('Categoria', related_name='subcategorias_armamento', on_delete=models.CASCADE)
-    situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')
 
+    # Campo para o usuário logado que inseriu os dados
+    inserido_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Relaciona com o usuário logado
+    
+    # Campo para a descrição completa
+    descricao_completa = models.CharField(max_length=255, blank=True, null=True)
+
+    # Sobrescrevendo o método save para gerar a combinação antes de salvar
+    def save(self, *args, **kwargs):
+        # Gera a descrição completa combinando os campos
+        self.descricao_completa = f"{self.marca or ''} {self.modelo or ''} {self.placa or ''} {self.tipo or ''} {self.cal or ''} - Nº: {self.num_arma or ''}".strip()
+        super(Subcategoria, self).save(*args, **kwargs)
+
+    # Método __str__ para garantir que sempre retorne uma string
     def __str__(self):
-        return f"{self.num_arma} ({self.categoria})"
+        return self.descricao_completa or "Subcategoria sem descrição"
+
 
 # Modelo para Categoria de Munição
 class CategoriaMunicao(models.Model):
     nome = models.CharField(max_length=100)
 
     def __str__(self):
+        # Retornar apenas o nome
         return self.nome
 
 
