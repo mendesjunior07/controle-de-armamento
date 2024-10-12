@@ -1,0 +1,41 @@
+{% extends 'base_html/base.html' %}
+
+{% block title %}
+    Itens Disponíveis
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="mb-4">Itens Disponíveis</h2>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Calibre</th>
+                    <th>Nº Arma</th>
+                    <th>Nº PMMA</th>
+                    <th>Localização</th>
+                    <th>Estado de Conservação</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens_disponiveis %}
+                <tr>
+                    <td>{{ item.nome }}</td>
+                    <td>{{ item.marca }}</td>
+                    <td>{{ item.modelo }}</td>
+                    <td>{{ item.cal }}</td>
+                    <td>{{ item.num_arma }}</td>
+                    <td>{{ item.num_pmma }}</td>
+                    <td>{{ item.localizacao }}</td>
+                    <td>{{ item.estado_conservacao }}</td>
+                    <td>{{ item.observacao }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

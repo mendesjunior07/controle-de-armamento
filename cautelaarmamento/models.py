@@ -2,9 +2,10 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+
 class Policial(models.Model):
     nome_completo = models.CharField(max_length=100)
-    nome_guerra = models.CharField(max_length=50, blank=True, null=True)
+    nome_guerra = models.CharField(max_length=50, blank=True, null=True)  # Este campo deve existir
     posto_graduacao = models.CharField(max_length=50)
     matricula = models.CharField(max_length=20, unique=True)
     rgpm = models.CharField(max_length=20, unique=True)
@@ -18,7 +19,7 @@ class Policial(models.Model):
 
 # Modelo para Categoria de Armamento
 class Categoria(models.Model):
-    nome = models.CharField(max_length=100)
+    nome = models.CharField(max_length=100,unique=True)
 
     def __str__(self):
         return self.nome
@@ -60,16 +61,16 @@ class Subcategoria(models.Model):
     modelo = models.CharField(max_length=100, blank=True, null=True)  # Modelo da arma
     cal = models.CharField(max_length=50, blank=True, null=True)  # Calibre da arma
     ct = models.CharField(max_length=50, blank=True, null=True)  # Campo específico, ajustar conforme necessário
-    num_arma = models.CharField(max_length=100, verbose_name="Nº ARMA", blank=True, null=True)  # Número da arma
+    num_arma = models.CharField(max_length=100, verbose_name="Nº ARMA", blank=True, null=True, unique=True)  # Número da arma
     num_pmma = models.CharField(max_length=100, verbose_name="Nº PMMA", blank=True, null=True)  # Número de registro PMMA
     localizacao = models.CharField(max_length=200, blank=True, null=True)  # Localização atual da arma
-    tombo
+    tombo = models.CharField(max_length=100, blank=True, null=True)  # Número de tombo da arma
     estado_conservacao = models.CharField(max_length=100, verbose_name="EST. DE CONSERVAÇÃO", blank=True, null=True)  # Estado de conservação da arma
     gr = models.CharField(max_length=50, verbose_name="G.R", blank=True, null=True)  # Campo específico, ajustar conforme necessário
     proc = models.CharField(max_length=100, verbose_name="PROC", blank=True, null=True)  # Campo específico, ajustar conforme necessário
     observacao = models.TextField(verbose_name="OBSERVAÇÃO", blank=True, null=True)  # Observações adicionais
 
-    categoria = models.ForeignKey(Categoria, related_name='subcategorias_armamento', on_delete=models.CASCADE)
+    categoria = models.ForeignKey('Categoria', related_name='subcategorias_armamento', on_delete=models.CASCADE)
     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')
 
     def __str__(self):
@@ -185,3 +186,12 @@ class DescautelasCa(models.Model):
 
     def __str__(self):
         return f"Descautela de {self.policial} em {self.data_hora_cautela}"
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -54,20 +54,22 @@ de Armamento {% endblock %} {% block content %}
   function showModal() {
     // Captura o valor selecionado do campo "Nome do Policial"
     var policialSelecionado = document.getElementById("mySelect").value;
-    var policialTexto = document.getElementById("mySelect").options[
+    var policialTexto =
+      document.getElementById("mySelect").options[
         document.getElementById("mySelect").selectedIndex
-    ].text;
+      ].text;
 
     // Captura o valor selecionado do campo "Tipo de Serviço"
     var tipoServicoSelecionado = document.getElementById("tipo_servico").value;
-    var tipoServicoTexto = document.getElementById("tipo_servico").options[
+    var tipoServicoTexto =
+      document.getElementById("tipo_servico").options[
         document.getElementById("tipo_servico").selectedIndex
-    ].text;
+      ].text;
 
     // Verifica se os campos obrigatórios foram preenchidos
     if (!policialSelecionado || !tipoServicoSelecionado) {
-        alert("Nome do Policial e Tipo de Serviço são obrigatórios.");
-        return;
+      alert("Nome do Policial e Tipo de Serviço são obrigatórios.");
+      return;
     }
 
     // Captura as categorias e subcategorias de armamento
@@ -78,38 +80,52 @@ de Armamento {% endblock %} {% block content %}
 
     // Itera sobre todas as categorias e subcategorias de armamento
     for (var i = 0; i < categorias.length; i++) {
-        var categoriaNome = categorias[i].options[categorias[i].selectedIndex].text;
-        var subcategoriaNome = subcategorias[i].options[subcategorias[i].selectedIndex].text;
-        if (categorias[i].value && subcategorias[i].value) {
-            categoriasSelecionadas.push(categoriaNome);
-            subcategoriasSelecionadas.push(subcategoriaNome);
-        }
+      var categoriaNome =
+        categorias[i].options[categorias[i].selectedIndex].text;
+      var subcategoriaNome =
+        subcategorias[i].options[subcategorias[i].selectedIndex].text;
+      if (categorias[i].value && subcategorias[i].value) {
+        categoriasSelecionadas.push(categoriaNome);
+        subcategoriasSelecionadas.push(subcategoriaNome);
+      }
     }
 
     // Captura as categorias e subcategorias de munições
     var categoriasMunicoes = document.getElementsByName("categoria_municoes[]");
-    var subcategoriasMunicoes = document.getElementsByName("subcategoria_municoes[]");
+    var subcategoriasMunicoes = document.getElementsByName(
+      "subcategoria_municoes[]"
+    );
     var quantidadesMunicoes = document.getElementsByName("quantidade[]");
     var municoesSelecionadas = [];
 
     // Itera sobre todas as categorias e subcategorias de munições
     for (var i = 0; i < categoriasMunicoes.length; i++) {
-        var categoriaMunicaoNome = categoriasMunicoes[i].options[categoriasMunicoes[i].selectedIndex].text;
-        var subcategoriaMunicaoNome = subcategoriasMunicoes[i].options[subcategoriasMunicoes[i].selectedIndex].text;
-        var quantidadeMunicao = quantidadesMunicoes[i].value;
-        if (categoriasMunicoes[i].value && subcategoriasMunicoes[i].value && quantidadeMunicao) {
-            municoesSelecionadas.push({
-                categoria: categoriaMunicaoNome,
-                subcategoria: subcategoriaMunicaoNome,
-                quantidade: quantidadeMunicao,
-            });
-        }
+      var categoriaMunicaoNome =
+        categoriasMunicoes[i].options[categoriasMunicoes[i].selectedIndex].text;
+      var subcategoriaMunicaoNome =
+        subcategoriasMunicoes[i].options[subcategoriasMunicoes[i].selectedIndex]
+          .text;
+      var quantidadeMunicao = quantidadesMunicoes[i].value;
+      if (
+        categoriasMunicoes[i].value &&
+        subcategoriasMunicoes[i].value &&
+        quantidadeMunicao
+      ) {
+        municoesSelecionadas.push({
+          categoria: categoriaMunicaoNome,
+          subcategoria: subcategoriaMunicaoNome,
+          quantidade: quantidadeMunicao,
+        });
+      }
     }
 
     // Verifica se pelo menos um dos grupos (armamento ou munição) foi preenchido
-    if (categoriasSelecionadas.length === 0 && municoesSelecionadas.length === 0) {
-        alert("Preencha pelo menos uma linha de armamento ou munição.");
-        return;
+    if (
+      categoriasSelecionadas.length === 0 &&
+      municoesSelecionadas.length === 0
+    ) {
+      alert("Preencha pelo menos uma linha de armamento ou munição.");
+      return;
     }
 
     // Monta o conteúdo do modal
@@ -142,9 +158,7 @@ de Armamento {% endblock %} {% block content %}
     // Exibe o modal
     var modal = new bootstrap.Modal(document.getElementById("confirmModal"));
     modal.show();
-}
-
-
+  }
 
   function submitForm() {
     document.getElementById("main-form").submit();
@@ -327,15 +341,17 @@ de Armamento {% endblock %} {% block content %}
 
   function atualizarQuantidadeRestante(inputElement) {
     var quantidadeDigitada = parseInt(inputElement.value);
-    var row = inputElement.closest('tr');
-    var quantidadeTotalInput = row.querySelector('.quantidade-total');
+    var row = inputElement.closest("tr");
+    var quantidadeTotalInput = row.querySelector(".quantidade-total");
     var quantidadeTotal = parseInt(quantidadeTotalInput.value);
 
     if (quantidadeDigitada > quantidadeTotal) {
-        alert('A quantidade selecionada não pode ser maior que o total disponível.');
-        inputElement.value = quantidadeTotal;  // Ajusta o valor para o máximo disponível
+      alert(
+        "A quantidade selecionada não pode ser maior que o total disponível."
+      );
+      inputElement.value = quantidadeTotal; // Ajusta o valor para o máximo disponível
     }
-}
+  }
 
   function removeRow(rowId, tableId) {
     var row = document.getElementById(rowId);
@@ -365,6 +381,7 @@ de Armamento {% endblock %} {% block content %}
         <option value="">Selecione um Policial</option>
         {% for policial in policiais %}
         <option value="{{ policial.id }}">{{ policial.nome_guerra }}</option>
+        <!-- ou policial.nome_completo se for o necessário -->
         {% endfor %}
       </select>
       <div class="invalid-feedback">Por favor, selecione um policial.</div>

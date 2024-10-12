@@ -55,9 +55,9 @@
                     <i class="lni lni-list"></i>
                     <span>Catálogo de Equipamentos</span>
                 </a>
-                <ul id="inventario" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                <ul id="{% url 'itens_disponiveis' %}" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">Itens Disponíveis</a>
+                        <a href="{% url 'itens_disponiveis' %}" class="sidebar-link">Itens Disponíveis</a>
                     </li>
                     <li class="sidebar-item">
                         {% comment %} <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a> {% endcomment %}

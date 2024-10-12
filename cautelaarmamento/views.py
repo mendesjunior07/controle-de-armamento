@@ -898,3 +898,24 @@ def descautelar_municao_ca(request):
 
 
 
+    # View para exibir itens disponíveis
+def itens_disponiveis(request):
+    # Filtra todos os itens que estão marcados como 'disponível'
+    itens_disponiveis = Subcategoria.objects.filter(situacao='disponivel')
+    
+    # Itera pelos itens disponíveis e imprime seus detalhes no terminal
+    for item in itens_disponiveis:
+        print(f"Nome: {item.nome}")
+        print(f"Marca: {item.marca}")
+        print(f"Modelo: {item.modelo}")
+        print(f"Calibre: {item.cal}")
+        print(f"Nº Arma: {item.num_arma}")
+        print(f"Nº PMMA: {item.num_pmma}")
+        print(f"Localização: {item.localizacao}")
+        print(f"Estado de Conservação: {item.estado_conservacao}")
+        print(f"Observação: {item.observacao}")
+        print("----------------------------------------")
+    
+    return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/itens_disponiveis.html', {
+        'itens_disponiveis': itens_disponiveis
+    })
