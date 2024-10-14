@@ -907,7 +907,7 @@ def itens_disponiveis(request):
     
     # Itera pelos itens disponíveis e imprime seus detalhes no terminal
     for item in itens_disponiveis:
-        print(f"Nome: {item.nome}")
+        print(f"Nome: {item.descricao_completa}")
         print(f"Marca: {item.marca}")
         print(f"Modelo: {item.modelo}")
         print(f"Calibre: {item.cal}")
