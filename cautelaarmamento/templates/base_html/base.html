@@ -55,20 +55,19 @@
                     <i class="lni lni-list"></i>
                     <span>Catálogo de Equipamentos</span>
                 </a>
-                <ul id="{% url 'itens_disponiveis' %}" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                <ul id="inventario" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
                     <li class="sidebar-item">
                         <a href="{% url 'itens_disponiveis' %}" class="sidebar-link">Itens Disponíveis</a>
                     </li>
                     <li class="sidebar-item">
-                        {% comment %} <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a> {% endcomment %}
-                        <a href="#" 'inventario_equ class="sidebar-link">Inventário de Equipamentos</a>
+                        <a href="{% url 'inventario_equipamentos' %}" class="sidebar-link">Inventário de Equipamentos</a>
                     </li>
                     <li class="sidebar-item">
-                        {% comment %} <a href="{% url 'listar_armamentos' %}" class="sidebar-link">Armas e Materiais</a> {% endcomment %}
                         <a href="#" class="sidebar-link">Armas e Materiais</a>
                     </li>
                 </ul>
             </li>
+            
             
 
             

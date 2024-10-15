@@ -1,87 +1,47 @@
-{% extends 'base_html/base.html' %} {% block title %}Inventário de Armas e Equipamentos{% endblock %} {% block content %}
-<div class="main p-3">
-    <div class="text-center">
-        <h1>Inventário de Equipamentos</h1>
-        <h1>Viaturas e MIKES</h1>
-        <br>
-        <table>
-            <thead>
+{% extends 'base_html/base.html' %}
+
+{% block title %} 
+Inventário de Equipamentos
+{% endblock %}
+
+{% block content %}
+<h1>Inventário de Equipamentos</h1>
+
+{% regroup itens_disponiveis by categoria as itens_por_categoria %}
+
+{% for categoria in itens_por_categoria %}
+    <h2>Categoria: {{ categoria.grouper }}</h2>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Calibre</th>
+                <th>Nº Arma</th>
+                <th>Nº PMMA</th>
+                <th>Localização</th>
+                <th>Estado de Conservação</th>
+                <th>Observação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in categoria.list %}
                 <tr>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>Placa</th>
-                    <th>Chassi</th>
-                    <th>Ano</th>
-                    <th>Procedência</th>
-                    <th>Fornecedor</th>
-                    <th>Aparência Visual</th>
-                    <th>Destino</th>
-                    <th>Situação</th>
-                    <th>Localização</th>
-                    <th>Observação</th>
-                    <th>Locada</th>
+                    <td>{{ item.descricao_completa }}</td>
+                    <td>{{ item.marca }}</td>
+                    <td>{{ item.modelo }}</td>
+                    <td>{{ item.cal }}</td>
+                    <td>{{ item.num_arma }}</td>
+                    <td>{{ item.num_pmma }}</td>
+                    <td>{{ item.localizacao }}</td>
+                    <td>{{ item.estado_conservacao }}</td>
+                    <td>{{ item.observacao }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for equipamento in equipamentos %}
-                <tr>
-                    <td>{{ equipamento.marca }}</td>
-                    <td>{{ equipamento.modelo }}</td>
-                    <td>{{ equipamento.placa }}</td>
-                    <td>{{ equipamento.chassi }}</td>
-                    <td>{{ equipamento.ano }}</td>
-                    <td>{{ equipamento.procedencia }}</td>
-                    <td>{{ equipamento.fornecedor }}</td>
-                    <td>{{ equipamento.aparencia_visual }}</td>
-                    <td>{{ equipamento.destino }}</td>
-                    <td>{{ equipamento.situacao }}</td>
-                    <td>{{ equipamento.localizacao }}</td>
-                    <td>{{ equipamento.observacao }}</td>
-                    <td>{{ equipamento.locada }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="13">Nenhum equipamento encontrado.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <h1>Bicicleta</h1>
-        <br>
-        <table>
-            <thead>
-                <tr>
-                    <th>Marca</th>
-                    <th>Tipo</th>
-                    <th>Ano</th>
-                    <th>Cor</th>
-                    <th>Procedência</th>
-                    <th>Docomentação Referente</th>
-                    <th>Situação</th>
-                    <th>Tombo</th>
-                    <th>Localização</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for equipamento in equipamentos %}
-                <tr>
-                    <td>{{ equipamento.marca }}</td>
-                    <td>{{ equipamento.tipo }}</td>
-                    <td>{{ equipamento.ano }}</td>
-                    <td>{{ equipamento.cor }}</td>
-                    <td>{{ equipamento.procedencia }}</td>
-                    <td>{{ equipamento.doc_ref }}</td>
-                    <td>{{ equipamento.situacao }}</td>
-                    <td>{{ equipamento.tombo }}</td>
-                    <td>{{ equipamento.localizacao }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="13">Nenhum equipamento encontrado.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+            {% endfor %}
+        </tbody>
+    </table>
+{% empty %}
+    <p>Nenhum item disponível.</p>
+{% endfor %}
 {% endblock %}

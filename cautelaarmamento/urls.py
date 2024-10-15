@@ -11,7 +11,8 @@ from .views import (
     descautelar_sa,
     descautelar_ca,
     descautelar_municao_ca,
-    itens_disponiveis
+    itens_disponiveis,
+    listar_inventario_equipamentos
     # atualizar_quantidade_municao,
     # descautelar_municao_ca,
     # atualizar_quantidade_municao,
@@ -28,6 +29,8 @@ urlpatterns = [
     path('obter_quantidade_total/<int:subcategoria_id>/', obter_quantidade_total, name='obter_quantidade_total'),
     path('listar_cautelas/', listar_registros_cautela, name='listar_cautelas'),  # Use o nome correto da função
     path('descautelar_sa/', descautelar_sa, name='descautelar_sa'),
+    # path('inventario_equipamentos/<int:categoria_id>/', listar_inventario_equipamentos, name='inventario_equipamentos'),
+    path('inventario_equipamentos/', listar_inventario_equipamentos, name='inventario_equipamentos'),
     # path('descautelar-ca/', descautelar_ca, name='descautelar_ca'),
     path('descautelar_ca/', descautelar_ca, name='descautelar_ca'),
     path('descautelar-municao/', descautelar_municao_ca, name='descautelar_municao_ca'),

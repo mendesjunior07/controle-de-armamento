@@ -921,3 +921,27 @@ def itens_disponiveis(request):
     return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/itens_disponiveis.html', {
         'itens_disponiveis': itens_disponiveis
     })
+
+
+def listar_inventario_equipamentos(request):
+    # Filtra todos os itens disponíveis, ordenando-os por categoria
+    itens_disponiveis = Subcategoria.objects.all().order_by('categoria')
+
+    # Debug: Imprime os detalhes dos itens no terminal, organizados por categoria
+    for item in itens_disponiveis:
+        print(f"Categoria: {item.categoria}")
+        print(f"Nome: {item.descricao_completa}")
+        print(f"Marca: {item.marca}")
+        print(f"Modelo: {item.modelo}")
+        print(f"Calibre: {item.cal}")
+        print(f"Nº Arma: {item.num_arma}")
+        print(f"Nº PMMA: {item.num_pmma}")
+        print(f"Localização: {item.localizacao}")
+        print(f"Estado de Conservação: {item.estado_conservacao}")
+        print(f"Observação: {item.observacao}")
+        print("----------------------------------------")
+
+    # Renderiza o template com a lista de itens disponíveis organizados por categoria
+    return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/inventario_equipamentos.html', {
+        'itens_disponiveis': itens_disponiveis,
+    })
