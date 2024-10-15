@@ -59,7 +59,7 @@ class Subcategoria(models.Model):
     # Dados do Veículo/Material
     marca = models.CharField(max_length=100, blank=True, null=True)  # Marca do veículo/arma
     modelo = models.CharField(max_length=100, blank=True, null=True)  # Modelo do veículo/arma
-    placa = models.CharField(max_length=20, blank=True, null=True, unique=True)  # Placa do veículo (se aplicável)
+    placa = models.CharField(max_length=20, blank=True, null=True, unique=False)  # Placa do veículo (se aplicável)
     chassi = models.CharField(max_length=100, blank=True, null=True, unique=True)  # Chassi do veículo (se aplicável)
     ano = models.PositiveIntegerField(blank=True, null=True)  # Ano de fabricação
 
@@ -142,6 +142,8 @@ class CautelaDeArmamento(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     subcategoria = models.ForeignKey(Subcategoria, on_delete=models.CASCADE)
     hora_cautela = models.DateTimeField(default=timezone.now)
+    confirmado = models.BooleanField(default=False)  # Adiciona campo de confirmação
+    confirmado_em = models.DateTimeField(null=True, blank=True)  # Data de confirmação
     armeiro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

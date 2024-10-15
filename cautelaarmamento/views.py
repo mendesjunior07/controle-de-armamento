@@ -904,22 +904,32 @@ def descautelar_municao_ca(request):
 def itens_disponiveis(request):
     # Filtra todos os itens que estão marcados como 'disponível'
     itens_disponiveis = Subcategoria.objects.filter(situacao='disponivel')
-    
-    # Itera pelos itens disponíveis e imprime seus detalhes no terminal
+
+    # Agrupa os itens por categoria
+    itens_por_categoria = {}
     for item in itens_disponiveis:
-        print(f"Nome: {item.descricao_completa}")
-        print(f"Marca: {item.marca}")
-        print(f"Modelo: {item.modelo}")
-        print(f"Calibre: {item.cal}")
-        print(f"Nº Arma: {item.num_arma}")
-        print(f"Nº PMMA: {item.num_pmma}")
-        print(f"Localização: {item.localizacao}")
-        print(f"Estado de Conservação: {item.estado_conservacao}")
-        print(f"Observação: {item.observacao}")
-        print("----------------------------------------")
-    
+        categoria = item.categoria  # Assumindo que 'categoria' é um campo relacionado ao modelo Categoria
+        if categoria not in itens_por_categoria:
+            itens_por_categoria[categoria] = []
+        itens_por_categoria[categoria].append(item)
+
+    # Imprime detalhes dos itens no terminal
+    for categoria, itens in itens_por_categoria.items():
+        print(f"Categoria: {categoria}")
+        for item in itens:
+            print(f"Nome: {item.descricao_completa}")
+            print(f"Marca: {item.marca}")
+            print(f"Modelo: {item.modelo}")
+            print(f"Calibre: {item.cal}")
+            print(f"Nº Arma: {item.num_arma}")
+            print(f"Nº PMMA: {item.num_pmma}")
+            print(f"Localização: {item.localizacao}")
+            print(f"Estado de Conservação: {item.estado_conservacao}")
+            print(f"Observação: {item.observacao}")
+            print("----------------------------------------")
+
     return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/itens_disponiveis.html', {
-        'itens_disponiveis': itens_disponiveis
+        'itens_por_categoria': itens_por_categoria
     })
 
 
