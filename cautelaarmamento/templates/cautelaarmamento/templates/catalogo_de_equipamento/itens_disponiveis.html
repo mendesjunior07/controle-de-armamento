@@ -13,13 +13,7 @@
                 <thead>
                     <tr>
                         <th>Nome</th>
-                        <th>Marca</th>
-                        <th>Modelo</th>
-                        <th>Calibre</th>
-                        <th>Nº Arma</th>
-                        <th>Nº PMMA</th>
-                        <th>Localização</th>
-                        <th>Estado de Conservação</th>
+
                         <th>Observação</th>
                     </tr>
                 </thead>
@@ -27,13 +21,7 @@
                     {% for item in itens %}
                     <tr>
                         <td>{{ item.descricao_completa }}</td>
-                        <td>{{ item.marca }}</td>
-                        <td>{{ item.modelo }}</td>
-                        <td>{{ item.cal }}</td>
-                        <td>{{ item.num_arma }}</td>
-                        <td>{{ item.num_pmma }}</td>
-                        <td>{{ item.localizacao }}</td>
-                        <td>{{ item.estado_conservacao }}</td>
+
                         <td>{{ item.observacao }}</td>
                     </tr>
                     {% endfor %}

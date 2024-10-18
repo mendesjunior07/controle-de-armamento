@@ -19,17 +19,15 @@
         <aside id="sidebar">
             <div class="d-flex">
                 <button class="toggle-btn" type="button">
-                  <i class="lni lni-grid-alt"></i>
-              </button>
+                    <i class="lni lni-grid-alt"></i>
+                </button>
                 <div class="sidebar-logo">
                     <a href="#">PMMA - TIMON</a>
-                    
                 </div>
             </div>
             <ul class="sidebar-nav">
-
-            {% comment %} #################### ARMAMENTO ################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################{% endcomment %}                
                 
+            {% comment %} #################### ARMAMENTO ################### {% endcomment %}
             <li class="sidebar-item">
                 <a href="#armamento" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#armamento" aria-expanded="false" aria-controls="armamento">
                     <i class="lni lni-shield"></i>
@@ -44,12 +42,33 @@
                     </li>
                     <li class="sidebar-item">
                         <a href="{% url 'cadastrar_pessoa' %}" class="sidebar-link">Cadastro de Policiais Militares</a>
-                        {% comment %} <a href="#" class="sidebar-link">Cadastro de Policiais Militares</a> {% endcomment %}
                     </li>
                 </ul>
             </li>
-            
-            {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %} {% comment %} ###################### INVENTARIO DE ARMAS #################### {% endcomment %} {% comment %} ##############################################################{% endcomment %}
+
+            {% comment %} ########################## PASSAGEM DE SERVIÇO ####################### {% endcomment %}
+            <li class="sidebar-item">
+                <a href="#passagem_servico" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#passagem_servico" aria-expanded="false" aria-controls="passagem_servico">
+                    <i class="lni lni-clipboard"></i> <!-- Modificado para um ícone de troca -->
+                    <span>Passagem de Serviço</span>
+                </a>
+                <ul id="passagem_servico" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Registrar Passagem</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#"  class="sidebar-link">Consultar Histórico</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#"  class="sidebar-link">Relatórios de Passagem</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#"  class="sidebar-link">Verificar Autorizações</a>
+                    </li>
+                </ul>
+            </li>
+
+            {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %}
             <li class="sidebar-item">
                 <a href="#inventario" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#inventario" aria-expanded="false" aria-controls="inventario">
                     <i class="lni lni-list"></i>
@@ -67,195 +86,147 @@
                     </li>
                 </ul>
             </li>
-            
-            
 
-            
-                                    
             {% comment %} #################### RELATORIOS E ANALISES ################### {% endcomment %}
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#relatorio" aria-expanded="false" aria-controls="relatorio">
-                        <i class="lni lni-bar-chart"></i>
-                        <span>Relatórios e Análises</span>
-                    </a>
-                    <ul id="relatorio" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Solicitações Pendentes
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">Histórico de Autorizações
-                          </a>
-
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Verificação de Conformidade</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Controle de Acesso</a>
-                        </li>
-                    </ul>
-                </li>
-            {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %}
-
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#autorizacao" aria-expanded="false" aria-controls="autorizacao">
-                        <i class="lni lni-lock"></i>
-                        <span>Autorização e Controle</span>
-                    </a>
-                    <ul id="autorizacao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Relatórios Operacionais
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">Estatísticas de Uso
-                          </a>
-
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Auditorias de Inventário</a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Resumo de Atividades</a>
-                        </li>
-                    </ul>
-                </li>
-                {% comment %} ##################### MANUTENÇÃO E SUPORTE ########################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
-
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#manutencao" aria-expanded="false" aria-controls="manutencao">
-                        <i class="lni lni-cog"></i>
-                        <span>Manutenção e Suporte</span>
-                    </a>
-                    <ul id="manutencao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Manutenção de Armamento
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Agenda de Manutenção
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Solicitações de Suporte
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Histórico de Manutenções
-                          </a>
-                        </li>
-                    </ul>
-                </li>
-                {% comment %} ######################## CONFIGURAÇÕES DO SISTEMA ####################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
-
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#configuracao" aria-expanded="false" aria-controls="configuracao">
-                        <i class="lni lni-control-panel"></i>
-                        <span>Configurações do Sistema</span>
-                    </a>
-                    <ul id="configuracao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Gerenciamento de Usuários
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Configurações de Segurança
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Personalização de Relatórios
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">
-                              Backup e Recuperação
-                          </a>
-                        </li>
-                    </ul>
-                </li>
-                {% comment %} ########################## DOCUMENTAÇÃO E PROTOCOLOS ###################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
-
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#documentacao" aria-expanded="false" aria-controls="documentacao">
-                        <i class="lni lni-files"></i>
-                        <span>Documentação e Protocolos</span>
-                    </a>
-                    <ul id="documentacao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <a href="#" class="sidebar-link">
-                              Protocolos de Segurança
-                          </a>
-                </li>
-                <a href="#" class="sidebar-link">
-                              Guias de Uso
-                          </a>
-                </li>
-                <a href="#" class="sidebar-link">
-                              Políticas de Armamento
-                          </a>
-                </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#relatorio" aria-expanded="false" aria-controls="relatorio">
+                    <i class="lni lni-bar-chart"></i>
+                    <span>Relatórios e Análises</span>
+                </a>
+                <ul id="relatorio" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Solicitações Pendentes</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Histórico de Autorizações</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Verificação de Conformidade</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Controle de Acesso</a>
+                    </li>
                 </ul>
-                </li>
-                {% comment %} ######################### MONITORAMENTO EM TEMPO REAL ####################### {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#monitoramento" aria-expanded="false" aria-controls="monitoramento">
-                        <i class="lni lni-eye"></i>
-                        <span>Monitoramento em Tempo Real</span>
-                    </a>
-                    <ul id="monitoramento" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">Status do Estoque
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">Alertas e Notificações
-                          </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a href="#" class="sidebar-link">Monitoramento de Conformidade
-                          </a>
-                        </li>
-                    </ul>
-                </li>
+            </li>
+            {% comment %} ############################################################## {% endcomment %}
 
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#autorizacao" aria-expanded="false" aria-controls="autorizacao">
+                    <i class="lni lni-lock"></i>
+                    <span>Autorização e Controle</span>
+                </a>
+                <ul id="autorizacao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Relatórios Operacionais</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Estatísticas de Uso</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Auditorias de Inventário</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Resumo de Atividades</a>
+                    </li>
+                </ul>
+            </li>
 
+            {% comment %} ##################### MANUTENÇÃO E SUPORTE ########################## {% endcomment %}
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#manutencao" aria-expanded="false" aria-controls="manutencao">
+                    <i class="lni lni-cog"></i>
+                    <span>Manutenção e Suporte</span>
+                </a>
+                <ul id="manutencao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Manutenção de Armamento</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Agenda de Manutenção</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Solicitações de Suporte</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Histórico de Manutenções</a>
+                    </li>
+                </ul>
+            </li>
 
-                <li class="sidebar-item">
-                    <a href="#" class="sidebar-link">
-                        <i class="lni lni-popup"></i>
-                        <span>Notificação</span>
-                    </a>
-                </li>
+            {% comment %} ######################## CONFIGURAÇÕES DO SISTEMA ####################### {% endcomment %}
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#configuracao" aria-expanded="false" aria-controls="configuracao">
+                    <i class="lni lni-control-panel"></i>
+                    <span>Configurações do Sistema</span>
+                </a>
+                <ul id="configuracao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Gerenciamento de Usuários</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Configurações de Segurança</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Personalização de Relatórios</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Backup e Recuperação</a>
+                    </li>
+                </ul>
+            </li>
 
-                {% comment %} ############################################################## {% endcomment %} {% comment %} ############################################################## {% endcomment %} {% comment %} ##############################################################
-                {% endcomment %}
+            {% comment %} ########################## DOCUMENTAÇÃO E PROTOCOLOS ###################### {% endcomment %}
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#documentacao" aria-expanded="false" aria-controls="documentacao">
+                    <i class="lni lni-files"></i>
+                    <span>Documentação e Protocolos</span>
+                </a>
+                <ul id="documentacao" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Protocolos de Segurança</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Guias de Uso</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Políticas de Armamento</a>
+                    </li>
+                </ul>
+            </li>
 
-            </ul>
-            <div class="sidebar-footer">
+            {% comment %} ######################### MONITORAMENTO EM TEMPO REAL ####################### {% endcomment %}
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#monitoramento" aria-expanded="false" aria-controls="monitoramento">
+                    <i class="lni lni-eye"></i>
+                    <span>Monitoramento em Tempo Real</span>
+                </a>
+                <ul id="monitoramento" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Status do Estoque</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Alertas e Notificações</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">Monitoramento de Conformidade</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">
+                    <i class="lni lni-popup"></i>
+                    <span>Notificação</span>
+                </a>
+            </li>
+
+            {% comment %} ############################################################## {% endcomment %}
+            <li class="sidebar-footer">
                 <a href="#" class="sidebar-link">
                     <i class="lni lni-exit"></i>
                     <span>Logout</span>
                 </a>
-            </div>
+            </li>
         </aside>
         <div class="main p-3">
             {% block content %}
@@ -264,11 +235,7 @@
         </div>
     </div>
 
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Correção do caminho do JS -->
     <script src="{% static 'cautelaarmamento/js/script.js' %}"></script>
 </body>
 

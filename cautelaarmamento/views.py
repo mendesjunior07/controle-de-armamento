@@ -955,3 +955,5 @@ def listar_inventario_equipamentos(request):
     return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/inventario_equipamentos.html', {
         'itens_disponiveis': itens_disponiveis,
     })
+    
+# def passagem_servico(request):

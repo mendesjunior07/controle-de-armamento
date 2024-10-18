@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import JSONField
 
 
 class Policial(models.Model):
@@ -24,24 +25,6 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nome
 
-
-# # Modelo para Subcategoria de Armamento
-# class Subcategoria(models.Model):
-#     SITUACAO_CHOICES = [
-#         ('disponivel', 'Disponível'),
-#         ('cautelada', 'Cautelada'),
-#         ('extraviado', 'Extraviado'),
-#         ('roubado', 'Roubado'),
-#         ('quebrado', 'Quebrado'),
-#         ('furado', 'Furado'),
-#         ('disparado', 'Disparado'),
-#     ]
-#     nome = models.CharField(max_length=100)
-#     categoria = models.ForeignKey(Categoria, related_name='subcategorias_armamento', on_delete=models.CASCADE)
-#     situacao = models.CharField(max_length=20, choices=SITUACAO_CHOICES, default='disponivel')
-
-#     def __str__(self):
-#         return f"{self.nome} ({self.categoria})"
 
 
 # Modelo para Subcategoria de Armamento
@@ -226,8 +209,16 @@ class DescautelasCa(models.Model):
         return f"Descautela de {self.policial} em {self.data_hora_cautela}"
     
     
-    
-    
+class PassagemDeServico(models.Model):
+
+    # Campo para armazenar informações sobre armamento e munição em formato JSON
+    detalhes_armamento_municao = JSONField(blank=True, null=True)
+
+    # Data e hora da passagem de serviço
+    data_hora = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Passagem de Serviço - {self.armeiro_recebido} em {self.data_hora}"
     
     
     
