@@ -1,0 +1,47 @@
+<h2>Relatório de Cautela de Armamento e Munição</h2>
+<p>Policial: {{ policial }}</p>
+<p>Tipo de Serviço: {{ tipo_servico }}</p>
+<p>Usuário Responsável: {{ armeiro }}</p>
+<p>Data e Hora da Emissão: {{ data_hora }}</p>
+
+<h3>Armamentos</h3>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Categoria</th>
+            <th>Subcategoria</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for armamento in armamentos %}
+        <tr>
+            <td>{{ armamento.categoria }}</td>
+            <td>{{ armamento.subcategoria }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Munições</h3>
+{% if municoes %}
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Categoria</th>
+            <th>Subcategoria</th>
+            <th>Quantidade</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for municao in municoes %}
+        <tr>
+            <td>{{ municao.categoria }}</td>
+            <td>{{ municao.subcategoria }}</td>
+            <td>{{ municao.quantidade }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Nenhuma Munição Selecionada.</p>
+{% endif %}

@@ -1,0 +1,51 @@
+{% extends 'base_html/base.html' %}
+
+{% block title %}
+    Cautela de Armamento
+{% endblock %}
+
+{% block content %}
+<body>
+    <h2>Formulário de Passagem de Serviço</h2>
+
+    <form action="#" method="post">
+        <!-- Data de Início -->
+        <div>
+            <label for="dataInicio">Data de Início:</label>
+            <input type="date" id="dataInicio" name="dataInicio" required>
+        </div>
+        <br>
+
+        <!-- Data de Fim -->
+        <div>
+            <label for="dataFim">Data de Fim:</label>
+            <input type="date" id="dataFim" name="dataFim" required>
+        </div>
+        <br>
+
+        <!-- Nome do Substituto -->
+        <div>
+            <label for="nomeSubstituto">Nome do Substituto:</label>
+            <select id="nomeSubstituto" name="nomeSubstituto" required>
+                <option value="">Selecione um substituto</option>
+                {% for usuario in usuarios %}
+                    <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+
+        <!-- Observações -->
+        <div>
+            <label for="observacoes">Observações:</label><br>
+            <textarea id="observacoes" name="observacoes" rows="4" cols="50"></textarea>
+        </div>
+        <br>
+
+        <!-- Botão de Enviar -->
+        <div>
+            <input type="submit" value="Enviar">
+        </div>
+    </form>
+</body>
+{% endblock %}

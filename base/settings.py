@@ -61,7 +61,6 @@ TEMPLATES = [
 ]
 
 
-
 # TEMPLATES = [
 #     {
 #         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -77,8 +76,6 @@ TEMPLATES = [
 #         },
 #     },
 # ]
-
-
 
 
 WSGI_APPLICATION = 'base.wsgi.application'
@@ -139,7 +136,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = []
 
 
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
@@ -156,3 +152,11 @@ LOGIN_REDIRECT_URL = '/index/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 LOGIN_URL = '/login/'  # Redireciona usuários não autenticados para a página de login
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Ou o servidor SMTP que você está usando
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'mendesjunior2007@gmail.com'  # Substitua pelo seu email
+EMAIL_HOST_PASSWORD = 'kzrd skyh ljis hyeh'  # Substitua pela sua senha
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

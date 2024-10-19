@@ -48,25 +48,28 @@
 
             {% comment %} ########################## PASSAGEM DE SERVIÇO ####################### {% endcomment %}
             <li class="sidebar-item">
-                <a href="#passagem_servico" class="sidebar-link collapsed has-dropdown" data-bs-toggle="collapse" data-bs-target="#passagem_servico" aria-expanded="false" aria-controls="passagem_servico">
-                    <i class="lni lni-clipboard"></i> <!-- Modificado para um ícone de troca -->
+                <a href="#passagem_servico" class="sidebar-link collapsed has-dropdown" 
+                   data-bs-toggle="collapse" data-bs-target="#passagem_servico" aria-expanded="false" 
+                   aria-controls="passagem_servico">
+                    <i class="lni lni-clipboard"></i> <!-- Ícone de troca -->
                     <span>Passagem de Serviço</span>
                 </a>
                 <ul id="passagem_servico" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">Registrar Passagem</a>
+                        <a href="{% url 'registrar_passagem' %}" class="sidebar-link">Registrar Passagem</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#"  class="sidebar-link">Consultar Histórico</a>
+                        <a href="#" class="sidebar-link">Consultar Histórico</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#"  class="sidebar-link">Relatórios de Passagem</a>
+                        <a href="#" class="sidebar-link">Relatórios de Passagem</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#"  class="sidebar-link">Verificar Autorizações</a>
+                        <a href="#" class="sidebar-link">Verificar Autorizações</a>
                     </li>
                 </ul>
             </li>
+            
 
             {% comment %} ########################## CATÁLOGO DE EQUIPAMENTOS ####################### {% endcomment %}
             <li class="sidebar-item">
