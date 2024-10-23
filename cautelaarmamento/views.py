@@ -32,6 +32,7 @@ from django.contrib import messages
 from django.db import IntegrityError
 from django.utils.html import strip_tags
 import json
+from .models import PassagemDeServico
 import logging
 from django.utils import timezone
 from .models import (
@@ -54,6 +55,8 @@ def index(request):
 
 def cautela_de_armamento_view(request):
 
+############## PROCESSAMENTO DE REQUISIÇÃO POST ##########
+
     if request.method == 'POST':
         # Obtém os dados do formulário
         policial_id = request.POST.get('policial')
@@ -64,41 +67,45 @@ def cautela_de_armamento_view(request):
         subcategorias_municao = request.POST.getlist('subcategoria_municoes[]')
         quantidades_municao = request.POST.getlist('quantidade[]')
 
-        # Busca o policial pelo ID
-        policial = get_object_or_404(Policial, id=policial_id)
-        # Certifique-se de que este é o nome correto no seu modelo
-        print(f"Policial Selecionado: {policial.nome_completo}")
-        print(f"Tipo de Serviço: {tipo_servico}")
+############## OBTENÇÃO E VERIFICAÇÃO DOS DADOS ##########
 
-        # Imprime as categorias e subcategorias de armamento com nomes
-        print("Armamento Selecionado:")
-        for i in range(len(categorias_armamento)):
-            categoria_armamento = get_object_or_404(
-                Categoria, id=categorias_armamento[i])
-            subcategoria_armamento = get_object_or_404(
-                Subcategoria, id=subcategorias_armamento[i])
-            print(f"Categoria de Armamento: {categoria_armamento.nome}")
-            print(
-                f"Subcategoria de Armamento: {subcategoria_armamento.descricao_completa}")
+        # # Busca o policial pelo ID
+        # policial = get_object_or_404(Policial, id=policial_id)
+        # # Certifique-se de que este é o nome correto no seu modelo
+        # print(f"Policial Selecionado: {policial.nome_completo}")
+        # print(f"Tipo de Serviço: {tipo_servico}")
 
-        # Verifica se há categorias de munição válidas e imprime
-        # Verifica se não está vazio
-        if categorias_municao and subcategorias_municao and categorias_municao[0]:
-            print("Munição Selecionada:")
-            for i in range(len(categorias_municao)):
-                # Se não estiver vazio
-                if categorias_municao[i] and subcategorias_municao[i]:
-                    categoria_municao = get_object_or_404(
-                        CategoriaMunicao, id=categorias_municao[i])
-                    subcategoria_municao = get_object_or_404(
-                        SubcategoriaMunicao, id=subcategorias_municao[i])
-                    quantidade = quantidades_municao[i]
-                    print(f"Categoria de Munição: {categoria_municao.nome}")
-                    print(
-                        f"Subcategoria de Munição: {subcategoria_municao.nome}")
-                    print(f"Quantidade de Munição: {quantidade}")
-        else:
-            print("Nenhuma Munição Selecionada")
+        # # Imprime as categorias e subcategorias de armamento com nomes
+        # print("Armamento Selecionado:")
+        # for i in range(len(categorias_armamento)):
+        #     categoria_armamento = get_object_or_404(
+        #         Categoria, id=categorias_armamento[i])
+        #     subcategoria_armamento = get_object_or_404(
+        #         Subcategoria, id=subcategorias_armamento[i])
+        #     print(f"Categoria de Armamento: {categoria_armamento.nome}")
+        #     print(
+        #         f"Subcategoria de Armamento: {subcategoria_armamento.descricao_completa}")
+
+        # # Verifica se há categorias de munição válidas e imprime
+        # # Verifica se não está vazio
+        # if categorias_municao and subcategorias_municao and categorias_municao[0]:
+        #     print("Munição Selecionada:")
+        #     for i in range(len(categorias_municao)):
+        #         # Se não estiver vazio
+        #         if categorias_municao[i] and subcategorias_municao[i]:
+        #             categoria_municao = get_object_or_404(
+        #                 CategoriaMunicao, id=categorias_municao[i])
+        #             subcategoria_municao = get_object_or_404(
+        #                 SubcategoriaMunicao, id=subcategorias_municao[i])
+        #             quantidade = quantidades_municao[i]
+        #             print(f"Categoria de Munição: {categoria_municao.nome}")
+        #             print(
+        #                 f"Subcategoria de Munição: {subcategoria_municao.nome}")
+        #             print(f"Quantidade de Munição: {quantidade}")
+        # else:
+        #     print("Nenhuma Munição Selecionada")
+
+############## VALIDAÇÃO DOS CAMPOS OBRIGATÓRIOS ##########
 
         # Verifica se os campos obrigatórios foram preenchidos
         if not policial_id or not tipo_servico:
@@ -106,6 +113,8 @@ def cautela_de_armamento_view(request):
 
         policial = get_object_or_404(Policial, id=policial_id)
         armeiro = request.user
+
+############## PROCESSAMENTO DO ARMAMENTO ##########
 
         try:
             with transaction.atomic():
@@ -153,6 +162,8 @@ def cautela_de_armamento_view(request):
                             )
                 # Processa as munições
 
+############## PROCESSAMENTO DA MUNIÇÃO ##########
+
                 if categorias_municao and subcategorias_municao and quantidades_municao:
                     for i in range(len(categorias_municao)):
                         categoria_id = categorias_municao[i]
@@ -192,6 +203,8 @@ def cautela_de_armamento_view(request):
                                 quantidade_municao=quantidade,
                                 armeiro=armeiro
                             )
+
+############## GERAÇÃO DE RELATÓRIO E ENVIO DE EMAIL ##########
 
         # Após o processamento bem-sucedido, gere o relatório e envie o email
             try:
@@ -246,6 +259,8 @@ def cautela_de_armamento_view(request):
                         fail_silently=False,
                     )
 
+############## EXCEÇÃO GERAL E REDIRECIONAMENTO ##########
+
             except Exception as e:
                 return JsonResponse({'error': str(e)}, status=500)
 
@@ -254,6 +269,8 @@ def cautela_de_armamento_view(request):
             return JsonResponse({'error': str(e)}, status=500)
 
         return redirect('sucesso')
+
+############## EXIBIÇÃO DO FORMULÁRIO E CONTEXTO ##########
 
     # Renderiza o template de cautela
     policiais = Policial.objects.all()
@@ -420,35 +437,39 @@ def descautelar_sa(request):
         # Verificar se a categoria de armamento está presente
         if registro.categoria_armamento:
             # Buscar a subcategoria de armamento associada ao registro
-            subcategoria = get_object_or_404(
-                Subcategoria, descricao_completa=registro.subcategoria_armamento)
+            subcategorias = Subcategoria.objects.filter(descricao_completa=registro.subcategoria_armamento)
 
-            # Alterar o campo situacao para 'disponivel'
-            subcategoria.situacao = 'disponivel'
-            subcategoria.save()
+            if subcategorias.exists():
+                # Se houver múltiplas subcategorias, pegar a primeira
+                subcategoria = subcategorias.first()
+                
+                # Alterar o campo situacao para 'disponivel'
+                subcategoria.situacao = 'disponivel'
+                subcategoria.save()
 
-            # Registrar o descautelamento no novo modelo
-            RegistroDescautelamento.objects.create(
-                data_hora_cautela=data_hora_atual,
-                policial=registro.policial,
-                tipo_servico=registro.tipo_servico,
-                categoria_armamento=registro.categoria_armamento,
-                subcategoria_armamento=registro.subcategoria_armamento,
-                situacao_armamento='disponível',  # Situação após descautela
-                armeiro=request.user,  # Usuário que realizou o descautelamento
-                observacao='Descautela de armamento realizada automaticamente.'
-            )
+                # Registrar o descautelamento no novo modelo
+                RegistroDescautelamento.objects.create(
+                    data_hora_cautela=data_hora_atual,
+                    policial=registro.policial,  # Atribuindo a instância do policial
+                    tipo_servico=registro.tipo_servico,
+                    categoria_armamento=registro.categoria_armamento,
+                    subcategoria_armamento=registro.subcategoria_armamento,
+                    situacao_armamento='disponível',  # Situação após descautela
+                    armeiro=request.user,  # Usuário que realizou o descautelamento
+                    observacao='Descautela de armamento realizada automaticamente.'
+                )
 
-            # Imprimir o valor da categoria armamento no terminal
-            print(f"Categoria de Armamento: {registro.categoria_armamento}")
-            print(
-                f"Subcategoria '{subcategoria.descricao_completa}' alterada para situação: {subcategoria.situacao}")
+                # Imprimir o valor da categoria armamento no terminal
+                print(f"Categoria de Armamento: {registro.categoria_armamento}")
+                print(f"Subcategoria '{subcategoria.descricao_completa}' alterada para situação: {subcategoria.situacao}")
+            else:
+                # Se não houver subcategorias, lidar com a situação (opcional)
+                print("Nenhuma subcategoria encontrada.")
 
         # Caso a categoria de armamento seja None, trabalhar com munição
         elif registro.categoria_armamento is None and registro.quantidade_municao > 0:
             # Buscar a subcategoria de munição associada ao registro
-            subcategoria_municao = get_object_or_404(
-                SubcategoriaMunicao, nome=registro.subcategoria_municao)
+            subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
 
             # Atualizar o total de munições
             subcategoria_municao.total_de_municoes += registro.quantidade_municao
@@ -457,7 +478,7 @@ def descautelar_sa(request):
             # Registrar o descautelamento no novo modelo
             RegistroDescautelamento.objects.create(
                 data_hora_cautela=data_hora_atual,
-                policial=registro.policial,
+                policial=registro.policial,  # Atribuindo a instância do policial
                 tipo_servico=registro.tipo_servico,
                 categoria_municao=registro.categoria_municao,
                 subcategoria_municao=registro.subcategoria_municao,
@@ -469,297 +490,17 @@ def descautelar_sa(request):
 
             # Imprimir o valor da quantidade de munições no terminal
             print(f"Quantidade de Munição: {registro.quantidade_municao}")
-            print(
-                f"Subcategoria de Munição '{subcategoria_municao.nome}' agora tem {subcategoria_municao.total_de_municoes} munições.")
+            print(f"Subcategoria de Munição '{subcategoria_municao.nome}' agora tem {subcategoria_municao.total_de_municoes} munições.")
 
         # Após o processo, excluir o registro de cautela completa
         registro.delete()
-        print(
-            f"Registro de cautela completa {registro_id} excluído do banco de dados.")
+        print(f"Registro de cautela completa {registro_id} excluído do banco de dados.")
 
         # Retornar uma resposta de sucesso
         return JsonResponse({'status': 'success', 'registro_id': registro_id})
 
     # Caso não seja POST, retornar uma resposta de erro
     return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
-
-
-# def descautelar_ca(request):
-#     if request.method == 'POST':
-#         try:
-#             # Obter os dados diretamente de request.POST
-#             registro_id = request.POST.get('registro_id')
-#             situacao_armamento = request.POST.get('situacao')
-#             observacao = request.POST.get('observacao', '')
-
-#             # Obter o valor digitado no campo de quantidade de munição
-#             quantidade_digitada = int(request.POST.get('quantidade_municao', 0))
-
-#             # Exibir o valor digitado no campo de quantidade de munição no terminal
-#             print(f"Quantidade de Munição Digitada pelo Usuário: {quantidade_digitada}")
-
-#             # Obtém o registro específico usando o ID fornecido
-#             registro = get_object_or_404(RegistroCautelaCompleta, pk=registro_id)
-
-#             # Verificar se a subcategoria de munição é `None`
-#             if registro.subcategoria_municao is None:
-#                 # Caso a subcategoria de munição seja None, continuar com o fluxo normal
-
-#                 # Obtém o policial associado ao registro
-#                 policial = registro.policial
-
-#                 # Obtém o usuário atual como armeiro descautelante
-#                 armeiro_descautela = request.user
-
-#                 # Captura a data e hora atuais para o descautelamento
-#                 data_hora_atual = timezone.now()
-
-#                 # Exibir a quantidade de munição original no terminal
-#                 print(f"Quantidade Original de Munição no Registro: {registro.quantidade_municao}")
-
-#                 # Cria um novo registro de descautelamento com os dados do registro original e os dados do modal
-#                 novo_descautelamento = RegistroDescautelamento.objects.create(
-#                     data_hora_cautela=registro.data_hora if hasattr(registro, 'data_hora') else data_hora_atual,
-#                     policial=policial,
-#                     tipo_servico=registro.tipo_servico,
-#                     categoria_armamento=registro.categoria_armamento,
-#                     subcategoria_armamento=registro.subcategoria_armamento,
-#                     categoria_municao=registro.categoria_municao,
-#                     subcategoria_municao=registro.subcategoria_municao,
-#                     quantidade_municao=quantidade_digitada,  # Usar o valor digitado
-#                     situacao_armamento=situacao_armamento,
-#                     observacao=observacao,
-#                     armeiro=registro.armeiro,
-#                     armeiro_descautela=armeiro_descautela,
-#                     data_descautelamento=data_hora_atual.date(),
-#                     hora_descautelamento=data_hora_atual.time()
-#                 )
-
-#                 # Exibir a quantidade de munição utilizada no descautelamento no terminal
-#                 print(f"Quantidade de Munição no Descautelamento: {novo_descautelamento.quantidade_municao}")
-#                 print(f"Quantidade de Munição no Descautelamento: {novo_descautelamento.policial}")
-
-#                 # Atualiza o campo `situacao` na tabela `Subcategoria` com o valor selecionado no modal
-#                 if registro.subcategoria_armamento:
-#                     subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-#                     subcategoria.situacao = situacao_armamento
-#                     subcategoria.save()
-
-#                     # Exclui o registro de cautela completa após descautela
-#                     registro.delete()
-
-#                     # Retorna uma resposta de sucesso
-#                     return JsonResponse({'success': True, 'descautelamento_id': novo_descautelamento.id})
-
-#             else:
-#                 # Caso a subcategoria de munição não seja None, enviar a quantidade de munição de volta ao modal como limite
-#                 quantidade_municao_disponivel = registro.quantidade_municao
-
-#                 # Exibir a quantidade de munição no terminal
-#                 print(f"Quantidade de Munição Disponível: {quantidade_municao_disponivel}")
-
-#                 # Calcular a diferença entre a quantidade disponível e a quantidade digitada
-#                 quantidade_restante = quantidade_municao_disponivel - quantidade_digitada
-
-#                 # Exibir o valor calculado no terminal
-#                 print(f"Quantidade Restante após Descautela: {quantidade_restante}")
-
-#                 # Se a quantidade restante for maior que 0, atualizar no banco de dados
-#                 if quantidade_restante >= 0:
-#                     # Atualizar o valor de munição disponível no banco de dados
-#                     subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
-#                     subcategoria_municao.total_de_municoes = subcategoria_municao.total_de_municoes + quantidade_restante
-#                     subcategoria_municao.save()
-
-#                     # Exibir a quantidade atualizada no terminal
-#                     print(f"Quantidade Atualizada de Munições na Subcategoria: {subcategoria_municao.total_de_municoes}")
-
-#                 # Excluir o registro de cautela completa após o processo
-#                 registro.delete()
-
-#                 # Retorna a quantidade de munição como limite para ser usada no modal
-#                 return JsonResponse({'success': True, 'limite_municao': quantidade_municao_disponivel, 'quantidade_restante': quantidade_restante})
-
-#         except Exception as e:
-#             # Debug: Mostrar o erro no servidor
-#             print(f"Erro: {str(e)}")
-#             return JsonResponse({'success': False, 'error': str(e)})
-
-#     return JsonResponse({'success': False, 'error': 'Método não suportado'})
-
-# def descautelar_ca(request):
-#     if request.method == 'POST':
-#         try:
-#             # Obter os dados diretamente de request.POST
-#             registro_id = request.POST.get('registro_id')
-#             situacao_armamento = request.POST.get('situacao')
-#             observacao = request.POST.get('observacao', '')
-
-#             # Obter o valor digitado no campo de quantidade de munição
-#             quantidade_digitada = int(request.POST.get('quantidade_municao', 0))
-
-#             # Exibir a quantidade de munição digitada no terminal
-#             print(f"Quantidade de Munição Digitada pelo Usuário: {quantidade_digitada}")
-
-#             # Obtém o registro específico usando o ID fornecido
-#             registro = get_object_or_404(RegistroCautelaCompleta, pk=registro_id)
-#             if registro.subcategoria_municao is None:
-#                 # Caso a subcategoria de munição seja None, continuar com o fluxo normal
-
-#                 # Obtém o policial associado ao registro
-#                 policial = registro.policial
-
-#                 # Obtém o usuário atual como armeiro descautelante
-#                 armeiro_descautela = request.user
-
-#                 # Captura a data e hora atuais para o descautelamento
-#                 data_hora_atual = timezone.now()
-#                 # Verificar se os campos obrigatórios estão presentes no registro
-#                 categoria_municao = registro.categoria_municao if registro.categoria_municao else "Categoria Padrão"
-#                 subcategoria_municao = registro.subcategoria_municao if registro.subcategoria_municao else "Subcategoria Padrão"
-
-#                 # Exibir a quantidade de munição original no terminal
-#                 print(f"Quantidade Original de Munição no Registro: {registro.quantidade_municao}")
-
-#                 # Cria um novo registro de descautelamento
-#                 novo_descautelamento = DescautelasCa.objects.create(
-#                     data_hora_cautela=registro.data_hora if hasattr(registro, 'data_hora') else timezone.now(),
-#                     policial=registro.policial,
-#                     tipo_servico=registro.tipo_servico,
-#                     categoria_armamento=registro.categoria_armamento,
-#                     subcategoria_armamento=registro.subcategoria_armamento,
-#                     categoria_municao=categoria_municao,
-#                     subcategoria_municao=subcategoria_municao,
-#                     quantidade_municao=quantidade_digitada,
-#                     situacao_armamento=situacao_armamento,
-#                     observacao=observacao,
-#                     armeiro=registro.armeiro,
-#                     armeiro_descautela=request.user,
-#                     data_descautelamento=timezone.now().date(),
-#                     hora_descautelamento=timezone.now().time()
-#                 )
-
-#                 # Criar uma lista com todos os dados de novo_descautelamento
-#                 dados_descautelamento = [
-#                     novo_descautelamento.data_hora_cautela,
-#                     novo_descautelamento.policial,
-#                     novo_descautelamento.tipo_servico,
-#                     novo_descautelamento.categoria_armamento,
-#                     novo_descautelamento.subcategoria_armamento,
-#                     novo_descautelamento.categoria_municao,
-#                     novo_descautelamento.subcategoria_municao,
-#                     novo_descautelamento.quantidade_municao,
-#                     novo_descautelamento.situacao_armamento,
-#                     novo_descautelamento.observacao,
-#                     novo_descautelamento.armeiro,
-#                     novo_descautelamento.armeiro_descautela,
-#                     novo_descautelamento.data_descautelamento,
-#                     novo_descautelamento.hora_descautelamento
-#                 ]
-
-#                 # Imprimir a lista de dados de descautelamento
-#                 print("Dados do Novo Registro de Descautelamento:")
-#                 print(dados_descautelamento)
-
-#                 # Atualiza o campo `situacao` na tabela `Subcategoria` se necessário
-#                 if registro.subcategoria_armamento:
-#                     subcategoria = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-#                     subcategoria.situacao = situacao_armamento
-#                     subcategoria.save()
-#             else:
-#                 # Caso a subcategoria de munição não seja None, enviar a quantidade de munição de volta ao modal como limite
-#                 quantidade_municao_disponivel = registro.quantidade_municao
-
-#                 # Exibir a quantidade de munição no terminal
-#                 print(f"Quantidade de Munição Disponível: {quantidade_municao_disponivel}")
-
-#                 # Definir a categoria e subcategoria de munição corretamente
-#                 categoria_municao = registro.categoria_municao if registro.categoria_municao else "Categoria Padrão"
-#                 subcategoria_municao = registro.subcategoria_municao if registro.subcategoria_municao else "Subcategoria Padrão"
-
-#                 # Exibir os valores das categorias para verificar se estão corretos
-#                 print(f"Categoria de Munição: {categoria_municao}")
-#                 print(f"Subcategoria de Munição: {subcategoria_municao}")
-
-#                 # Cria um novo registro de descautelamento
-#                 novo_descautelamento = DescautelasCa.objects.create(
-#                     data_hora_cautela=registro.data_hora if hasattr(registro, 'data_hora') else timezone.now(),
-#                     policial=registro.policial,
-#                     tipo_servico=registro.tipo_servico,
-#                     categoria_armamento=registro.categoria_armamento,
-#                     subcategoria_armamento=registro.subcategoria_armamento,
-#                     categoria_municao=categoria_municao,
-#                     subcategoria_municao=subcategoria_municao,
-#                     quantidade_municao=quantidade_digitada,
-#                     situacao_armamento=situacao_armamento,
-#                     observacao=observacao,
-#                     armeiro=registro.armeiro,
-#                     armeiro_descautela=request.user,
-#                     data_descautelamento=timezone.now().date(),
-#                     hora_descautelamento=timezone.now().time()
-#                 )
-
-#                 # Verifica se o objeto foi criado corretamente
-#                 print("Novo registro de descautelamento criado com sucesso.")
-#                 print(f"ID do novo descautelamento: {novo_descautelamento.id}")
-
-#                 # Criar uma lista com todos os dados de novo_descautelamento
-#                 dados_descautelamento = [
-#                     novo_descautelamento.data_hora_cautela,
-#                     novo_descautelamento.policial,
-#                     novo_descautelamento.tipo_servico,
-#                     novo_descautelamento.categoria_armamento,
-#                     novo_descautelamento.subcategoria_armamento,
-#                     novo_descautelamento.categoria_municao,
-#                     novo_descautelamento.subcategoria_municao,
-#                     novo_descautelamento.quantidade_municao,
-#                     novo_descautelamento.situacao_armamento,
-#                     novo_descautelamento.observacao,
-#                     novo_descautelamento.armeiro,
-#                     novo_descautelamento.armeiro_descautela,
-#                     novo_descautelamento.data_descautelamento,
-#                     novo_descautelamento.hora_descautelamento
-#                 ]
-
-#                 # Exibir a lista de dados de descautelamento para depuração
-#                 print("Dados do Novo Registro de Descautelamento:")
-#                 print(dados_descautelamento)
-
-#                 # Calcular a diferença entre a quantidade disponível e a quantidade digitada
-#                 quantidade_restante = quantidade_municao_disponivel - quantidade_digitada
-
-#                 # Exibir o valor calculado no terminal
-#                 print(f"Quantidade Restante após Descautela: {quantidade_restante}")
-
-#                 # Se a quantidade restante for maior que 0, atualizar no banco de dados
-#                 if quantidade_restante >= 0:
-#                     # Atualizar o valor de munição disponível no banco de dados
-#                     subcategoria_municao_obj = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
-
-#                     # Exibir valor atual para depuração
-#                     print(f"Total de Munições Antes da Atualização: {subcategoria_municao_obj.total_de_municoes}")
-
-#                     # Verificar se `total_de_municoes` é um número válido
-#                     if subcategoria_municao_obj.total_de_municoes is None:
-#                         subcategoria_municao_obj.total_de_municoes = 0
-
-#                     # Atualiza a quantidade de munições
-#                     subcategoria_municao_obj.total_de_municoes += quantidade_restante
-#                     subcategoria_municao_obj.save()
-
-#                     # Exibir a quantidade atualizada no terminal
-#                     print(f"Quantidade Atualizada de Munições na Subcategoria: {subcategoria_municao_obj.total_de_municoes}")
-
-#                 # Excluir o registro de cautela completa após o processo
-#                 registro.delete()
-
-#                 # Retorna a quantidade de munição como limite para ser usada no modal
-#                 return JsonResponse({'success': True, 'limite_municao': quantidade_municao_disponivel, 'quantidade_restante': quantidade_restante})
-
-#         except Exception as e:
-#             # Captura e imprime qualquer erro que ocorra
-#             print(f"Erro durante a criação do registro de descautelamento: {str(e)}")
-#             return JsonResponse({'success': False, 'error': str(e)})
 
 
 def descautelar_ca(request):
@@ -926,109 +667,6 @@ def descautelar_municao_ca(request):
 
     return JsonResponse({'success': False, 'message': 'Método inválido'}, status=400)
 
-# def descautelar_ca(request):
-#     # Verificar se é uma requisição POST
-#     if request.method == "POST":
-#         print("Recebido POST para descautela")
-#         registro_id = request.POST.get('registro_id', '').strip()
-#         situacao = request.POST.get('situacao', '').strip()
-#         quantidade = request.POST.get('quantidade_municao', '').strip()
-#         observacao = request.POST.get('observacao', '').strip()
-
-#         # Exibir os valores recebidos
-#         print(f"Valores recebidos - registro_id: {registro_id}, situacao: {situacao}, quantidade: {quantidade}, observacao: {observacao}")
-
-#         # Validar se o ID do registro foi fornecido
-#         if not registro_id:
-#             print("ID do registro não fornecido!")
-#             return HttpResponseBadRequest("O ID do registro não pode estar vazio.")
-
-#         try:
-#             # Tentar converter o ID para um inteiro
-#             registro_id = int(registro_id)
-#         except ValueError:
-#             print("ID inválido. Valor recebido: ", registro_id)
-#             return JsonResponse({'error': 'ID inválido. Insira um número válido.'}, status=400)
-
-#         # Recuperar o registro de cautela completa
-#         try:
-#             registro = get_object_or_404(RegistroCautelaCompleta, id=registro_id)
-#             print("Registro encontrado:", registro)
-#         except Exception as e:
-#             print("Erro ao recuperar registro:", e)
-#             return JsonResponse({'error': f'Registro não encontrado. Detalhe: {str(e)}'}, status=404)
-
-#         # Atualizar situação do armamento
-#         if registro.categoria_armamento and registro.subcategoria_armamento:
-#             try:
-#                 subcategoria_armamento = get_object_or_404(Subcategoria, nome=registro.subcategoria_armamento)
-#                 print("Subcategoria de armamento encontrada:", subcategoria_armamento)
-#                 if situacao:
-#                     subcategoria_armamento.situacao = situacao
-#                     subcategoria_armamento.save()
-#                     print("Situação do armamento atualizada para:", situacao)
-#             except Exception as e:
-#                 print("Erro ao atualizar a situação do armamento:", e)
-#                 return JsonResponse({'error': f'Erro ao atualizar situação do armamento: {str(e)}'}, status=400)
-
-#         # Caso tenha munição associada, atualizar a quantidade
-#         nova_quantidade = 0
-#         if registro.categoria_municao and registro.subcategoria_municao:
-#             try:
-#                 nova_quantidade = int(quantidade)
-#                 print("Nova quantidade de munição:", nova_quantidade)
-#             except ValueError:
-#                 print("Quantidade de munição inválida:", quantidade)
-#                 return HttpResponseBadRequest("Quantidade de munição inválida. Insira um valor numérico.")
-
-#             # Lógica de descautelamento de munição
-#             try:
-#                 quantidade_total_disponivel = registro.quantidade_municao
-#                 if nova_quantidade <= 0:
-#                     return HttpResponseBadRequest("A quantidade deve ser maior que zero.")
-#                 elif nova_quantidade > quantidade_total_disponivel:
-#                     return HttpResponseBadRequest(
-#                         f"A quantidade solicitada ({nova_quantidade}) excede o total disponível ({quantidade_total_disponivel})."
-#                     )
-
-#                 registro.quantidade_municao -= nova_quantidade
-#                 registro_completo_excluido = registro.quantidade_municao == 0
-#                 if registro_completo_excluido:
-#                     registro.delete()
-#                 else:
-#                     registro.save()
-#                 print("Munição atualizada. Nova quantidade no registro:", registro.quantidade_municao)
-#             except Exception as e:
-#                 print("Erro ao processar a descautela de munição:", e)
-#                 return JsonResponse({'error': f'Erro ao processar a descautela de munição: {str(e)}'}, status=400)
-
-#         # Registrar descautelamento
-#         try:
-#             RegistroDescautelamento.objects.create(
-#                 data_hora_cautela=registro.data_hora,
-#                 policial=registro.policial,
-#                 tipo_servico=registro.tipo_servico,
-#                 categoria_armamento=registro.categoria_armamento,
-#                 subcategoria_armamento=registro.subcategoria_armamento,
-#                 categoria_municao=registro.categoria_municao,
-#                 subcategoria_municao=registro.subcategoria_municao,
-#                 quantidade_municao=nova_quantidade,
-#                 armeiro=registro.armeiro,
-#                 data_descautelamento=timezone.now().date(),
-#                 hora_descautelamento=timezone.now().time(),
-#                 observacao=observacao,
-#             )
-#             print("Registro de descautelamento criado com sucesso.")
-#         except Exception as e:
-#             print("Erro ao registrar descautelamento:", e)
-#             return JsonResponse({'error': f'Erro ao registrar descautelamento: {str(e)}'}, status=400)
-
-#         return JsonResponse({'success': True, 'registro_completo_excluido': registro_completo_excluido})
-#     else:
-#         print("Método não permitido. Apenas POST é aceito.")
-#         return JsonResponse({'error': 'Método não permitido'}, status=405)
-
-    # View para exibir itens disponíveis
 
 
 def itens_disponiveis(request):
@@ -1088,14 +726,78 @@ def listar_inventario_equipamentos(request):
     })
 
 
-def registrar_passagem(request):
-    # Obtém todos os usuários cadastrados
-    usuarios = User.objects.all()
+import datetime
 
-    # Passa os nomes de usuário para o contexto
+def registrar_passagem(request):
+    
+    if request.method == 'POST':
+        # Obtendo os dados do formulário
+        data_inicio_str = request.POST.get('dataInicio')
+        data_fim_str = request.POST.get('dataFim')
+        nome_substituto = request.POST.get('nomeSubstituto')
+        observacoes = request.POST.get('observacoes')
+        registro_cautela_id = request.POST.get('registro_cautela_id')  # Obtém o ID do RegistroCautelaCompleta
+
+        # Convertendo as strings de datas para objetos datetime
+        try:
+            data_inicio = datetime.datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
+            data_fim = datetime.datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+        except ValueError:
+            # Retorna erro se as datas forem inválidas
+            return render(request, 'cautelaarmamento/templates/passagem_de_servico/registrar_passagem.html', {
+                'usuarios': User.objects.all(),
+                'error': 'Datas inválidas.',
+            })
+
+        # Verificando se o registro_cautela_id é válido
+        try:
+            registro_cautela = RegistroCautelaCompleta.objects.get(id=registro_cautela_id)
+        except RegistroCautelaCompleta.DoesNotExist:
+            # Caso o registro não exista, renderize com uma mensagem de erro
+            return render(request, 'cautelaarmamento/templates/passagem_de_servico/registrar_passagem.html', {
+                'usuarios': User.objects.all(),
+                'error': 'Registro de cautela não encontrado.',
+            })
+
+        # Filtrando os registros de RegistroCautelaCompleta que têm datas dentro do intervalo, correspondem ao policial, e têm o armeiro_id do usuário logado
+        registros_filtrados = RegistroCautelaCompleta.objects.filter(
+            data_hora__date__range=(data_inicio, data_fim),
+            policial=registro_cautela.policial,  # Filtra pelo policial do registro
+            armeiro_id=request.user.id  # Filtra pelo armeiro_id do usuário logado
+        )
+
+        if registros_filtrados.exists():
+            print("Registros dentro do intervalo para o policial correspondente e o armeiro logado:")
+            for registro in registros_filtrados:
+                print(f"ID: {registro.id}, Policial: {registro.policial}, Tipo de Serviço: {registro.tipo_servico}, Data/Hora: {registro.data_hora}")
+
+        # Criando a instância do modelo PassagemDeServico
+        passagem = PassagemDeServico(
+            detalhes_armamento_municao={
+                'data_inicio': data_inicio_str,
+                'data_fim': data_fim_str,
+                'substituto': nome_substituto,
+                'observacoes': observacoes,
+            },
+            data_hora=timezone.now(),  # Define a data e hora atual
+            registro_cautela=registro_cautela  # Atribui o registro_cautela
+        )
+        
+        # Salvando a passagem no banco de dados
+        passagem.save()
+
+        # Redirecionando para a página de sucesso
+        return redirect('sucesso')  # Substitua por sua URL de sucesso
+
+    # Se o método não for POST, obtemos todos os usuários cadastrados
+    usuarios = User.objects.all()
+    
+    # Passando os nomes de usuário para o contexto
     context = {
-        'usuarios': usuarios
+        'usuarios': usuarios,
+        'registro_cautela': RegistroCautelaCompleta.objects.first()  # Para teste
+
     }
 
-    # Renderiza o template HTML e envia o contexto
+    # Renderizando o template HTML e enviando o contexto
     return render(request, 'cautelaarmamento/templates/passagem_de_servico/registrar_passagem.html', context)

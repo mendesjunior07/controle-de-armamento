@@ -8,22 +8,22 @@
 <body>
     <h2>Formulário de Passagem de Serviço</h2>
 
-    <form action="#" method="post">
-        <!-- Data de Início -->
+    <form action="{% url 'registrar_passagem' %}" method="post">
+        {% csrf_token %}
+        
+        <!-- Campo oculto para enviar o ID do registro de cautela -->
+        <input type="hidden" name="registro_cautela_id" value="{{ registro_cautela.id }}">
+
         <div>
             <label for="dataInicio">Data de Início:</label>
             <input type="date" id="dataInicio" name="dataInicio" required>
         </div>
         <br>
-
-        <!-- Data de Fim -->
         <div>
             <label for="dataFim">Data de Fim:</label>
             <input type="date" id="dataFim" name="dataFim" required>
         </div>
         <br>
-
-        <!-- Nome do Substituto -->
         <div>
             <label for="nomeSubstituto">Nome do Substituto:</label>
             <select id="nomeSubstituto" name="nomeSubstituto" required>
@@ -34,18 +34,15 @@
             </select>
         </div>
         <br>
-
-        <!-- Observações -->
         <div>
             <label for="observacoes">Observações:</label><br>
             <textarea id="observacoes" name="observacoes" rows="4" cols="50"></textarea>
         </div>
         <br>
-
-        <!-- Botão de Enviar -->
         <div>
             <input type="submit" value="Enviar">
         </div>
     </form>
+    
 </body>
 {% endblock %}

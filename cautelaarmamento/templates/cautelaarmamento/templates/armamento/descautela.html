@@ -41,7 +41,7 @@
       {% for registro in registros %}
       <tr id="registro-row-{{ registroId }}">
         <td>{{ registro.data_hora }}</td>
-        <td>{{ registro.policial.nome }}</td>
+        <td>{{ registro.policial.nome_guerra }}</td>
         <td>{{ registro.tipo_servico }}</td>
         <td>{{ registro.categoria_armamento }}</td>
         <td>{{ registro.subcategoria_armamento }}</td>
@@ -343,7 +343,32 @@
   //###################################################################################
   //################################ SCRIPT PARA MODAL ################################
   //###################################################################################
+// Seleciona o campo de pesquisa
+const searchInput = document.getElementById("search_input");
 
+// Adiciona um evento de entrada
+searchInput.addEventListener("input", function () {
+  const filter = searchInput.value.toLowerCase(); // Obtém o valor em minúsculas
+  const rows = document.querySelectorAll("#registros_tbody tr"); // Seleciona todas as linhas da tabela
+
+  rows.forEach((row) => {
+    const cells = row.getElementsByTagName("td");
+    let found = false; // Variável para verificar se algum valor da linha corresponde à pesquisa
+
+    // Percorre todas as células da linha
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      // Se a célula contém o valor de pesquisa, marca como encontrado
+      if (cell.textContent.toLowerCase().includes(filter)) {
+        found = true;
+        break; // Sai do loop se encontrar uma correspondência
+      }
+    }
+
+    // Exibe ou oculta a linha com base na pesquisa
+    row.style.display = found ? "" : "none"; // Se encontrado, exibe a linha; caso contrário, oculta
+  });
+});
   // ####################################################################
   //########## 1. Script para abrir o modal de Descautela S/A: ##########
   // ####################################################################
