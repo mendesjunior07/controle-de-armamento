@@ -1,48 +1,103 @@
 {% extends 'base_html/base.html' %}
-
-{% block title %}
-    Cautela de Armamento
+{% block title %} 
+    Cautela de Armamento 
 {% endblock %}
 
 {% block content %}
-<body>
-    <h2>Formulário de Passagem de Serviço</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">Formulário de Passagem de Serviço</h2>
 
-    <form action="{% url 'registrar_passagem' %}" method="post">
+    <form method="POST" action="{% url 'registrar_passagem' %}">
         {% csrf_token %}
-        
-        <!-- Campo oculto para enviar o ID do registro de cautela -->
-        <input type="hidden" name="registro_cautela_id" value="{{ registro_cautela.id }}">
 
-        <div>
-            <label for="dataInicio">Data de Início:</label>
-            <input type="date" id="dataInicio" name="dataInicio" required>
+        <!-- Campo oculto para enviar o ID do registro de cautela -->
+        {% if registro_cautela %}
+        <input type="hidden" name="registro_cautela_id" value="{{ registro_cautela.id }}" />
+        {% else %}
+        <input type="hidden" name="registro_cautela_id" value="0" />
+        {% endif %}
+
+        <!-- Data de Início -->
+        <div class="mb-3">
+            <label for="dataInicio" class="form-label">Data de Início:</label>
+            <input type="date" class="form-control" id="dataInicio" name="dataInicio" required value="{{ dataInicio|default:'' }}" />
         </div>
-        <br>
-        <div>
-            <label for="dataFim">Data de Fim:</label>
-            <input type="date" id="dataFim" name="dataFim" required>
-        </div>
-        <br>
-        <div>
-            <label for="nomeSubstituto">Nome do Substituto:</label>
-            <select id="nomeSubstituto" name="nomeSubstituto" required>
+
+        <!-- Nome do Substituto -->
+        <div class="mb-3">
+            <label for="nomeSubstituto" class="form-label">Nome do Substituto:</label>
+            <select class="form-select" id="nomeSubstituto" name="nomeSubstituto" required>
                 <option value="">Selecione um substituto</option>
                 {% for usuario in usuarios %}
-                    <option value="{{ usuario.username }}">{{ usuario.username }}</option>
+                <option value="{{ usuario.username }}" {% if usuario.username == nomeSubstituto %}selected{% endif %}>
+                    {{ usuario.username }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        <br>
-        <div>
-            <label for="observacoes">Observações:</label><br>
-            <textarea id="observacoes" name="observacoes" rows="4" cols="50"></textarea>
+
+        <!-- Observações -->
+        <div class="mb-3">
+            <label for="observacoes" class="form-label">Observações:</label>
+            <textarea class="form-control" id="observacoes" name="observacoes" rows="4">{{ observacoes|default:'' }}</textarea>
         </div>
-        <br>
-        <div>
-            <input type="submit" value="Enviar">
+
+        <!-- Botão de Enviar -->
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Enviar</button>
         </div>
     </form>
+
+    <!-- Tabela com os dados gravados -->
+    <h3 class="mt-5">Registros Gravados</h3>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data de Início</th>
+                <th>Data de Fim</th>
+                <th>Nome do Substituto</th>
+                <th>Observações</th>
+                <th>Data de Registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if page_obj %}
+                {% for registro in page_obj %}
+                    <tr>
+                        <td>{{ registro.id }}</td>
+                        <td>{{ registro.data_inicio }}</td>
+                        <td>{{ registro.data_fim }}</td>
+                        <td>{{ registro.nome_substituto }}</td>
+                        <td>{{ registro.observacoes }}</td>
+                        <td>{{ registro.data_registro }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Nenhum registro encontrado.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    <!-- Navegação de página -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; Primeira</a>
+                <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            {% endif %}
     
-</body>
+            <span class="current">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+    
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Próxima</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+
 {% endblock %}

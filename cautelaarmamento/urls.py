@@ -13,7 +13,8 @@ from .views import (
     descautelar_municao_ca,
     itens_disponiveis,
     registrar_passagem,
-    listar_inventario_equipamentos
+    listar_inventario_equipamentos,
+    listar_cautelas
     # atualizar_quantidade_municao,
     # descautelar_municao_ca,
     # atualizar_quantidade_municao,
@@ -40,4 +41,5 @@ urlpatterns = [
     # path('descautelar_municao/', descautelar_municao_ca, name='descautelar_municao_ca'),
     path('itens-disponiveis/', itens_disponiveis, name='itens_disponiveis'),
     path('registrar_passagem/', registrar_passagem, name='registrar_passagem'),
+    path('listar_amas_cauteladas/', listar_cautelas, name='listar_amas_cauteladas'),
 ]

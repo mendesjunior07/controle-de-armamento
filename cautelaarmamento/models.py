@@ -210,28 +210,12 @@ class DescautelasCa(models.Model):
     
 
 class PassagemDeServico(models.Model):
-    # Campo para armazenar informações sobre armamento e munição em formato JSON
-    detalhes_armamento_municao = JSONField(blank=True, null=True)
-
-    # Data e hora da passagem de serviço
-    data_hora = models.DateTimeField(default=timezone.now)
-
-    # Campo para referenciar RegistroCautelaCompleta
-    registro_cautela = models.ForeignKey(RegistroCautelaCompleta, on_delete=models.CASCADE)
+    registro_cautela_id = models.IntegerField()
+    data_inicio = models.DateField()
+    data_fim = models.DateField(auto_now_add=True)  # Define automaticamente a data atual ao criar o registro
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)  # Relaciona ao usuário logado
+    nome_substituto = models.CharField(max_length=100)
+    observacoes = models.TextField(blank=True)
 
     def __str__(self):
-        return f"Passagem de Serviço - {self.registro_cautela.policial} em {self.data_hora}"
-
-    @property
-    def descricao(self):
-        return (
-            f"Data e Hora: {self.registro_cautela.data_hora}, "
-            f"Policial: {self.registro_cautela.policial}, "
-            f"Tipo de Serviço: {self.registro_cautela.tipo_servico}, "
-            f"Categoria de Armamento: {self.registro_cautela.categoria_armamento}, "
-            f"Subcategoria de Armamento: {self.registro_cautela.subcategoria_armamento}, "
-            f"Categoria de Munição: {self.registro_cautela.categoria_municao}, "
-            f"Subcategoria de Munição: {self.registro_cautela.subcategoria_municao}, "
-            f"Quantidade de Munição: {self.registro_cautela.quantidade_municao}, "
-            f"Armeiro: {self.registro_cautela.armeiro}"
-        )
+        return f"{self.nome_substituto} - {self.data_inicio} a {self.data_fim}"

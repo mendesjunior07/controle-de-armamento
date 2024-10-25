@@ -20,12 +20,18 @@
 
 # ##################################################################
 
+from .models import CautelaDeArmamento, PassagemDeServico, User
+from django.shortcuts import render
+import os
+from django.http import HttpResponse
+from datetime import datetime
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.db.models import Sum
 from django.db import transaction
+from django.core.paginator import Paginator
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.contrib import messages
@@ -46,6 +52,7 @@ from .models import (
     CautelaDeMunicoes,
     RegistroCautelaCompleta,
     RegistroDescautelamento,
+    PassagemDeServico
 )
 
 
@@ -55,7 +62,7 @@ def index(request):
 
 def cautela_de_armamento_view(request):
 
-############## PROCESSAMENTO DE REQUISIÇÃO POST ##########
+    ############## PROCESSAMENTO DE REQUISIÇÃO POST ##########
 
     if request.method == 'POST':
         # Obtém os dados do formulário
@@ -437,12 +444,13 @@ def descautelar_sa(request):
         # Verificar se a categoria de armamento está presente
         if registro.categoria_armamento:
             # Buscar a subcategoria de armamento associada ao registro
-            subcategorias = Subcategoria.objects.filter(descricao_completa=registro.subcategoria_armamento)
+            subcategorias = Subcategoria.objects.filter(
+                descricao_completa=registro.subcategoria_armamento)
 
             if subcategorias.exists():
                 # Se houver múltiplas subcategorias, pegar a primeira
                 subcategoria = subcategorias.first()
-                
+
                 # Alterar o campo situacao para 'disponivel'
                 subcategoria.situacao = 'disponivel'
                 subcategoria.save()
@@ -460,8 +468,10 @@ def descautelar_sa(request):
                 )
 
                 # Imprimir o valor da categoria armamento no terminal
-                print(f"Categoria de Armamento: {registro.categoria_armamento}")
-                print(f"Subcategoria '{subcategoria.descricao_completa}' alterada para situação: {subcategoria.situacao}")
+                print(
+                    f"Categoria de Armamento: {registro.categoria_armamento}")
+                print(
+                    f"Subcategoria '{subcategoria.descricao_completa}' alterada para situação: {subcategoria.situacao}")
             else:
                 # Se não houver subcategorias, lidar com a situação (opcional)
                 print("Nenhuma subcategoria encontrada.")
@@ -469,7 +479,8 @@ def descautelar_sa(request):
         # Caso a categoria de armamento seja None, trabalhar com munição
         elif registro.categoria_armamento is None and registro.quantidade_municao > 0:
             # Buscar a subcategoria de munição associada ao registro
-            subcategoria_municao = get_object_or_404(SubcategoriaMunicao, nome=registro.subcategoria_municao)
+            subcategoria_municao = get_object_or_404(
+                SubcategoriaMunicao, nome=registro.subcategoria_municao)
 
             # Atualizar o total de munições
             subcategoria_municao.total_de_municoes += registro.quantidade_municao
@@ -490,11 +501,13 @@ def descautelar_sa(request):
 
             # Imprimir o valor da quantidade de munições no terminal
             print(f"Quantidade de Munição: {registro.quantidade_municao}")
-            print(f"Subcategoria de Munição '{subcategoria_municao.nome}' agora tem {subcategoria_municao.total_de_municoes} munições.")
+            print(
+                f"Subcategoria de Munição '{subcategoria_municao.nome}' agora tem {subcategoria_municao.total_de_municoes} munições.")
 
         # Após o processo, excluir o registro de cautela completa
         registro.delete()
-        print(f"Registro de cautela completa {registro_id} excluído do banco de dados.")
+        print(
+            f"Registro de cautela completa {registro_id} excluído do banco de dados.")
 
         # Retornar uma resposta de sucesso
         return JsonResponse({'status': 'success', 'registro_id': registro_id})
@@ -668,7 +681,6 @@ def descautelar_municao_ca(request):
     return JsonResponse({'success': False, 'message': 'Método inválido'}, status=400)
 
 
-
 def itens_disponiveis(request):
     # Filtra todos os itens que estão marcados como 'disponível'
     itens_disponiveis = Subcategoria.objects.filter(situacao='disponivel')
@@ -725,79 +737,135 @@ def listar_inventario_equipamentos(request):
         'itens_disponiveis': itens_disponiveis,
     })
 
+#############################################################
+########## 1. Função Principal: registrar_passagem ##########
+#############################################################
 
-import datetime
 
 def registrar_passagem(request):
-    
+
+########## 2. Obtenção dos Dados do Formulário ##########
+    # 2.1. Verificação do Método HTTP
+
     if request.method == 'POST':
-        # Obtendo os dados do formulário
+
+        # 2.2. Coleta dos Dados do Formulário
+
+        registro_cautela_id = request.POST.get('registro_cautela_id')
         data_inicio_str = request.POST.get('dataInicio')
-        data_fim_str = request.POST.get('dataFim')
         nome_substituto = request.POST.get('nomeSubstituto')
         observacoes = request.POST.get('observacoes')
-        registro_cautela_id = request.POST.get('registro_cautela_id')  # Obtém o ID do RegistroCautelaCompleta
 
-        # Convertendo as strings de datas para objetos datetime
+########## 3. Tratamento de Erros na Conversão de Data ##########
+# 3.1. Bloco try-except para Evitar Erros
+
         try:
-            data_inicio = datetime.datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
-            data_fim = datetime.datetime.strptime(data_fim_str, '%Y-%m-%d').date()
-        except ValueError:
-            # Retorna erro se as datas forem inválidas
-            return render(request, 'cautelaarmamento/templates/passagem_de_servico/registrar_passagem.html', {
+            # Converter a data de início
+            data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
+        except (ValueError, TypeError):
+            return render(request, 'passagem_de_servico/registrar_passagem.html', {
+                'error': 'Data de início inválida',
+                'registro_cautela': registro_cautela_id,
                 'usuarios': User.objects.all(),
-                'error': 'Datas inválidas.',
-            })
-
-        # Verificando se o registro_cautela_id é válido
-        try:
-            registro_cautela = RegistroCautelaCompleta.objects.get(id=registro_cautela_id)
-        except RegistroCautelaCompleta.DoesNotExist:
-            # Caso o registro não exista, renderize com uma mensagem de erro
-            return render(request, 'cautelaarmamento/templates/passagem_de_servico/registrar_passagem.html', {
-                'usuarios': User.objects.all(),
-                'error': 'Registro de cautela não encontrado.',
-            })
-
-        # Filtrando os registros de RegistroCautelaCompleta que têm datas dentro do intervalo, correspondem ao policial, e têm o armeiro_id do usuário logado
-        registros_filtrados = RegistroCautelaCompleta.objects.filter(
-            data_hora__date__range=(data_inicio, data_fim),
-            policial=registro_cautela.policial,  # Filtra pelo policial do registro
-            armeiro_id=request.user.id  # Filtra pelo armeiro_id do usuário logado
-        )
-
-        if registros_filtrados.exists():
-            print("Registros dentro do intervalo para o policial correspondente e o armeiro logado:")
-            for registro in registros_filtrados:
-                print(f"ID: {registro.id}, Policial: {registro.policial}, Tipo de Serviço: {registro.tipo_servico}, Data/Hora: {registro.data_hora}")
-
-        # Criando a instância do modelo PassagemDeServico
-        passagem = PassagemDeServico(
-            detalhes_armamento_municao={
-                'data_inicio': data_inicio_str,
-                'data_fim': data_fim_str,
-                'substituto': nome_substituto,
+                'dataInicio': data_inicio_str,
+                'nomeSubstituto': nome_substituto,
                 'observacoes': observacoes,
-            },
-            data_hora=timezone.now(),  # Define a data e hora atual
-            registro_cautela=registro_cautela  # Atribui o registro_cautela
+                'registros': PassagemDeServico.objects.all()
+            })
+
+########## 4. Definição da Data de Fim ##########
+
+        data_fim = timezone.now().date()
+
+########## 5. Filtragem de Cautelas ##########
+# 5.1. Consulta ao Banco de Dados
+
+        cautelas = CautelaDeArmamento.objects.filter(
+            hora_cautela__range=(data_inicio, data_fim),
+            armeiro_id=request.user.id
         )
-        
-        # Salvando a passagem no banco de dados
+
+        descautelas = RegistroDescautelamento.objects.filter(
+            hora_descautelamento__range=(data_inicio, data_fim),
+            armeiro_id=request.user.id
+        )
+
+########## 6. Criação e Salvamento da Passagem de Serviço ##########
+# 6.1. Criação da Passagem de Serviço
+
+        passagem = PassagemDeServico(
+            registro_cautela_id=registro_cautela_id,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            nome_substituto=nome_substituto,
+            observacoes=observacoes,
+            usuario=request.user
+        )
+
+# 6.2. Salvamento no Banco de Dados
+
         passagem.save()
 
-        # Redirecionando para a página de sucesso
-        return redirect('sucesso')  # Substitua por sua URL de sucesso
+########## 7. Geração de Relatório HTML ##########
+# 7.1. Geração do Conteúdo HTML a Partir do Template
 
-    # Se o método não for POST, obtemos todos os usuários cadastrados
-    usuarios = User.objects.all()
-    
-    # Passando os nomes de usuário para o contexto
-    context = {
-        'usuarios': usuarios,
-        'registro_cautela': RegistroCautelaCompleta.objects.first()  # Para teste
+        html_content = render_to_string('passagem_de_servico/relatorio.html', {
+            'data_inicio': data_inicio,
+            'data_fim': data_fim,
+            'nome_substituto': nome_substituto,
+            'observacoes': observacoes,
+            'cautelas': cautelas,
+            'descautelas': descautelas,
+            'usuario': request.user
+        })
 
-    }
+# 7.2. Criação do Diretório de Relatórios
 
-    # Renderizando o template HTML e enviando o contexto
-    return render(request, 'cautelaarmamento/templates/passagem_de_servico/registrar_passagem.html', context)
+        relatorio_dir = 'relatorios'
+        if not os.path.exists(relatorio_dir):
+            os.makedirs(relatorio_dir)  # Cria o diretório se não existir
+
+# 7.3. Salvamento do Relatório HTML em Arquivo
+
+        file_path = os.path.join(
+            relatorio_dir, f'relatorio_passagem_{passagem.id}.html')
+        with open(file_path, 'w') as file:
+            file.write(html_content)
+
+########## 8. Redirecionamento para a Página de Sucesso ##########
+# 8.1. Renderização da Página de Sucesso
+
+        return render(request, 'passagem_de_servico/sucesso.html', {'relatorio_path': file_path})
+
+    else:
+
+        ########## 9. Manipulação para Requisições GET ##########
+        # 9.1. Obtenção de Usuários e Registros
+
+        usuarios = User.objects.all()
+        registros = PassagemDeServico.objects.all()
+
+# 9.2. Configuração do Paginador
+
+        paginator = Paginator(registros, 7)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+# 9.3. Renderização da Página Inicial
+
+        return render(request, 'passagem_de_servico/registrar_passagem.html', {
+            'registro_cautela': None,
+            'usuarios': usuarios,
+            'dataInicio': '',
+            'nomeSubstituto': '',
+            'observacoes': '',
+            'page_obj': page_obj
+        })
+
+
+def listar_cautelas(request):
+    # Obtém todas as instâncias de CautelaDeArmamento do banco de dados
+    cautelas = CautelaDeArmamento.objects.all()
+
+    # Renderiza os dados no template
+    return render(request, 'passagem_de_servico/listar_amas_cauteladas.html', {'cautelas': cautelas})

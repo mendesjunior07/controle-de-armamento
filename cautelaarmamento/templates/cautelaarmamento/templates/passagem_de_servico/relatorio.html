@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Relatório de Passagem de Serviço</title>
+    {% load static %}
+  </head>
+  <body>
+    <header>LIVRO DE CAUTELA - {{ data_fim }}</header>
+    <div class="section">
+      <table style="width: 100%; border-collapse: collapse">
+        <tr>
+          <!-- Coluna Esquerda -->
+          <td style="width: 70%; vertical-align: top">
+            <img
+              src="{% static 'cautelaarmamento/images/logo.png' %}"
+              alt="Logo"
+              style="width: 100px"
+            />
+            <!-- Imagem do logo -->
+            <h3>
+              ESTADO DO MARANHÃO<br />
+              SECRETARIA DE ESTADO DA SEGURANÇA PÚBLICA<br />
+              POLÍCIA MILITAR DO MARANHÃO<br />
+              COMANDO DO POLICIAMENTO DO INTERIOR - CPI<br />
+              COMANDO DO POLICIAMENTO DE ÁREA DO INTERIOR – CPA/I 04<br />
+              11º BATALHÃO DE POLÍCIA MILITAR – 4º CIA MATÕES
+            </h3>
+          </td>
+          <!-- Coluna Direita -->
+          <td style="width: 30%; vertical-align: top; text-align: center">
+            <h4>2º TEN QOPM CURY</h4>
+            <h5>CMT da 4ª CIA</h5>
+          </td>
+        </tr>
+      </table>
+      <div class="section">
+        <h3>ASSUNÇÃO DO SERVIÇO</h3>
+        <p>
+          Parte diária do {{ usuarios }} de serviço de 24Hs do dia {{ data_inicio }} para o dia {{ data_fim }}, ao CMT da 4ª CIA/11º BPM.
+        </p>
+      </div>
+    </div>
+
+    <h3>CAUTELA DIÁRIA</h3>
+    <h1>Relatório de Passagem de Serviço</h1>
+    <ul>
+      {% for cautela in cautelas %}
+      <li>
+        <strong>ID:</strong> {{ cautela.id }} <br />
+        <strong>Descrição:</strong> {{ cautela.descricao }} <br />
+        <strong>Data da Cautela:</strong> {{ cautela.data_hora_cautela }} <br />
+      </li>
+      {% empty %}
+      <li>Nenhuma cautela registrada.</li>
+      {% endfor %}
+    </ul>
+
+    <h3>DESCAUTELAS DIÁRIA</h3>
+    <ul>
+      {% for descautela in descautelas %}
+      <li>
+        <strong>ID:</strong> {{ descautela.id }} <br />
+        <strong>Descrição:</strong> {{ descautela.descricao }} <br />
+        <strong>Data da Descautela:</strong> {{ descautela.data_hora_cautela }} <br />
+      </li>
+      {% empty %}
+      <li>Nenhuma descautela registrada.</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
