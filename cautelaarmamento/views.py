@@ -760,7 +760,6 @@ def registrar_passagem(request):
 # 3.1. Bloco try-except para Evitar Erros
 
         try:
-            # Converter a data de início
             data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
         except (ValueError, TypeError):
             return render(request, 'passagem_de_servico/registrar_passagem.html', {
@@ -776,6 +775,8 @@ def registrar_passagem(request):
 ########## 4. Definição da Data de Fim ##########
 
         data_fim = timezone.now().date()
+        print("Data de Início:", data_inicio)
+        print("Data de Fim:", data_fim)
 
 ########## 5. Filtragem de Cautelas ##########
 # 5.1. Consulta ao Banco de Dados
@@ -786,7 +787,7 @@ def registrar_passagem(request):
         )
 
         descautelas = RegistroDescautelamento.objects.filter(
-            hora_descautelamento__range=(data_inicio, data_fim),
+            data_descautelamento__range=(data_inicio.date(), data_fim),  # Filtrando pela data # Filtrando pela hora, se necessário
             armeiro_id=request.user.id
         )
 
@@ -823,8 +824,8 @@ def registrar_passagem(request):
 
         relatorio_dir = 'relatorios'
         if not os.path.exists(relatorio_dir):
-            os.makedirs(relatorio_dir)  # Cria o diretório se não existir
-
+            os.makedirs(relatorio_dir)
+            
 # 7.3. Salvamento do Relatório HTML em Arquivo
 
         file_path = os.path.join(
@@ -839,11 +840,15 @@ def registrar_passagem(request):
 
     else:
 
-        ########## 9. Manipulação para Requisições GET ##########
-        # 9.1. Obtenção de Usuários e Registros
+########## 9. Manipulação para Requisições GET ##########
+# 9.1. Obtenção de Usuários e Registros
 
+        # Manipulação para requisições GET
         usuarios = User.objects.all()
         registros = PassagemDeServico.objects.all()
+        paginator = Paginator(registros, 7)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
 # 9.2. Configuração do Paginador
 

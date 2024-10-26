@@ -2,71 +2,89 @@
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Relatório de Passagem de Serviço</title>
     {% load static %}
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <header>LIVRO DE CAUTELA - {{ data_fim }}</header>
-    <div class="section">
-      <table style="width: 100%; border-collapse: collapse">
-        <tr>
-          <!-- Coluna Esquerda -->
-          <td style="width: 70%; vertical-align: top">
-            <img
-              src="{% static 'cautelaarmamento/images/logo.png' %}"
-              alt="Logo"
-              style="width: 100px"
-            />
-            <!-- Imagem do logo -->
-            <h3>
-              ESTADO DO MARANHÃO<br />
-              SECRETARIA DE ESTADO DA SEGURANÇA PÚBLICA<br />
-              POLÍCIA MILITAR DO MARANHÃO<br />
-              COMANDO DO POLICIAMENTO DO INTERIOR - CPI<br />
-              COMANDO DO POLICIAMENTO DE ÁREA DO INTERIOR – CPA/I 04<br />
-              11º BATALHÃO DE POLÍCIA MILITAR – 4º CIA MATÕES
-            </h3>
-          </td>
-          <!-- Coluna Direita -->
-          <td style="width: 30%; vertical-align: top; text-align: center">
-            <h4>2º TEN QOPM CURY</h4>
-            <h5>CMT da 4ª CIA</h5>
-          </td>
-        </tr>
-      </table>
-      <div class="section">
-        <h3>ASSUNÇÃO DO SERVIÇO</h3>
-        <p>
-          Parte diária do {{ usuarios }} de serviço de 24Hs do dia {{ data_inicio }} para o dia {{ data_fim }}, ao CMT da 4ª CIA/11º BPM.
+  <body class="container my-4">
+    <header class="text-center my-3 fs-3 fw-bold">
+      LIVRO DE CAUTELA - {{ data_fim }}
+    </header>
+
+    <div class="section mb-4">
+      <div class="row">
+        <!-- Coluna Esquerda -->
+        <div class="col-md-8">
+          <img
+            src="{% static 'cautelaarmamento/images/logo.png' %}"
+            alt="Logo"
+            class="mb-3"
+            style="width: 100px"
+          />
+          <h3 class="mb-0">
+            ESTADO DO MARANHÃO<br />
+            SECRETARIA DE ESTADO DA SEGURANÇA PÚBLICA<br />
+            POLÍCIA MILITAR DO MARANHÃO<br />
+            COMANDO DO POLICIAMENTO DO INTERIOR - CPI<br />
+            COMANDO DO POLICIAMENTO DE ÁREA DO INTERIOR – CPA/I 04<br />
+            11º BATALHÃO DE POLÍCIA MILITAR – 4ª CIA MATÕES
+          </h3>
+        </div>
+        <!-- Coluna Direita -->
+        <div class="col-md-4 text-center">
+          <h4>2º TEN QOPM CURY</h4>
+          <h5>CMT da 4ª CIA</h5>
+        </div>
+      </div>
+
+      <div class="section my-4">
+        <h3 class="fw-bold">ASSUNÇÃO DO SERVIÇO</h3>
+        <p class="lead">
+          Parte diária de {{ usuario }} armeiro de serviço de 24Hs do dia {{
+          data_inicio|date:"d/m/Y" }} para o dia {{ data_fim|date:"d/m/Y" }}, ao
+          CMT da 4ª CIA/11º BPM.
         </p>
       </div>
     </div>
 
-    <h3>CAUTELA DIÁRIA</h3>
-    <h1>Relatório de Passagem de Serviço</h1>
-    <ul>
+    <h3 class="fw-bold">CAUTELA DIÁRIA</h3>
+    <h1 class="mb-4">Relatório de Passagem de Serviço</h1>
+
+    <!-- Lista de Cautelas -->
+    <ul class="list-group mb-4">
       {% for cautela in cautelas %}
-      <li>
+      <li class="list-group-item">
         <strong>ID:</strong> {{ cautela.id }} <br />
         <strong>Descrição:</strong> {{ cautela.descricao }} <br />
-        <strong>Data da Cautela:</strong> {{ cautela.data_hora_cautela }} <br />
+        <strong>Data da Cautela:</strong> {{ cautela.hora_cautela|date:"d/m/Y
+        H:i" }} <br />
       </li>
       {% empty %}
-      <li>Nenhuma cautela registrada.</li>
+      <li class="list-group-item text-muted">Nenhuma cautela registrada.</li>
       {% endfor %}
     </ul>
 
-    <h3>DESCAUTELAS DIÁRIA</h3>
-    <ul>
+    <h3 class="fw-bold">DESCAUTELAS DIÁRIA</h3>
+    <ul class="list-group">
       {% for descautela in descautelas %}
-      <li>
+      <li class="list-group-item">
         <strong>ID:</strong> {{ descautela.id }} <br />
         <strong>Descrição:</strong> {{ descautela.descricao }} <br />
-        <strong>Data da Descautela:</strong> {{ descautela.data_hora_cautela }} <br />
+        <strong>Data da Descautela:</strong> {{
+        descautela.data_hora_cautela|date:"d/m/Y H:i" }} <br />
       </li>
       {% empty %}
-      <li>Nenhuma descautela registrada.</li>
+      <li class="list-group-item text-muted">Nenhuma descautela registrada.</li>
       {% endfor %}
     </ul>
+
+    <!-- Bootstrap JS Bundle (with Popper) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
