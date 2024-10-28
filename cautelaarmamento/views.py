@@ -824,18 +824,16 @@ def registrar_passagem(request):
             armeiro_id=request.user.id
         )
         
+        cautelas_lista = []
+
         for cautela in cautelas_queryset:
-            descricao_completa = str(cautela)
-            
-            # Usando regex para capturar a parte desejada
-            match = re.search(r'(?<= - )(.+?)(\s*\(.*\))?', descricao_completa)
-        
-            if match:
-                parte_desejada = match.group(0)  # Pega o texto capturado
-                print(f'xxxxxxxxxxxxxxxxx {parte_desejada}')  # Exibir apenas a parte desejada
-                # 5.2. Consulta de Itens Disponíveis
-                itens_por_categoria = obter_itens_disponiveis()
-                # print(itens_por_categoria)
+            # Formate a string como desejar, por exemplo:
+            item = f"{cautela.hora_cautela} - {cautela.categoria} - {cautela.policial}"
+            cautelas_lista.append(item)
+
+        # Agora você pode acessar elementos da lista
+        print(cautelas_lista)  # Exibir a lista completa
+        print(cautelas_lista[0])  # Exibir o primeiro elemento
 
         # 5.3. Definindo 'usuarios' para o bloco POST
         usuarios = [request.user]
@@ -844,15 +842,15 @@ def registrar_passagem(request):
         lista_cautelas = list(cautelas_queryset)
         lista_descautelas = list(descautelas_queryset)
         lista_formulario = [registro_cautela_id, data_inicio, data_fim, nome_substituto, observacoes, usuarios]
-        lista_itens = [f"{cat}: {itens}" for cat, itens in itens_por_categoria.items()]
+        # lista_itens = [f"{cat}: {itens}" for cat, itens in itens_por_categoria.items()]
 
         # Convertendo listas para JSON
         json_lista_cautelas = json.dumps([str(cautela) for cautela in lista_cautelas])  # Convertendo para string se necessário
         json_lista_descautelas = json.dumps([str(descautela) for descautela in lista_descautelas])
         json_lista_formulario = json.dumps(lista_formulario, default=str)  # Default=str para lidar com datetimes
-        json_lista_itens = json.dumps(lista_itens)
+        # json_lista_itens = json.dumps(lista_itens)
 
-        lista_transformada = [item.split('-') for item in json_lista_cautelas]
+        # lista_transformada = [item.split('-') for item in json_lista_cautelas]
         
         # for item in lista_transformada:
         #     print(item)
