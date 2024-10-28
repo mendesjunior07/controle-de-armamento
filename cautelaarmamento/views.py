@@ -23,6 +23,9 @@
 from .models import CautelaDeArmamento, PassagemDeServico, User
 from django.shortcuts import render
 import os
+import re
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 from django.http import HttpResponse
 from datetime import datetime
 from django.shortcuts import render, get_object_or_404, redirect
@@ -40,6 +43,7 @@ from django.utils.html import strip_tags
 import json
 from .models import PassagemDeServico
 import logging
+from collections import defaultdict
 from django.utils import timezone
 from .models import (
     Categoria,
@@ -680,6 +684,35 @@ def descautelar_municao_ca(request):
 
     return JsonResponse({'success': False, 'message': 'Método inválido'}, status=400)
 
+def obter_itens_disponiveis():
+    """
+    Função auxiliar que retorna o dicionário de itens disponíveis por categoria.
+    """
+    itens_disponiveis = Subcategoria.objects.filter(situacao='disponivel')
+
+    itens_por_categoria = {}
+    for item in itens_disponiveis:
+        categoria = item.categoria
+        if categoria not in itens_por_categoria:
+            itens_por_categoria[categoria] = []
+        itens_por_categoria[categoria].append(item)
+
+    # Imprime detalhes dos itens no terminal
+    for categoria, itens in itens_por_categoria.items():
+        print(f"Categoria: {categoria}")
+        for item in itens:
+            print(f"Nome: {item.descricao_completa}")
+            print(f"Marca: {item.marca}")
+            print(f"Modelo: {item.modelo}")
+            print(f"Calibre: {item.cal}")
+            print(f"Nº Arma: {item.num_arma}")
+            print(f"Nº PMMA: {item.num_pmma}")
+            print(f"Localização: {item.localizacao}")
+            print(f"Estado de Conservação: {item.estado_conservacao}")
+            print(f"Observação: {item.observacao}")
+            print("----------------------------------------")
+
+    return itens_por_categoria
 
 def itens_disponiveis(request):
     # Filtra todos os itens que estão marcados como 'disponível'
@@ -709,6 +742,7 @@ def itens_disponiveis(request):
             print(f"Observação: {item.observacao}")
             print("----------------------------------------")
 
+    itens_por_categoria = obter_itens_disponiveis()  # Obtém os itens disponíveis
     return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/itens_disponiveis.html', {
         'itens_por_categoria': itens_por_categoria
     })
@@ -737,28 +771,30 @@ def listar_inventario_equipamentos(request):
         'itens_disponiveis': itens_disponiveis,
     })
 
+
+from django.shortcuts import render
+from django.utils import timezone
+from datetime import datetime
+from docx import Document
+from django.contrib.auth.models import User
+from .models import PassagemDeServico, CautelaDeArmamento, RegistroDescautelamento
+
 #############################################################
 ########## 1. Função Principal: registrar_passagem ##########
 #############################################################
 
-
 def registrar_passagem(request):
-
-########## 2. Obtenção dos Dados do Formulário ##########
+    ########## 2. Obtenção dos Dados do Formulário ##########
     # 2.1. Verificação do Método HTTP
-
     if request.method == 'POST':
-
         # 2.2. Coleta dos Dados do Formulário
-
         registro_cautela_id = request.POST.get('registro_cautela_id')
         data_inicio_str = request.POST.get('dataInicio')
         nome_substituto = request.POST.get('nomeSubstituto')
         observacoes = request.POST.get('observacoes')
 
-########## 3. Tratamento de Erros na Conversão de Data ##########
-# 3.1. Bloco try-except para Evitar Erros
-
+        ########## 3. Tratamento de Erros na Conversão de Data ##########
+        # 3.1. Bloco try-except para Evitar Erros
         try:
             data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
         except (ValueError, TypeError):
@@ -772,28 +808,61 @@ def registrar_passagem(request):
                 'registros': PassagemDeServico.objects.all()
             })
 
-########## 4. Definição da Data de Fim ##########
-
+        ########## 4. Definição da Data de Fim ##########
         data_fim = timezone.now().date()
-        print("Data de Início:", data_inicio)
-        print("Data de Fim:", data_fim)
+        # print("Data de Início:", data_inicio)
+        # print("Data de Fim:", data_fim)
 
-########## 5. Filtragem de Cautelas ##########
-# 5.1. Consulta ao Banco de Dados
-
-        cautelas = CautelaDeArmamento.objects.filter(
+        ########## 5. Filtragem de Cautelas ##########
+        # 5.1. Consulta ao Banco de Dados
+        cautelas_queryset = CautelaDeArmamento.objects.filter(
             hora_cautela__range=(data_inicio, data_fim),
             armeiro_id=request.user.id
         )
-
-        descautelas = RegistroDescautelamento.objects.filter(
-            data_descautelamento__range=(data_inicio.date(), data_fim),  # Filtrando pela data # Filtrando pela hora, se necessário
+        descautelas_queryset = RegistroDescautelamento.objects.filter(
+            data_descautelamento__range=(data_inicio, data_fim),
             armeiro_id=request.user.id
         )
+        
+        for cautela in cautelas_queryset:
+            descricao_completa = str(cautela)
+            
+            # Usando regex para capturar a parte desejada
+            match = re.search(r'(?<= - )(.+?)(\s*\(.*\))?', descricao_completa)
+        
+            if match:
+                parte_desejada = match.group(0)  # Pega o texto capturado
+                print(f'xxxxxxxxxxxxxxxxx {parte_desejada}')  # Exibir apenas a parte desejada
+                # 5.2. Consulta de Itens Disponíveis
+                itens_por_categoria = obter_itens_disponiveis()
+                # print(itens_por_categoria)
 
-########## 6. Criação e Salvamento da Passagem de Serviço ##########
-# 6.1. Criação da Passagem de Serviço
+        # 5.3. Definindo 'usuarios' para o bloco POST
+        usuarios = [request.user]
 
+        # 5.4. Listas para Armazenar os Dados
+        lista_cautelas = list(cautelas_queryset)
+        lista_descautelas = list(descautelas_queryset)
+        lista_formulario = [registro_cautela_id, data_inicio, data_fim, nome_substituto, observacoes, usuarios]
+        lista_itens = [f"{cat}: {itens}" for cat, itens in itens_por_categoria.items()]
+
+        # Convertendo listas para JSON
+        json_lista_cautelas = json.dumps([str(cautela) for cautela in lista_cautelas])  # Convertendo para string se necessário
+        json_lista_descautelas = json.dumps([str(descautela) for descautela in lista_descautelas])
+        json_lista_formulario = json.dumps(lista_formulario, default=str)  # Default=str para lidar com datetimes
+        json_lista_itens = json.dumps(lista_itens)
+
+        lista_transformada = [item.split('-') for item in json_lista_cautelas]
+        
+        # for item in lista_transformada:
+        #     print(item)
+        # # Print dos JSONs
+        # print(f'JSON da lista de cautelas: {lista_transformada}')
+        # print(f'JSON da lista de descautelas: {json_lista_descautelas}')
+        # print(f'JSON da lista do formulário: {json_lista_formulario}')
+        # print(f'JSON da lista de itens: {json_lista_itens}')
+
+        ########## 6. Criação e Salvamento da Passagem de Serviço ##########
         passagem = PassagemDeServico(
             registro_cautela_id=registro_cautela_id,
             data_inicio=data_inicio,
@@ -802,62 +871,83 @@ def registrar_passagem(request):
             observacoes=observacoes,
             usuario=request.user
         )
-
-# 6.2. Salvamento no Banco de Dados
-
         passagem.save()
 
-########## 7. Geração de Relatório HTML ##########
-# 7.1. Geração do Conteúdo HTML a Partir do Template
+        ########## 7. Geração do Documento Word ##########
+        # 7.1. Abrir o documento existente
+        doc = Document(r'C:\Users\junior\Desktop\PROGRAMAS\meusprojeto\controle-de-armamento\cautelaarmamento\templates\cautelaarmamento\templates\passagem_de_servico\LIVRO DE CAUTELA DIÁRIA.docx')
 
-        html_content = render_to_string('passagem_de_servico/relatorio.html', {
-            'data_inicio': data_inicio,
-            'data_fim': data_fim,
-            'nome_substituto': nome_substituto,
-            'observacoes': observacoes,
-            'cautelas': cautelas,
-            'descautelas': descautelas,
-            'usuario': request.user
-        })
+        # 7.2. Função para substituir placeholder no texto
+        def substituir_placeholder(doc, placeholder, novo_valor):
+            for paragrafo in doc.paragraphs:
+                if placeholder in paragrafo.text:
+                    paragrafo.text = paragrafo.text.replace(placeholder, novo_valor)
+                    return paragrafo
 
-# 7.2. Criação do Diretório de Relatórios
+        # 7.3. Função para criar uma tabela com colunas adicionais
+        def criar_tabela(doc, lista_cautelas):
+            tabela = doc.add_table(rows=len(lista_cautelas) + 1, cols=9)  # Atualizar para 9 colunas
+            tabela.style = 'Table Grid'
 
-        relatorio_dir = 'relatorios'
-        if not os.path.exists(relatorio_dir):
-            os.makedirs(relatorio_dir)
-            
-# 7.3. Salvamento do Relatório HTML em Arquivo
+            # Cabeçalho das colunas
+            cabeçalho = tabela.rows[0].cells
+            cabeçalho[0].text = 'Nome'
+            cabeçalho[1].text = 'Patente'
+            cabeçalho[2].text = 'ID'
+            cabeçalho[3].text = 'Arma'
+            cabeçalho[4].text = 'Veículo'
+            cabeçalho[5].text = 'Horário'
+            cabeçalho[6].text = 'Calibre'
+            cabeçalho[7].text = 'Nº de Série'
+            cabeçalho[8].text = 'Tipo'  # Mantenha esta linha, pois agora cabeçalho[8] é válido
 
-        file_path = os.path.join(
-            relatorio_dir, f'relatorio_passagem_{passagem.id}.html')
-        with open(file_path, 'w') as file:
-            file.write(html_content)
+            # Preenchendo as linhas com os dados de cada cautela
+            for i, cautela in enumerate(lista_cautelas):
+                celulas = tabela.rows[i + 1].cells
+                celulas[0].text = getattr(cautela, 'nome', 'N/A')
+                celulas[1].text = getattr(cautela, 'patente', 'N/A')
+                celulas[2].text = str(getattr(cautela, 'id', 'N/A'))
+                celulas[3].text = getattr(cautela, 'arma', 'N/A')
+                celulas[4].text = getattr(cautela, 'veiculo', 'N/A')
 
-########## 8. Redirecionamento para a Página de Sucesso ##########
-# 8.1. Renderização da Página de Sucesso
+                # Formatar horário se for do tipo datetime
+                horario = getattr(cautela, 'hora_cautela', None)
+                celulas[5].text = horario.strftime('%H:%M') if isinstance(horario, datetime) else 'N/A'
 
-        return render(request, 'passagem_de_servico/sucesso.html', {'relatorio_path': file_path})
+                celulas[6].text = getattr(cautela, 'calibre', 'N/A')
+                celulas[7].text = getattr(cautela, 'numero_serie', 'N/A')
+                celulas[8].text = getattr(cautela, 'tipo', 'N/A')  # Aqui você também deve ter certeza de que 'tipo' existe
 
+            return tabela
+
+        # 7.4. Substituir os placeholders por valores reais
+        substituir_placeholder(doc, '{{NOME_DO_ARMEIRO}}', request.user.username)
+        substituir_placeholder(doc, '{{NOME_DO_SUBSTITUTO}}', nome_substituto)
+        substituir_placeholder(doc, '{{DATA_INICIAL}}', data_inicio.strftime('%d/%m/%Y'))
+        substituir_placeholder(doc, '{{DATA_FINAL}}', data_fim.strftime('%d/%m/%Y'))
+
+        # 7.5. Criar a tabela e substituir o placeholder {{LISTA_DE_CAUTELAS}}
+        paragrafo = substituir_placeholder(doc, '{{LISTA_DE_CAUTELAS}}', '')
+        if paragrafo:
+            tabela = criar_tabela(doc, lista_cautelas)
+            paragrafo._element.addnext(tabela._element)
+
+        # 7.6. Salvar o documento modificado
+        doc.save(r'C:\Users\junior\Desktop\PROGRAMAS\meusprojeto\controle-de-armamento\cautelaarmamento\templates\cautelaarmamento\templates\passagem_de_servico\LIVRO DE CAUTELA DIÁRIA_MODIFICADO.docx')
+
+        # 8. Redirecionamento para a Página de Sucesso
+        return render(request, 'passagem_de_servico/sucesso.html')
+    
     else:
-
 ########## 9. Manipulação para Requisições GET ##########
 # 9.1. Obtenção de Usuários e Registros
-
-        # Manipulação para requisições GET
         usuarios = User.objects.all()
         registros = PassagemDeServico.objects.all()
         paginator = Paginator(registros, 7)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-# 9.2. Configuração do Paginador
-
-        paginator = Paginator(registros, 7)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
 # 9.3. Renderização da Página Inicial
-
         return render(request, 'passagem_de_servico/registrar_passagem.html', {
             'registro_cautela': None,
             'usuarios': usuarios,
@@ -869,8 +959,8 @@ def registrar_passagem(request):
 
 
 def listar_cautelas(request):
-    # Obtém todas as instâncias de CautelaDeArmamento do banco de dados
+# Obtém todas as instâncias de CautelaDeArmamento do banco de dados
     cautelas = CautelaDeArmamento.objects.all()
 
-    # Renderiza os dados no template
+# Renderiza os dados no template
     return render(request, 'passagem_de_servico/listar_amas_cauteladas.html', {'cautelas': cautelas})

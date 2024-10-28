@@ -11,18 +11,46 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+
+      header {
+        background-color: #343a40;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+      }
+
+      .section {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      table {
+        margin-top: 10px;
+      }
+
+      th {
+        background-color: #343a40;
+        color: white;
+      }
+    </style>
   </head>
   <body class="container my-4">
-    <header class="text-center my-3 fs-3 fw-bold">
+    <header class="text-center fs-3 fw-bold">
       LIVRO DE CAUTELA - {{ data_fim }}
     </header>
 
     <div class="section mb-4">
       <div class="row">
-        <!-- Coluna Esquerda -->
         <div class="col-md-8">
           <img
-            src="{% static 'cautelaarmamento/images/logo.png' %}"
+            src="{% static 'static/cautelaarmamento/images/logo.png' %}"
             alt="Logo"
             class="mb-3"
             style="width: 100px"
@@ -36,7 +64,7 @@
             11º BATALHÃO DE POLÍCIA MILITAR – 4ª CIA MATÕES
           </h3>
         </div>
-        <!-- Coluna Direita -->
+
         <div class="col-md-4 text-center">
           <h4>2º TEN QOPM CURY</h4>
           <h5>CMT da 4ª CIA</h5>
@@ -46,45 +74,133 @@
       <div class="section my-4">
         <h3 class="fw-bold">ASSUNÇÃO DO SERVIÇO</h3>
         <p class="lead">
-          Parte diária de {{ usuario }} armeiro de serviço de 24Hs do dia {{
-          data_inicio|date:"d/m/Y" }} para o dia {{ data_fim|date:"d/m/Y" }}, ao
-          CMT da 4ª CIA/11º BPM.
+          Parte diária do(a) {{ usuario }} armeiro(a) de serviço de 24Hs do dia
+          {{ data_inicio|date:"d/m/Y" }} para o dia {{ data_fim|date:"d/m/Y" }},
+          ao CMT da 4ª CIA/11º BPM.
         </p>
       </div>
     </div>
 
-    <h3 class="fw-bold">CAUTELA DIÁRIA</h3>
-    <h1 class="mb-4">Relatório de Passagem de Serviço</h1>
+    <h3 class="fw-bold mb-4">CAUTELA DIÁRIA</h3>
 
-    <!-- Lista de Cautelas -->
-    <ul class="list-group mb-4">
-      {% for cautela in cautelas %}
-      <li class="list-group-item">
-        <strong>ID:</strong> {{ cautela.id }} <br />
-        <strong>Descrição:</strong> {{ cautela.descricao }} <br />
-        <strong>Data da Cautela:</strong> {{ cautela.hora_cautela|date:"d/m/Y
-        H:i" }} <br />
-      </li>
-      {% empty %}
-      <li class="list-group-item text-muted">Nenhuma cautela registrada.</li>
-      {% endfor %}
-    </ul>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Policial</th>
+            <th scope="col">Subcategoria</th>
+            <th scope="col">Data da Cautela</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cautela in cautelas %}
+          <tr>
+            <td>{{ cautela.id }}</td>
+            <td>{{ cautela.policial }}</td>
+            <td>{{ cautela.subcategoria }}</td>
+            <td>{{ cautela.hora_cautela|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">
+              Nenhuma cautela registrada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-    <h3 class="fw-bold">DESCAUTELAS DIÁRIA</h3>
-    <ul class="list-group">
-      {% for descautela in descautelas %}
-      <li class="list-group-item">
-        <strong>ID:</strong> {{ descautela.id }} <br />
-        <strong>Descrição:</strong> {{ descautela.descricao }} <br />
-        <strong>Data da Descautela:</strong> {{
-        descautela.data_hora_cautela|date:"d/m/Y H:i" }} <br />
-      </li>
-      {% empty %}
-      <li class="list-group-item text-muted">Nenhuma descautela registrada.</li>
-      {% endfor %}
-    </ul>
+    <h3 class="fw-bold mt-5 mb-4">DESCAUTELAS DIÁRIA</h3>
 
-    <!-- Bootstrap JS Bundle (with Popper) -->
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Policial</th>
+            <th scope="col">Arma, VTR, e Equipamentos</th>
+            <th scope="col">Munições</th>
+            <th scope="col">Data da Descautela</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for descautela in descautelas %}
+          <tr>
+            <td>{{ descautela.id }}</td>
+            <td>{{ descautela.policial }}</td>
+            <td>{{ descautela.subcategoria_armamento }}</td>
+            <td>{{ descautela.subcategoria_municao }}</td>
+            <td>{{ descautela.hora_descautelamento|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">
+              Nenhuma descautela registrada.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="fw-bold mt-5 mb-4">MATERIAL DISPONÍVEL NA RESERVA</h3>
+
+    <!-- Tabela de Itens Disponíveis na Reserva -->
+    {% for categoria, itens in itens_por_categoria.items %}
+    <div class="section mb-4">
+      <h4 class="fw-bold">{{ categoria }}</h4>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Descrição</th>
+              <th scope="col">Marca</th>
+              <th scope="col">Modelo</th>
+              <th scope="col">Calibre</th>
+              <th scope="col">Nº Arma</th>
+              <th scope="col">Nº PMMA</th>
+              <th scope="col">Localização</th>
+              <th scope="col">Estado de Conservação</th>
+              <th scope="col">Observação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in itens %}
+            <tr>
+              <td>{{ item.descricao_completa }}</td>
+              <td>{{ item.marca }}</td>
+              <td>{{ item.modelo }}</td>
+              <td>{{ item.cal }}</td>
+              <td>{{ item.num_arma }}</td>
+              <td>{{ item.num_pmma }}</td>
+              <td>{{ item.localizacao }}</td>
+              <td>{{ item.estado_conservacao }}</td>
+              <td>{{ item.observacao }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-muted">
+                Nenhum item disponível nesta categoria.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-muted">Nenhum material disponível na reserva.</p>
+    {% endfor %}
+
+    <footer class="text-center mt-5">
+      <p class="text-muted">
+        &copy; {{ data_fim|date:"Y" }} Polícia Militar do Maranhão
+      </p>
+    </footer>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

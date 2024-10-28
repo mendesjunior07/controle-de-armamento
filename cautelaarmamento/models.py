@@ -6,7 +6,7 @@ from django.db.models import JSONField
 
 class Policial(models.Model):
     nome_completo = models.CharField(max_length=100)
-    nome_guerra = models.CharField(max_length=50, blank=True, null=True)  # Este campo deve existir
+    nome_guerra = models.CharField(max_length=50, blank=True, null=True)  # Campo opcional
     posto_graduacao = models.CharField(max_length=50)
     matricula = models.CharField(max_length=20, unique=True)
     rgpm = models.CharField(max_length=20, unique=True)
@@ -15,7 +15,9 @@ class Policial(models.Model):
     cpf = models.CharField(max_length=14, unique=True)  # Inclui máscara de CPF se necessário
 
     def __str__(self):
-        return f"{self.nome_completo} - {self.nome_guerra if self.nome_guerra else 'Sem Nome de Guerra'}"
+        # Garantia de retorno consistente mesmo com valores nulos
+        nome_guerra = self.nome_guerra if self.nome_guerra else 'Sem Nome de Guerra'
+        return f"{self.nome_completo} - {nome_guerra}"
 
 
 # Modelo para Categoria de Armamento
@@ -185,8 +187,7 @@ class RegistroDescautelamento(models.Model):
     hora_descautelamento = models.TimeField(auto_now_add=True)  # Grava automaticamente a hora
 
     def __str__(self):
-        return f"{self.policial.nome} - {self.tipo_servico} - {self.data_descautelamento} {self.hora_descautelamento}"
-
+        return f"{self.policial.nome_completo} - {self.tipo_servico} - {self.data_descautelamento} {self.hora_descautelamento}"
 
 class DescautelasCa(models.Model):
     data_hora_cautela = models.DateTimeField()
