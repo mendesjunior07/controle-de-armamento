@@ -24,8 +24,6 @@ from .models import CautelaDeArmamento, PassagemDeServico, User
 from django.shortcuts import render
 import os
 import re
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
 from django.http import HttpResponse
 from datetime import datetime
 from django.shortcuts import render, get_object_or_404, redirect
