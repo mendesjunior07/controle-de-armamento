@@ -808,8 +808,7 @@ def registrar_passagem(request):
 
         ########## 4. Definição da Data de Fim ##########
         data_fim = timezone.now().date()
-        # print("Data de Início:", data_inicio)
-        # print("Data de Fim:", data_fim)
+
 
         ########## 5. Filtragem de Cautelas ##########
         # 5.1. Consulta ao Banco de Dados
@@ -881,38 +880,37 @@ def registrar_passagem(request):
                     return paragrafo
 
         # 7.3. Função para criar uma tabela com colunas adicionais
-        def criar_tabela(doc, lista_cautelas):
-            tabela = doc.add_table(rows=len(lista_cautelas) + 1, cols=9)  # Atualizar para 9 colunas
+        def criar_tabela(doc, cautelas_lista):
+            tabela = doc.add_table(rows=len(cautelas_lista) + 1, cols=9)
             tabela.style = 'Table Grid'
 
             # Cabeçalho das colunas
-            cabeçalho = tabela.rows[0].cells
-            cabeçalho[0].text = 'Nome'
-            cabeçalho[1].text = 'Patente'
-            cabeçalho[2].text = 'ID'
-            cabeçalho[3].text = 'Arma'
-            cabeçalho[4].text = 'Veículo'
-            cabeçalho[5].text = 'Horário'
-            cabeçalho[6].text = 'Calibre'
-            cabeçalho[7].text = 'Nº de Série'
-            cabeçalho[8].text = 'Tipo'  # Mantenha esta linha, pois agora cabeçalho[8] é válido
+            cabecalho = tabela.rows[0].cells
+            cabecalho[0].text = 'Hora'
+            cabecalho[1].text = 'Armamento/equipamento'
+            cabecalho[2].text = 'Nome completo'
+            cabecalho[3].text = 'Nome de Guerra'
 
-            # Preenchendo as linhas com os dados de cada cautela
-            for i, cautela in enumerate(lista_cautelas):
+
+            # Preenchendo as linhas com os dados de cautelas_lista
+            for i, cautela_obj in enumerate(cautelas_lista):
                 celulas = tabela.rows[i + 1].cells
-                celulas[0].text = getattr(cautela, 'nome', 'N/A')
-                celulas[1].text = getattr(cautela, 'patente', 'N/A')
-                celulas[2].text = str(getattr(cautela, 'id', 'N/A'))
-                celulas[3].text = getattr(cautela, 'arma', 'N/A')
-                celulas[4].text = getattr(cautela, 'veiculo', 'N/A')
-
-                # Formatar horário se for do tipo datetime
-                horario = getattr(cautela, 'hora_cautela', None)
-                celulas[5].text = horario.strftime('%H:%M') if isinstance(horario, datetime) else 'N/A'
-
-                celulas[6].text = getattr(cautela, 'calibre', 'N/A')
-                celulas[7].text = getattr(cautela, 'numero_serie', 'N/A')
-                celulas[8].text = getattr(cautela, 'tipo', 'N/A')  # Aqui você também deve ter certeza de que 'tipo' existe
+                try:
+                    # Extraindo os atributos diretamente do objeto `CautelaDeArmamento`
+                    horario = cautela_obj.horario.strftime('%H:%M')
+                    categoria = cautela_obj.categoria
+                    policial = cautela_obj.policial
+                    
+                    # Preencha as células com as informações extraídas
+                    celulas[0].text = horario  # Hora
+                    celulas[1].text = categoria  # Armamento/equipamento
+                    celulas[2].text = policial.nome_completo  # Nome completo do policial
+                    celulas[3].text = policial.nome_guerra  # Nome de Guerra do policial
+                except AttributeError as e:
+                    print(f"Erro ao processar o objeto de cautela: {cautela_obj} - Erro: {e}")
+                    # Preencha as células com "N/A" em caso de erro
+                    for j in range(9):
+                        celulas[j].text = 'N/A'
 
             return tabela
 
