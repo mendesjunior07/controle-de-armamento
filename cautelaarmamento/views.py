@@ -20,6 +20,8 @@
 
 # ##################################################################
 
+from .models import PassagemDeServico, CautelaDeArmamento, RegistroDescautelamento
+from docx import Document
 from .models import CautelaDeArmamento, PassagemDeServico, User
 from django.shortcuts import render
 import os
@@ -197,7 +199,8 @@ def cautela_de_armamento_view(request):
                                 policial=policial,
                                 categoria=categoria_municao,
                                 subcategoria=subcategoria_municao,
-                                quantidade=quantidade
+                                quantidade=quantidade,
+                                armeiro=armeiro,
                             )
 
                             # Registro na nova model com todos os detalhes para cada linha - Munição
@@ -682,6 +685,7 @@ def descautelar_municao_ca(request):
 
     return JsonResponse({'success': False, 'message': 'Método inválido'}, status=400)
 
+
 def obter_itens_disponiveis():
     """
     Função auxiliar que retorna o dicionário de itens disponíveis por categoria.
@@ -695,22 +699,23 @@ def obter_itens_disponiveis():
             itens_por_categoria[categoria] = []
         itens_por_categoria[categoria].append(item)
 
-    # Imprime detalhes dos itens no terminal
-    for categoria, itens in itens_por_categoria.items():
-        print(f"Categoria: {categoria}")
-        for item in itens:
-            print(f"Nome: {item.descricao_completa}")
-            print(f"Marca: {item.marca}")
-            print(f"Modelo: {item.modelo}")
-            print(f"Calibre: {item.cal}")
-            print(f"Nº Arma: {item.num_arma}")
-            print(f"Nº PMMA: {item.num_pmma}")
-            print(f"Localização: {item.localizacao}")
-            print(f"Estado de Conservação: {item.estado_conservacao}")
-            print(f"Observação: {item.observacao}")
-            print("----------------------------------------")
+    # # Imprime detalhes dos itens no terminal
+    # for categoria, itens in itens_por_categoria.items():
+    #     print(f"Categoria: {categoria}")
+    #     for item in itens:
+    #         print(f"Nome: {item.descricao_completa}")
+    #         print(f"Marca: {item.marca}")
+    #         print(f"Modelo: {item.modelo}")
+    #         print(f"Calibre: {item.cal}")
+    #         print(f"Nº Arma: {item.num_arma}")
+    #         print(f"Nº PMMA: {item.num_pmma}")
+    #         print(f"Localização: {item.localizacao}")
+    #         print(f"Estado de Conservação: {item.estado_conservacao}")
+    #         print(f"Observação: {item.observacao}")
+    #         print("----------------------------------------")
 
     return itens_por_categoria
+
 
 def itens_disponiveis(request):
     # Filtra todos os itens que estão marcados como 'disponível'
@@ -725,21 +730,6 @@ def itens_disponiveis(request):
             itens_por_categoria[categoria] = []
         itens_por_categoria[categoria].append(item)
 
-    # Imprime detalhes dos itens no terminal
-    for categoria, itens in itens_por_categoria.items():
-        print(f"Categoria: {categoria}")
-        for item in itens:
-            print(f"Nome: {item.descricao_completa}")
-            print(f"Marca: {item.marca}")
-            print(f"Modelo: {item.modelo}")
-            print(f"Calibre: {item.cal}")
-            print(f"Nº Arma: {item.num_arma}")
-            print(f"Nº PMMA: {item.num_pmma}")
-            print(f"Localização: {item.localizacao}")
-            print(f"Estado de Conservação: {item.estado_conservacao}")
-            print(f"Observação: {item.observacao}")
-            print("----------------------------------------")
-
     itens_por_categoria = obter_itens_disponiveis()  # Obtém os itens disponíveis
     return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/itens_disponiveis.html', {
         'itens_por_categoria': itens_por_categoria
@@ -751,18 +741,18 @@ def listar_inventario_equipamentos(request):
     itens_disponiveis = Subcategoria.objects.all().order_by('categoria')
 
     # Debug: Imprime os detalhes dos itens no terminal, organizados por categoria
-    for item in itens_disponiveis:
-        print(f"Categoria: {item.categoria}")
-        print(f"Nome: {item.descricao_completa}")
-        print(f"Marca: {item.marca}")
-        print(f"Modelo: {item.modelo}")
-        print(f"Calibre: {item.cal}")
-        print(f"Nº Arma: {item.num_arma}")
-        print(f"Nº PMMA: {item.num_pmma}")
-        print(f"Localização: {item.localizacao}")
-        print(f"Estado de Conservação: {item.estado_conservacao}")
-        print(f"Observação: {item.observacao}")
-        print("----------------------------------------")
+    # for item in itens_disponiveis:
+    #     print(f"Categoria: {item.categoria}")
+    #     print(f"Nome: {item.descricao_completa}")
+    #     print(f"Marca: {item.marca}")
+    #     print(f"Modelo: {item.modelo}")
+    #     print(f"Calibre: {item.cal}")
+    #     print(f"Nº Arma: {item.num_arma}")
+    #     print(f"Nº PMMA: {item.num_pmma}")
+    #     print(f"Localização: {item.localizacao}")
+    #     print(f"Estado de Conservação: {item.estado_conservacao}")
+    #     print(f"Observação: {item.observacao}")
+    #     print("----------------------------------------")
 
     # Renderiza o template com a lista de itens disponíveis organizados por categoria
     return render(request, 'cautelaarmamento/templates/catalogo_de_equipamento/inventario_equipamentos.html', {
@@ -770,31 +760,16 @@ def listar_inventario_equipamentos(request):
     })
 
 
-from django.shortcuts import render
-from django.utils import timezone
-from datetime import datetime
-from docx import Document
-from django.contrib.auth.models import User
-from .models import PassagemDeServico, CautelaDeArmamento, RegistroDescautelamento
-
-#############################################################
-########## 1. Função Principal: registrar_passagem ##########
-#############################################################
-
 def registrar_passagem(request):
-    ########## 2. Obtenção dos Dados do Formulário ##########
-    # 2.1. Verificação do Método HTTP
     if request.method == 'POST':
-        # 2.2. Coleta dos Dados do Formulário
         registro_cautela_id = request.POST.get('registro_cautela_id')
         data_inicio_str = request.POST.get('dataInicio')
         nome_substituto = request.POST.get('nomeSubstituto')
         observacoes = request.POST.get('observacoes')
+        hora_atual = datetime.now().strftime('%H:%M')
 
-        ########## 3. Tratamento de Erros na Conversão de Data ##########
-        # 3.1. Bloco try-except para Evitar Erros
         try:
-            data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d')
+            data_inicio = timezone.make_aware(datetime.strptime(data_inicio_str, '%Y-%m-%d'))
         except (ValueError, TypeError):
             return render(request, 'passagem_de_servico/registrar_passagem.html', {
                 'error': 'Data de início inválida',
@@ -802,62 +777,37 @@ def registrar_passagem(request):
                 'usuarios': User.objects.all(),
                 'dataInicio': data_inicio_str,
                 'nomeSubstituto': nome_substituto,
+                'hora_atual': hora_atual,
                 'observacoes': observacoes,
                 'registros': PassagemDeServico.objects.all()
             })
 
-        ########## 4. Definição da Data de Fim ##########
-        data_fim = timezone.now().date()
-
-
-        ########## 5. Filtragem de Cautelas ##########
-        # 5.1. Consulta ao Banco de Dados
+        data_fim = timezone.now()
+        
         cautelas_queryset = CautelaDeArmamento.objects.filter(
             hora_cautela__range=(data_inicio, data_fim),
-            armeiro_id=request.user.id
+            armeiro=request.user
         )
+
+        descautelas_ca_queryset = DescautelasCa.objects.filter(
+            data_descautelamento__range=(data_inicio, data_fim),
+            armeiro=request.user
+        )
+        
+        cautela_de_municoes_queryset = CautelaDeMunicoes.objects.filter(
+            data_descautelamento__range=(data_inicio, data_fim),armeiro=request.user 
+        )
+        
+        # Verifica se o queryset está vazio e define o status
+        descautelas_ca_status = "SEM ALTERAÇÃO" if not descautelas_ca_queryset.exists() else "COM ALTERAÇÃO"
+        
         descautelas_queryset = RegistroDescautelamento.objects.filter(
             data_descautelamento__range=(data_inicio, data_fim),
-            armeiro_id=request.user.id
+            armeiro=request.user
         )
+
+        itens_por_categoria = obter_itens_disponiveis()  # Obtém os itens disponíveis
         
-        cautelas_lista = []
-
-        for cautela in cautelas_queryset:
-            # Formate a string como desejar, por exemplo:
-            item = f"{cautela.hora_cautela} - {cautela.categoria} - {cautela.policial}"
-            cautelas_lista.append(item)
-
-        # Agora você pode acessar elementos da lista
-        print(cautelas_lista)  # Exibir a lista completa
-        print(cautelas_lista[0])  # Exibir o primeiro elemento
-
-        # 5.3. Definindo 'usuarios' para o bloco POST
-        usuarios = [request.user]
-
-        # 5.4. Listas para Armazenar os Dados
-        lista_cautelas = list(cautelas_queryset)
-        lista_descautelas = list(descautelas_queryset)
-        lista_formulario = [registro_cautela_id, data_inicio, data_fim, nome_substituto, observacoes, usuarios]
-        # lista_itens = [f"{cat}: {itens}" for cat, itens in itens_por_categoria.items()]
-
-        # Convertendo listas para JSON
-        json_lista_cautelas = json.dumps([str(cautela) for cautela in lista_cautelas])  # Convertendo para string se necessário
-        json_lista_descautelas = json.dumps([str(descautela) for descautela in lista_descautelas])
-        json_lista_formulario = json.dumps(lista_formulario, default=str)  # Default=str para lidar com datetimes
-        # json_lista_itens = json.dumps(lista_itens)
-
-        # lista_transformada = [item.split('-') for item in json_lista_cautelas]
-        
-        # for item in lista_transformada:
-        #     print(item)
-        # # Print dos JSONs
-        # print(f'JSON da lista de cautelas: {lista_transformada}')
-        # print(f'JSON da lista de descautelas: {json_lista_descautelas}')
-        # print(f'JSON da lista do formulário: {json_lista_formulario}')
-        # print(f'JSON da lista de itens: {json_lista_itens}')
-
-        ########## 6. Criação e Salvamento da Passagem de Serviço ##########
         passagem = PassagemDeServico(
             registro_cautela_id=registro_cautela_id,
             data_inicio=data_inicio,
@@ -868,80 +818,28 @@ def registrar_passagem(request):
         )
         passagem.save()
 
-        ########## 7. Geração do Documento Word ##########
-        # 7.1. Abrir o documento existente
-        doc = Document(r'C:\Users\junior\Desktop\PROGRAMAS\meusprojeto\controle-de-armamento\cautelaarmamento\templates\cautelaarmamento\templates\passagem_de_servico\LIVRO DE CAUTELA DIÁRIA.docx')
+        return render(request, 'passagem_de_servico/relatorio.html', {
+            'usuario': request.user,
+            'hora_atual': hora_atual,
+            'nome_substituto':nome_substituto,
+            'data_inicio': data_inicio,
+            'data_fim': data_fim,
+            'cautelas': cautelas_queryset,
+            'descautelas': descautelas_queryset,
+            'itens_por_categoria': itens_por_categoria,
+            'descautelas_ca':descautelas_ca_queryset,
+            'cautela_municoes':cautela_de_municoes_queryset,
+            'descautelas_ca_status': descautelas_ca_status
+        })
 
-        # 7.2. Função para substituir placeholder no texto
-        def substituir_placeholder(doc, placeholder, novo_valor):
-            for paragrafo in doc.paragraphs:
-                if placeholder in paragrafo.text:
-                    paragrafo.text = paragrafo.text.replace(placeholder, novo_valor)
-                    return paragrafo
-
-        # 7.3. Função para criar uma tabela com colunas adicionais
-        def criar_tabela(doc, cautelas_lista):
-            tabela = doc.add_table(rows=len(cautelas_lista) + 1, cols=9)
-            tabela.style = 'Table Grid'
-
-            # Cabeçalho das colunas
-            cabecalho = tabela.rows[0].cells
-            cabecalho[0].text = 'Hora'
-            cabecalho[1].text = 'Armamento/equipamento'
-            cabecalho[2].text = 'Nome completo'
-            cabecalho[3].text = 'Nome de Guerra'
-
-
-            # Preenchendo as linhas com os dados de cautelas_lista
-            for i, cautela_obj in enumerate(cautelas_lista):
-                celulas = tabela.rows[i + 1].cells
-                try:
-                    # Extraindo os atributos diretamente do objeto `CautelaDeArmamento`
-                    horario = cautela_obj.horario.strftime('%H:%M')
-                    categoria = cautela_obj.categoria
-                    policial = cautela_obj.policial
-                    
-                    # Preencha as células com as informações extraídas
-                    celulas[0].text = horario  # Hora
-                    celulas[1].text = categoria  # Armamento/equipamento
-                    celulas[2].text = policial.nome_completo  # Nome completo do policial
-                    celulas[3].text = policial.nome_guerra  # Nome de Guerra do policial
-                except AttributeError as e:
-                    print(f"Erro ao processar o objeto de cautela: {cautela_obj} - Erro: {e}")
-                    # Preencha as células com "N/A" em caso de erro
-                    for j in range(9):
-                        celulas[j].text = 'N/A'
-
-            return tabela
-
-        # 7.4. Substituir os placeholders por valores reais
-        substituir_placeholder(doc, '{{NOME_DO_ARMEIRO}}', request.user.username)
-        substituir_placeholder(doc, '{{NOME_DO_SUBSTITUTO}}', nome_substituto)
-        substituir_placeholder(doc, '{{DATA_INICIAL}}', data_inicio.strftime('%d/%m/%Y'))
-        substituir_placeholder(doc, '{{DATA_FINAL}}', data_fim.strftime('%d/%m/%Y'))
-
-        # 7.5. Criar a tabela e substituir o placeholder {{LISTA_DE_CAUTELAS}}
-        paragrafo = substituir_placeholder(doc, '{{LISTA_DE_CAUTELAS}}', '')
-        if paragrafo:
-            tabela = criar_tabela(doc, lista_cautelas)
-            paragrafo._element.addnext(tabela._element)
-
-        # 7.6. Salvar o documento modificado
-        doc.save(r'C:\Users\junior\Desktop\PROGRAMAS\meusprojeto\controle-de-armamento\cautelaarmamento\templates\cautelaarmamento\templates\passagem_de_servico\LIVRO DE CAUTELA DIÁRIA_MODIFICADO.docx')
-
-        # 8. Redirecionamento para a Página de Sucesso
-        return render(request, 'passagem_de_servico/sucesso.html')
-    
     else:
-########## 9. Manipulação para Requisições GET ##########
-# 9.1. Obtenção de Usuários e Registros
         usuarios = User.objects.all()
-        registros = PassagemDeServico.objects.all()
+        registros = PassagemDeServico.objects.all().order_by('data_inicio')
+
         paginator = Paginator(registros, 7)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-# 9.3. Renderização da Página Inicial
         return render(request, 'passagem_de_servico/registrar_passagem.html', {
             'registro_cautela': None,
             'usuarios': usuarios,
@@ -953,8 +851,141 @@ def registrar_passagem(request):
 
 
 def listar_cautelas(request):
-# Obtém todas as instâncias de CautelaDeArmamento do banco de dados
+    # Obtém todas as instâncias de CautelaDeArmamento do banco de dados
     cautelas = CautelaDeArmamento.objects.all()
 
 # Renderiza os dados no template
     return render(request, 'passagem_de_servico/listar_amas_cauteladas.html', {'cautelas': cautelas})
+
+
+def gerar_relatorio_docx(usuario, data_inicio, data_fim, cautelas, cautela_municoes, descautelas, descautelas_ca, itens_por_categoria):
+    # Cria o documento
+    doc = Document()
+    
+    # Título do documento
+    doc.add_heading('Relatório de Passagem de Serviço', level=1)
+    doc.add_paragraph(f'LIVRO DE CAUTELA - {datetime.now().strftime("%d/%m/%Y")}')
+
+    # Informação do cabeçalho
+    header_text = (
+        "ESTADO DO MARANHÃO\n"
+        "SECRETARIA DE ESTADO DA SEGURANÇA PÚBLICA\n"
+        "POLÍCIA MILITAR DO MARANHÃO\n"
+        "COMANDO DO POLICIAMENTO DO INTERIOR - CPI\n"
+        "COMANDO DO POLICIAMENTO DE ÁREA DO INTERIOR – CPA/I 04\n"
+        "11º BATALHÃO DE POLÍCIA MILITAR – 4ª CIA MATÕES"
+    )
+    doc.add_paragraph(header_text)
+
+    # Informação do usuário e datas
+    doc.add_paragraph(f"Parte diária do(a) {usuario} armeiro(a) de serviço de 24Hs do dia {data_inicio.strftime('%d/%m/%Y')} para o dia {data_fim.strftime('%d/%m/%Y')}.")
+
+    # Adiciona tabelas de cautelas
+    doc.add_heading('Cautela Diária', level=2)
+    if cautelas:
+        table = doc.add_table(rows=1, cols=4)
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Subcategoria'
+        hdr_cells[3].text = 'Data da Cautela'
+        
+        for cautela in cautelas:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(cautela['id'])
+            row_cells[1].text = cautela['policial']
+            row_cells[2].text = cautela['subcategoria']
+            row_cells[3].text = cautela['hora_cautela'].strftime('%d/%m/%Y %H:%M')
+    else:
+        doc.add_paragraph("Nenhuma cautela registrada.")
+
+    # Tabela de cautela de munições
+    doc.add_heading('Cautela de Munições', level=2)
+    if cautela_municoes:
+        table = doc.add_table(rows=1, cols=4)
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Subcategoria'
+        hdr_cells[3].text = 'Quantidade'
+        
+        for cautela in cautela_municoes:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(cautela['id'])
+            row_cells[1].text = cautela['policial']
+            row_cells[2].text = cautela['subcategoria']
+            row_cells[3].text = str(cautela['quantidade'])
+    else:
+        doc.add_paragraph("Nenhuma cautela registrada.")
+
+    # Tabela de descautelas diárias S/A
+    doc.add_heading('Descautelas Diária S/A', level=2)
+    if descautelas:
+        table = doc.add_table(rows=1, cols=5)
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Arma, VTR, e Equipamentos'
+        hdr_cells[3].text = 'Munições'
+        hdr_cells[4].text = 'Data da Descautela'
+        
+        for descautela in descautelas:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(descautela['id'])
+            row_cells[1].text = descautela.get('policial', "")
+            row_cells[2].text = descautela.get('subcategoria_armamento', "")
+            row_cells[3].text = descautela.get('subcategoria_municao', "")
+            row_cells[4].text = descautela['hora_descautelamento'].strftime('%d/%m/%Y %H:%M')
+    else:
+        doc.add_paragraph("Nenhuma descautela registrada.")
+
+    # Tabela de descautelas diárias C/A
+    doc.add_heading('Descautelas Diária C/A', level=2)
+    if descautelas_ca:
+        table = doc.add_table(rows=1, cols=5)
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Arma, VTR, e Equipamentos'
+        hdr_cells[3].text = 'Munições'
+        hdr_cells[4].text = 'Data da Descautela'
+        
+        for descautela in descautelas_ca:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(descautela['id'])
+            row_cells[1].text = descautela['policial']
+            row_cells[2].text = descautela['subcategoria_armamento']
+            row_cells[3].text = descautela['subcategoria_municao']
+            row_cells[4].text = descautela['hora_descautelamento'].strftime('%d/%m/%Y %H:%M')
+    else:
+        doc.add_paragraph("Nenhuma descautela registrada.")
+
+    # Tabela de material disponível na reserva
+    doc.add_heading('Material Disponível na Reserva', level=2)
+    for categoria, itens in itens_por_categoria.items():
+        doc.add_heading(categoria, level=3)
+        table = doc.add_table(rows=1, cols=8)
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Descrição'
+        hdr_cells[1].text = 'Marca'
+        hdr_cells[2].text = 'Modelo'
+        hdr_cells[3].text = 'Calibre'
+        hdr_cells[4].text = 'Nº Arma'
+        hdr_cells[5].text = 'Nº PMMA'
+        hdr_cells[6].text = 'Localização'
+        hdr_cells[7].text = 'Estado de Conservação'
+
+        for item in itens:
+            row_cells = table.add_row().cells
+            row_cells[0].text = item['descricao_completa']
+            row_cells[1].text = item['marca']
+            row_cells[2].text = item['modelo']
+            row_cells[3].text = item['cal']
+            row_cells[4].text = item['num_arma']
+            row_cells[5].text = item['num_pmma']
+            row_cells[6].text = item['localizacao']
+            row_cells[7].text = item['estado_conservacao']
+    
+    # Salva o documento
+    doc.save("relatorio_passagem_servico.docx")
+    print("Documento criado com sucesso!")

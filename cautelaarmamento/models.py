@@ -17,7 +17,7 @@ class Policial(models.Model):
     def __str__(self):
         # Garantia de retorno consistente mesmo com valores nulos
         nome_guerra = self.nome_guerra if self.nome_guerra else 'Sem Nome de Guerra'
-        return f"{self.nome_completo} - {nome_guerra}"
+        return f"{self.nome_guerra}"
 
 
 # Modelo para Categoria de Armamento
@@ -141,7 +141,9 @@ class CautelaDeMunicoes(models.Model):
     categoria = models.ForeignKey(CategoriaMunicao, on_delete=models.CASCADE)
     subcategoria = models.ForeignKey(SubcategoriaMunicao, on_delete=models.CASCADE)
     quantidade = models.PositiveIntegerField()
-
+    armeiro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    data_descautelamento = models.DateTimeField(default=timezone.now)
+    
     def __str__(self):
         return f"{self.policial} - {self.categoria} - {self.subcategoria} - {self.quantidade} munições"
 
