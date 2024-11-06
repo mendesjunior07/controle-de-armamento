@@ -214,7 +214,7 @@ class DescautelasCa(models.Model):
 
 class PassagemDeServico(models.Model):
     registro_cautela_id = models.IntegerField()
-    data_inicio = models.DateField()
+    data_inicio = models.DateTimeField()
     data_fim = models.DateField(auto_now_add=True)  # Define automaticamente a data atual ao criar o registro
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)  # Relaciona ao usuário logado
     nome_substituto = models.CharField(max_length=100)
