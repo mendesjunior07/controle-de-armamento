@@ -760,6 +760,8 @@ def listar_inventario_equipamentos(request):
     })
 
 
+### IMPORTAÇÕES ###
+
 def registrar_passagem(request):
     if request.method == 'POST':
         registro_cautela_id = request.POST.get('registro_cautela_id')
@@ -767,6 +769,8 @@ def registrar_passagem(request):
         nome_substituto = request.POST.get('nomeSubstituto')
         observacoes = request.POST.get('observacoes')
         hora_atual = datetime.now().strftime('%H:%M')
+
+        ### OBTENDO DADOS DO REQUEST ###
 
         try:
             data_inicio = timezone.make_aware(datetime.strptime(data_inicio_str, '%Y-%m-%d'))
@@ -783,7 +787,9 @@ def registrar_passagem(request):
             })
 
         data_fim = timezone.now()
-        
+
+        ### CONSULTANDO OS MODELOS ###
+
         cautelas_queryset = CautelaDeArmamento.objects.filter(
             hora_cautela__range=(data_inicio, data_fim),
             armeiro=request.user
@@ -793,21 +799,23 @@ def registrar_passagem(request):
             data_descautelamento__range=(data_inicio, data_fim),
             armeiro=request.user
         )
-        
+
         cautela_de_municoes_queryset = CautelaDeMunicoes.objects.filter(
-            data_descautelamento__range=(data_inicio, data_fim),armeiro=request.user 
+            data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user
         )
-        
+
         # Verifica se o queryset está vazio e define o status
         descautelas_ca_status = "SEM ALTERAÇÃO" if not descautelas_ca_queryset.exists() else "COM ALTERAÇÃO"
-        
+
         descautelas_queryset = RegistroDescautelamento.objects.filter(
             data_descautelamento__range=(data_inicio, data_fim),
             armeiro=request.user
         )
 
         itens_por_categoria = obter_itens_disponiveis()  # Obtém os itens disponíveis
-        
+
+        ### CRIANDO OBJETO PASSAGEM ###
+
         passagem = PassagemDeServico(
             registro_cautela_id=registro_cautela_id,
             data_inicio=data_inicio,
@@ -818,21 +826,35 @@ def registrar_passagem(request):
         )
         passagem.save()
 
-        return render(request, 'passagem_de_servico/relatorio.html', {
+        ### CONTEXTO E RENDERIZAÇÃO ###
+
+        # Renderiza o HTML para resposta e também salva em um arquivo
+        context = {
             'usuario': request.user,
             'hora_atual': hora_atual,
-            'nome_substituto':nome_substituto,
+            'nome_substituto': nome_substituto,
             'data_inicio': data_inicio,
             'data_fim': data_fim,
             'cautelas': cautelas_queryset,
             'descautelas': descautelas_queryset,
             'itens_por_categoria': itens_por_categoria,
-            'descautelas_ca':descautelas_ca_queryset,
-            'cautela_municoes':cautela_de_municoes_queryset,
+            'descautelas_ca': descautelas_ca_queryset,
+            'cautela_municoes': cautela_de_municoes_queryset,
             'descautelas_ca_status': descautelas_ca_status
-        })
+        }
+
+        response_html = render(request, 'passagem_de_servico/relatorio.html', context).content.decode('utf-8')
+
+        # Caminho para salvar o arquivo HTML
+        caminho_arquivo = os.path.join('relatorios', f'relatorio_passagem_{datetime.now().strftime("%Y%m%d_%H%M%S")}.html')
+        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo_html:
+            arquivo_html.write(response_html)
+
+        return render(request, 'passagem_de_servico/relatorio.html', context)
 
     else:
+        ### GET REQUEST: CONSULTANDO USUÁRIOS E PAGINAÇÃO ###
+        
         usuarios = User.objects.all()
         registros = PassagemDeServico.objects.all().order_by('data_inicio')
 
@@ -857,135 +879,3 @@ def listar_cautelas(request):
 # Renderiza os dados no template
     return render(request, 'passagem_de_servico/listar_amas_cauteladas.html', {'cautelas': cautelas})
 
-
-def gerar_relatorio_docx(usuario, data_inicio, data_fim, cautelas, cautela_municoes, descautelas, descautelas_ca, itens_por_categoria):
-    # Cria o documento
-    doc = Document()
-    
-    # Título do documento
-    doc.add_heading('Relatório de Passagem de Serviço', level=1)
-    doc.add_paragraph(f'LIVRO DE CAUTELA - {datetime.now().strftime("%d/%m/%Y")}')
-
-    # Informação do cabeçalho
-    header_text = (
-        "ESTADO DO MARANHÃO\n"
-        "SECRETARIA DE ESTADO DA SEGURANÇA PÚBLICA\n"
-        "POLÍCIA MILITAR DO MARANHÃO\n"
-        "COMANDO DO POLICIAMENTO DO INTERIOR - CPI\n"
-        "COMANDO DO POLICIAMENTO DE ÁREA DO INTERIOR – CPA/I 04\n"
-        "11º BATALHÃO DE POLÍCIA MILITAR – 4ª CIA MATÕES"
-    )
-    doc.add_paragraph(header_text)
-
-    # Informação do usuário e datas
-    doc.add_paragraph(f"Parte diária do(a) {usuario} armeiro(a) de serviço de 24Hs do dia {data_inicio.strftime('%d/%m/%Y')} para o dia {data_fim.strftime('%d/%m/%Y')}.")
-
-    # Adiciona tabelas de cautelas
-    doc.add_heading('Cautela Diária', level=2)
-    if cautelas:
-        table = doc.add_table(rows=1, cols=4)
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = 'ID'
-        hdr_cells[1].text = 'Policial'
-        hdr_cells[2].text = 'Subcategoria'
-        hdr_cells[3].text = 'Data da Cautela'
-        
-        for cautela in cautelas:
-            row_cells = table.add_row().cells
-            row_cells[0].text = str(cautela['id'])
-            row_cells[1].text = cautela['policial']
-            row_cells[2].text = cautela['subcategoria']
-            row_cells[3].text = cautela['hora_cautela'].strftime('%d/%m/%Y %H:%M')
-    else:
-        doc.add_paragraph("Nenhuma cautela registrada.")
-
-    # Tabela de cautela de munições
-    doc.add_heading('Cautela de Munições', level=2)
-    if cautela_municoes:
-        table = doc.add_table(rows=1, cols=4)
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = 'ID'
-        hdr_cells[1].text = 'Policial'
-        hdr_cells[2].text = 'Subcategoria'
-        hdr_cells[3].text = 'Quantidade'
-        
-        for cautela in cautela_municoes:
-            row_cells = table.add_row().cells
-            row_cells[0].text = str(cautela['id'])
-            row_cells[1].text = cautela['policial']
-            row_cells[2].text = cautela['subcategoria']
-            row_cells[3].text = str(cautela['quantidade'])
-    else:
-        doc.add_paragraph("Nenhuma cautela registrada.")
-
-    # Tabela de descautelas diárias S/A
-    doc.add_heading('Descautelas Diária S/A', level=2)
-    if descautelas:
-        table = doc.add_table(rows=1, cols=5)
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = 'ID'
-        hdr_cells[1].text = 'Policial'
-        hdr_cells[2].text = 'Arma, VTR, e Equipamentos'
-        hdr_cells[3].text = 'Munições'
-        hdr_cells[4].text = 'Data da Descautela'
-        
-        for descautela in descautelas:
-            row_cells = table.add_row().cells
-            row_cells[0].text = str(descautela['id'])
-            row_cells[1].text = descautela.get('policial', "")
-            row_cells[2].text = descautela.get('subcategoria_armamento', "")
-            row_cells[3].text = descautela.get('subcategoria_municao', "")
-            row_cells[4].text = descautela['hora_descautelamento'].strftime('%d/%m/%Y %H:%M')
-    else:
-        doc.add_paragraph("Nenhuma descautela registrada.")
-
-    # Tabela de descautelas diárias C/A
-    doc.add_heading('Descautelas Diária C/A', level=2)
-    if descautelas_ca:
-        table = doc.add_table(rows=1, cols=5)
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = 'ID'
-        hdr_cells[1].text = 'Policial'
-        hdr_cells[2].text = 'Arma, VTR, e Equipamentos'
-        hdr_cells[3].text = 'Munições'
-        hdr_cells[4].text = 'Data da Descautela'
-        
-        for descautela in descautelas_ca:
-            row_cells = table.add_row().cells
-            row_cells[0].text = str(descautela['id'])
-            row_cells[1].text = descautela['policial']
-            row_cells[2].text = descautela['subcategoria_armamento']
-            row_cells[3].text = descautela['subcategoria_municao']
-            row_cells[4].text = descautela['hora_descautelamento'].strftime('%d/%m/%Y %H:%M')
-    else:
-        doc.add_paragraph("Nenhuma descautela registrada.")
-
-    # Tabela de material disponível na reserva
-    doc.add_heading('Material Disponível na Reserva', level=2)
-    for categoria, itens in itens_por_categoria.items():
-        doc.add_heading(categoria, level=3)
-        table = doc.add_table(rows=1, cols=8)
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = 'Descrição'
-        hdr_cells[1].text = 'Marca'
-        hdr_cells[2].text = 'Modelo'
-        hdr_cells[3].text = 'Calibre'
-        hdr_cells[4].text = 'Nº Arma'
-        hdr_cells[5].text = 'Nº PMMA'
-        hdr_cells[6].text = 'Localização'
-        hdr_cells[7].text = 'Estado de Conservação'
-
-        for item in itens:
-            row_cells = table.add_row().cells
-            row_cells[0].text = item['descricao_completa']
-            row_cells[1].text = item['marca']
-            row_cells[2].text = item['modelo']
-            row_cells[3].text = item['cal']
-            row_cells[4].text = item['num_arma']
-            row_cells[5].text = item['num_pmma']
-            row_cells[6].text = item['localizacao']
-            row_cells[7].text = item['estado_conservacao']
-    
-    # Salva o documento
-    doc.save("relatorio_passagem_servico.docx")
-    print("Documento criado com sucesso!")
