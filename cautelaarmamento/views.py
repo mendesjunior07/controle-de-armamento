@@ -1020,57 +1020,65 @@ def registrar_passagem(request):
 
 
 def gerar_relatorio(request):
-    # Coleta os dados necessários
-    passagem = PassagemDeServico.objects.filter(usuario=request.user).latest('data_inicio')
-    data_fim = passagem.data_fim
-    data_inicio = passagem.data_inicio
-    hora_atual = timezone.now().strftime('%H:%M')
-    
-    # Consultas para coletar os dados do relatório
-    cautelas = CautelaDeArmamento.objects.filter(hora_cautela__range=(data_inicio, data_fim), armeiro=request.user)
-    descautelas = RegistroDescautelamento.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
-    cautela_de_municoes = CautelaDeMunicoes.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
-    descautelas_ca = DescautelasCa.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
-    
-    # Obter itens disponíveis
-    itens_por_categoria = obter_itens_disponiveis()
-    
-    # Gerar o conteúdo HTML com todos os dados
-    html_content = render_to_string('passagem_de_servico/relatorio.html', {
-        'usuario': request.user,
-        'hora_atual': hora_atual,
-        'nome_substituto': passagem.nome_substituto,
-        'data_inicio': data_inicio,
-        'data_fim': data_fim,
-        'cautelas': cautelas,
-        'cautela_municoes': cautela_de_municoes,
-        'descautelas': descautelas,
-        'descautelas_ca': descautelas_ca,
-        'itens_por_categoria': itens_por_categoria,
-    })
-    
-    # Caminho para salvar o arquivo PDF
-    pdf_file_path = os.path.join(settings.BASE_DIR, 'relatorios', f'relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.pdf')
-    
-    # Usando WeasyPrint para converter HTML em PDF
-    html = HTML(string=html_content)
-    
-    # Configurar margens e formato da página A4
-    html.write_pdf(pdf_file_path, stylesheets=[settings.BASE_DIR + '/static/css/styles.css'], 
-                   presentational_hints=True, 
-                   zoom=1, 
-                   # Definindo as margens conforme solicitado
-                   options={"margin-top": "1cm", "margin-right": "1cm", "margin-bottom": "1cm", "margin-left": "1cm"})
-    
-    # Retornar o PDF gerado
-    with open(pdf_file_path, 'rb') as f:
-        pdf_content = f.read()
-    
-    # Retornar o PDF como resposta
-    response = HttpResponse(pdf_content, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.pdf"'
-    
-    return response
+    if request.method == 'POST':
+        # Coleta os dados necessários
+        passagem = PassagemDeServico.objects.filter(usuario=request.user).latest('data_inicio')
+        data_fim = passagem.data_fim
+        data_inicio = passagem.data_inicio
+        hora_atual = timezone.now().strftime('%H:%M')
+        
+        # Consultas para coletar os dados do relatório
+        cautelas = CautelaDeArmamento.objects.filter(hora_cautela__range=(data_inicio, data_fim), armeiro=request.user)
+        descautelas = RegistroDescautelamento.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
+        cautela_de_municoes = CautelaDeMunicoes.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
+        descautelas_ca = DescautelasCa.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
+        
+        # Obter itens disponíveis
+        itens_por_categoria = obter_itens_disponiveis()
+
+        # Caminho do arquivo HTML na pasta 'relatorios'
+        html_file_path = os.path.join(settings.BASE_DIR, 'relatorios', 'relatorio_template.html')
+        
+        # Lê o conteúdo do arquivo HTML
+        with open(html_file_path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
+
+        # Substituir os placeholders no HTML pelos dados dinâmicos
+        html_content = html_content.replace("{{ usuario }}", request.user.username)
+        html_content = html_content.replace("{{ hora_atual }}", hora_atual)
+        html_content = html_content.replace("{{ nome_substituto }}", passagem.nome_substituto)
+        html_content = html_content.replace("{{ data_inicio }}", data_inicio.strftime('%d/%m/%Y'))
+        html_content = html_content.replace("{{ data_fim }}", data_fim.strftime('%d/%m/%Y'))
+
+        # Substituir as listas de cautelas e descautelas, como exemplo
+        cautelas_html = ''.join([f"<tr><td>{c.id}</td><td>{c.policial}</td><td>{c.subcategoria}</td><td>{c.hora_cautela.strftime('%d/%m/%Y %H:%M')}</td></tr>" for c in cautelas])
+        html_content = html_content.replace("{{ cautelas }}", cautelas_html)
+
+        # Gerar o caminho para salvar o PDF
+        pdf_file_path = os.path.join(settings.BASE_DIR, 'relatorios', f'relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.pdf')
+        
+        # Usar o WeasyPrint para converter HTML para PDF
+        html = HTML(string=html_content)
+
+        # Configurar margens e formato da página A4
+        html.write_pdf(pdf_file_path, stylesheets=[os.path.join(settings.BASE_DIR, 'static/css/styles.css')], 
+                       presentational_hints=True, 
+                       zoom=1, 
+                       options={"margin-top": "1cm", "margin-right": "1cm", "margin-bottom": "1cm", "margin-left": "1cm"})
+        
+        # Retornar o PDF gerado
+        with open(pdf_file_path, 'rb') as f:
+            pdf_content = f.read()
+        
+        # Retornar o PDF como resposta
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.pdf"'
+        
+        return response
+
+    else:
+        # Retornar um erro ou redirecionar em caso de acesso GET não esperado
+        return HttpResponse(status=405)  # Método não permitido
 
 
 def listar_cautelas(request):

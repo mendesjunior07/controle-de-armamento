@@ -22,7 +22,9 @@ CSRF_TRUSTED_ORIGINS = [
     'https://8af6-177-107-31-161.ngrok-free.app',
 ]
 
+CSRF_COOKIE_SECURE = False  # Defina como False em ambiente de desenvolvimento
 # Application definition
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost']  # Para testes locais
 
 INSTALLED_APPS = [
     'django.contrib.admin',

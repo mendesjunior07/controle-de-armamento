@@ -266,10 +266,10 @@
         4ªCIA/11ºBPM {{ descautelas_ca_status }}.
       </p>
       <div class="text-center mt-4">
-        <form method="POST" action="{% url 'gerar_relatorio' %}">
+        <form id="form-relatorio" method="POST" action="{% url 'gerar_relatorio' %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-primary">Gerar Relatório</button>
-      </form>
+        </form>
       </div>
 
     <footer class="text-center mt-5">
@@ -280,5 +280,38 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.getElementById("form-relatorio").addEventListener("submit", function(event) {
+        event.preventDefault();  // Previne o envio tradicional do formulário
+    
+        // Obtém o token CSRF
+        var csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        // Criação do objeto FormData para enviar os dados do formulário
+        var formData = new FormData(this); // 'this' é o formulário
+    
+        // Adiciona o CSRF token no cabeçalho da requisição
+        var headers = new Headers();
+        headers.append('X-CSRFToken', csrf_token);
+    
+        // Configura a requisição AJAX
+        fetch("{% url 'gerar_relatorio' %}", {
+            method: 'POST',
+            body: formData,
+            headers: headers,
+        })
+        .then(response => response.blob()) // Para obter o conteúdo binário (PDF)
+        .then(blob => {
+            // Cria um link temporário para o PDF
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'relatorio_passagem_servico.pdf'; // Nome do arquivo
+            link.click(); // Faz o download
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+        });
+    });
+    </script>
   </body>
 </html>

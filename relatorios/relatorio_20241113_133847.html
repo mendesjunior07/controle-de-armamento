@@ -39,7 +39,7 @@
   </head>
   <body class="container my-4">
     <header class="text-center fs-3 fw-bold">
-      LIVRO DE CAUTELA - 12 de Novembro de 2024 às 18:46
+      LIVRO DE CAUTELA - 13 de Novembro de 2024 às 10:38
     </header>
 
     <div class="section mb-4">
@@ -70,8 +70,8 @@
         <h3 class="fw-bold">ASSUNÇÃO DO SERVIÇO</h3>
         <p class="lead">
           Parte diária do(a) mendes armeiro(a) de serviço de 24Hs do dia
-          01/10/2024 para o dia 12/11/2024,
-          as 18:46 ao CMT da 4ª CIA/11º BPM.
+          01/10/2024 para o dia 13/11/2024,
+          as 10:38 ao CMT da 4ª CIA/11º BPM.
         </p>
       </div>
     </div>
@@ -483,10 +483,10 @@
         4ªCIA/11ºBPM .
       </p>
       <div class="text-center mt-4">
-        <form action="/gerar_relatorio/" method="POST">
+        <form method="POST" action="/gerar_relatorio/">
           
           <button type="submit" class="btn btn-primary">Gerar Relatório</button>
-        </form>
+       </form>
       </div>
 
     <footer class="text-center mt-5">
@@ -497,5 +497,38 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.getElementById("form-relatorio").addEventListener("submit", function(event) {
+        event.preventDefault();  // Previne o envio tradicional do formulário
+    
+        // Obtém o token CSRF
+        var csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        // Criação do objeto FormData para enviar os dados do formulário
+        var formData = new FormData(this); // 'this' é o formulário
+    
+        // Adiciona o CSRF token no cabeçalho da requisição
+        var headers = new Headers();
+        headers.append('X-CSRFToken', csrf_token);
+    
+        // Configura a requisição AJAX
+        fetch("/gerar_relatorio/", {
+            method: 'POST',
+            body: formData,
+            headers: headers,
+        })
+        .then(response => response.blob()) // Para obter o conteúdo binário (PDF)
+        .then(blob => {
+            // Cria um link temporário para o PDF
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'relatorio_passagem_servico.pdf'; // Nome do arquivo
+            link.click(); // Faz o download
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+        });
+    });
+    </script>
   </body>
 </html>
