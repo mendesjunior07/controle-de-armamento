@@ -15,7 +15,7 @@ from .views import (
     registrar_passagem,
     listar_inventario_equipamentos,
     listar_cautelas, 
-    # gerar_relatorio,
+    gerar_relatorio,
     # gerar_relatorio_docx,
     # atualizar_quantidade_municao,
     # descautelar_municao_ca,
@@ -25,7 +25,7 @@ from .views import (
 
 urlpatterns = [
     path('', index, name='index'),
-    # path('gerar-relatorio/', gerar_relatorio, name='gerar_relatorio'),
+    path('gerar_relatorio/', gerar_relatorio, name='gerar_relatorio'),
     path('sucesso/', sucesso_view, name='sucesso'),
     path('cautela/', cautela_de_armamento_view, name='cautelar_de_armamento'), 
     path('subcategorias_armamento/<int:categoria_id>/', get_subcategorias_armamento, name='get_subcategorias_armamento'),

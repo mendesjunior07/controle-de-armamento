@@ -25,7 +25,11 @@ from docx import Document
 from .models import CautelaDeArmamento, PassagemDeServico, User
 from django.shortcuts import render
 import os
+from django.conf import settings
 import re
+import asyncio
+from pyppeteer import launch
+from django.template.loader import render_to_string
 from django.http import HttpResponse
 from datetime import datetime
 from django.shortcuts import render, get_object_or_404, redirect
@@ -42,6 +46,8 @@ from django.db import IntegrityError
 from django.utils.html import strip_tags
 import json
 from .models import PassagemDeServico
+from weasyprint import HTML
+from weasyprint.css import CSS
 import logging
 from collections import defaultdict
 from django.utils import timezone
@@ -699,20 +705,20 @@ def obter_itens_disponiveis():
             itens_por_categoria[categoria] = []
         itens_por_categoria[categoria].append(item)
 
-    # # Imprime detalhes dos itens no terminal
-    # for categoria, itens in itens_por_categoria.items():
-    #     print(f"Categoria: {categoria}")
-    #     for item in itens:
-    #         print(f"Nome: {item.descricao_completa}")
-    #         print(f"Marca: {item.marca}")
-    #         print(f"Modelo: {item.modelo}")
-    #         print(f"Calibre: {item.cal}")
-    #         print(f"Nº Arma: {item.num_arma}")
-    #         print(f"Nº PMMA: {item.num_pmma}")
-    #         print(f"Localização: {item.localizacao}")
-    #         print(f"Estado de Conservação: {item.estado_conservacao}")
-    #         print(f"Observação: {item.observacao}")
-    #         print("----------------------------------------")
+    # Imprime detalhes dos itens no terminal
+    for categoria, itens in itens_por_categoria.items():
+        print(f"Categoria: {categoria}")
+        for item in itens:
+            print(f"Nome: {item.descricao_completa}")
+            print(f"Marca: {item.marca}")
+            print(f"Modelo: {item.modelo}")
+            print(f"Calibre: {item.cal}")
+            print(f"Nº Arma: {item.num_arma}")
+            print(f"Nº PMMA: {item.num_pmma}")
+            print(f"Localização: {item.localizacao}")
+            print(f"Estado de Conservação: {item.estado_conservacao}")
+            print(f"Observação: {item.observacao}")
+            print("----------------------------------------")
 
     return itens_por_categoria
 
@@ -760,7 +766,18 @@ def listar_inventario_equipamentos(request):
     })
 
 
-### IMPORTAÇÕES ###
+def substituir_marcadores(doc, substituicoes):
+    # Percorrer todos os parágrafos e substituir os marcadores
+    for p in doc.paragraphs:
+        for marcador, valor in substituicoes.items():
+            if valor is None:
+                valor = ""  # Substitui None por uma string vazia ou algum valor padrão
+            if marcador in p.text:
+                # Substituir o marcador pelo valor
+                inline = p.runs
+                for i in inline:
+                    if marcador in i.text:
+                        i.text = i.text.replace(marcador, valor)
 
 def registrar_passagem(request):
     if request.method == 'POST':
@@ -769,8 +786,6 @@ def registrar_passagem(request):
         nome_substituto = request.POST.get('nomeSubstituto')
         observacoes = request.POST.get('observacoes')
         hora_atual = datetime.now().strftime('%H:%M')
-
-        ### OBTENDO DADOS DO REQUEST ###
 
         try:
             data_inicio = timezone.make_aware(datetime.strptime(data_inicio_str, '%Y-%m-%d'))
@@ -787,74 +802,206 @@ def registrar_passagem(request):
             })
 
         data_fim = timezone.now()
-
-        ### CONSULTANDO OS MODELOS ###
-
+        
         cautelas_queryset = CautelaDeArmamento.objects.filter(
             hora_cautela__range=(data_inicio, data_fim),
             armeiro=request.user
         )
-
-        descautelas_ca_queryset = DescautelasCa.objects.filter(
-            data_descautelamento__range=(data_inicio, data_fim),
+        
+        cautelas_de_municoes_queryset = CautelaDeMunicoes.objects.filter(
+            data_descautelamento__range=(data_inicio, data_fim),  # Corrigido para 'data_descautelamento'
             armeiro=request.user
         )
-
-        cautela_de_municoes_queryset = CautelaDeMunicoes.objects.filter(
-            data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user
-        )
-
-        # Verifica se o queryset está vazio e define o status
-        descautelas_ca_status = "SEM ALTERAÇÃO" if not descautelas_ca_queryset.exists() else "COM ALTERAÇÃO"
 
         descautelas_queryset = RegistroDescautelamento.objects.filter(
             data_descautelamento__range=(data_inicio, data_fim),
             armeiro=request.user
         )
-
-        itens_por_categoria = obter_itens_disponiveis()  # Obtém os itens disponíveis
-
-        ### CRIANDO OBJETO PASSAGEM ###
-
-        passagem = PassagemDeServico(
-            registro_cautela_id=registro_cautela_id,
-            data_inicio=data_inicio,
-            data_fim=data_fim,
-            nome_substituto=nome_substituto,
-            observacoes=observacoes,
-            usuario=request.user
+        
+        descautelas_ca_queryset = DescautelasCa.objects.filter(
+            data_descautelamento__range=(data_inicio, data_fim),
+            armeiro=request.user
         )
-        passagem.save()
 
-        ### CONTEXTO E RENDERIZAÇÃO ###
-
-        # Renderiza o HTML para resposta e também salva em um arquivo
-        context = {
+        # Obter itens disponíveis
+        itens_por_categoria = obter_itens_disponiveis()
+        
+        # material_disponivel_armamento_queryset = Subcategoria.objects.filter(
+        #     disponivel=True,
+        #     armeiro=request.user
+        # )
+        
+        # material_disponivel_municoes_queryset = CategoriaMunicao.objects.filter(
+        #     data_descautelamento__range=(data_inicio, data_fim),
+        #     armeiro=request.user
+        # )
+        
+        # Gerar conteúdo HTML para o relatório
+        html_content = render_to_string('passagem_de_servico/relatorio.html', {
             'usuario': request.user,
             'hora_atual': hora_atual,
             'nome_substituto': nome_substituto,
             'data_inicio': data_inicio,
             'data_fim': data_fim,
             'cautelas': cautelas_queryset,
+            'cautela_municoes':cautelas_de_municoes_queryset,
             'descautelas': descautelas_queryset,
-            'itens_por_categoria': itens_por_categoria,
-            'descautelas_ca': descautelas_ca_queryset,
-            'cautela_municoes': cautela_de_municoes_queryset,
-            'descautelas_ca_status': descautelas_ca_status
+            'descautela_ca':descautelas_ca_queryset,
+            'material_disponivel': itens_por_categoria,
+            'observacoes': observacoes,
+            
+        })
+
+        # Salvar o conteúdo HTML em um arquivo na pasta 'relatorios'
+        relatorios_path = os.path.join(settings.BASE_DIR, 'relatorios')
+        os.makedirs(relatorios_path, exist_ok=True)  # Cria a pasta caso não exista
+
+        filename = f'relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.html'
+        file_path = os.path.join(relatorios_path, filename)
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+#############################################################
+
+        # Garantir que os dados recebidos não sejam None
+        usuario = request.user.username  # Obtendo o nome do usuário logado
+        nome_substituto = request.POST.get('nomeSubstituto', 'Não especificado')  # Valor padrão
+        data_inicio_str = request.POST.get('dataInicio', 'Não especificado')  # Valor padrão
+        hora_atual = datetime.now().strftime('%H:%M')
+        data_fim = timezone.now()
+
+        # Caminho para o documento modelo
+        docx_path = 'relatorios/RELATORIO.docx'  # Caminho correto para o documento modelo
+        doc = Document(docx_path)
+
+        # Dados para substituir os marcadores
+        substituicoes = {
+            '<<ARMEIRO>>': usuario,  # Agora irá pegar o nome do usuário logado
+            '<<NOME>>': nome_substituto,
+            '<<DATA_INICIO>>': data_inicio_str,
+            '<<HORA_ATUAL>>': hora_atual,
+            '<<DATA_FIM>>': data_fim.strftime('%d/%m/%Y'),
         }
 
-        response_html = render(request, 'passagem_de_servico/relatorio.html', context).content.decode('utf-8')
+        # Criar a tabela para "Cautela de Cautelas"
+        # Adicionar título para a tabela de cautelas
+        doc.add_paragraph('Tabela de Cautelas', style='Título 12')  # Título acima da tabela, 'Heading 2'
 
-        # Caminho para salvar o arquivo HTML
-        caminho_arquivo = os.path.join('relatorios', f'relatorio_passagem_{datetime.now().strftime("%Y%m%d_%H%M%S")}.html')
-        with open(caminho_arquivo, 'w', encoding='utf-8') as arquivo_html:
-            arquivo_html.write(response_html)
+        table = doc.add_table(rows=1, cols=4)
+        # Cabeçalhos da tabela
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Subcategoria'
+        hdr_cells[3].text = 'Data da Cautela'
 
-        return render(request, 'passagem_de_servico/relatorio.html', context)
+        # Preencher a tabela com os dados de 'cautelas'
+        for cautela in cautelas_queryset:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(cautela.id)
+            row_cells[1].text = str(cautela.policial)
+            row_cells[2].text = str(cautela.subcategoria)
+            row_cells[3].text = cautela.hora_cautela.strftime("%d/%m/%Y %H:%M")
 
+        # Adicionar a segunda tabela "Cautela de Munições"
+        # Título para a tabela de Cautela de Munições
+        doc.add_paragraph('Cautela de Munições', style='Título 12')  # Título acima da tabela de munições
+
+        # Criar a tabela
+        table = doc.add_table(rows=1, cols=4)
+        # Cabeçalhos da tabela
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Subcategoria'
+        hdr_cells[3].text = 'Quantidade'
+
+        # Preencher a tabela com os dados de 'cautela_municoes'
+        for cautela in cautelas_de_municoes_queryset:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(cautela.id)
+            row_cells[1].text = str(cautela.policial)
+            row_cells[2].text = str(cautela.subcategoria)
+            row_cells[3].text = str(cautela.quantidade)
+
+        # Adicionar a segunda tabela "Cautela de Munições"
+        # Título para a tabela de Cautela de Munições
+        doc.add_paragraph('Descautelas S/A', style='Título 12')  # Título acima da tabela de munições
+
+        # Criar a tabela
+        table = doc.add_table(rows=1, cols=5)  # Adicionando uma coluna a mais para 'hora_descautelamento'
+
+        # Cabeçalhos da tabela
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Subcategoria Armamento'  # Agora estamos usando o campo subcategoria_armamento
+        hdr_cells[3].text = 'Quantidade'
+        hdr_cells[4].text = 'Hora de Descautelamento'
+
+        # Preencher a tabela com os dados de 'descautelas'
+        for cautela in descautelas_queryset:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(cautela.id)
+            row_cells[1].text = str(cautela.policial)
+            row_cells[2].text = str(cautela.subcategoria_armamento)  # Usando o campo correto
+            row_cells[3].text = str(cautela.quantidade_municao)  # Usando quantidade de munição
+            row_cells[4].text = str(cautela.hora_descautelamento)  # Usando a hora de descautelamento
+
+        # Adicionar a segunda tabela "Cautela de Munições"
+        # Título para a tabela de Cautela de Munições
+        doc.add_paragraph('DESCAUTELAS C/A', style='Título 12')  # Título acima da tabela de munições
+
+        # Criar a tabela
+        table = doc.add_table(rows=1, cols=7)  # Adicionando uma coluna a mais para 'hora_descautelamento'
+
+        # Cabeçalhos da tabela
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'ID'
+        hdr_cells[1].text = 'Policial'
+        hdr_cells[2].text = 'Armamento'  # Agora estamos usando o campo subcategoria_armamento
+        hdr_cells[3].text = 'Munição'
+        hdr_cells[4].text = 'Quant. Munição'
+        hdr_cells[5].text = 'Situação'
+        hdr_cells[6].text = 'Observação'
+
+        # Preencher a tabela com os dados de 'descautelas'
+        for cautela in descautelas_ca_queryset:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(cautela.id)
+            row_cells[1].text = str(cautela.policial)
+            row_cells[2].text = str(cautela.subcategoria_armamento)  # Usando o campo correto
+            row_cells[3].text = str(cautela.subcategoria_municao)  # Usando quantidade de munição
+            row_cells[4].text = str(cautela.quantidade_municao)  # Usando a hora de descautelamento
+            row_cells[5].text = str(cautela.situacao_armamento) 
+            row_cells[6].text = str(cautela.observacao) 
+
+        # Substituindo os marcadores no documento
+        substituir_marcadores(doc, substituicoes)
+
+        # Salvar o arquivo .docx modificado (sobrescreve ou cria um novo)
+        doc.save('relatorios/RELATORIO1.docx')
+
+
+######################################################
+
+
+
+
+
+
+        # Retornar o arquivo HTML como resposta
+        with open(file_path, 'r', encoding='utf-8') as f:
+            response = HttpResponse(f.read(), content_type='text/html')
+
+        # Opcional: Retornar o arquivo .docx para download
+        with open(docx_path, 'rb') as f:
+            response_docx = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+            response_docx['Content-Disposition'] = f'attachment; filename="relatorio_passagem_{data_fim.strftime("%Y%m%d_%H%M%S")}.docx"'
+
+        # Retornar ambos os arquivos se necessário
+        return response  # Ou retornar 'response_docx' para o arquivo .docx
     else:
-        ### GET REQUEST: CONSULTANDO USUÁRIOS E PAGINAÇÃO ###
-        
         usuarios = User.objects.all()
         registros = PassagemDeServico.objects.all().order_by('data_inicio')
 
@@ -872,10 +1019,66 @@ def registrar_passagem(request):
         })
 
 
+def gerar_relatorio(request):
+    # Coleta os dados necessários
+    passagem = PassagemDeServico.objects.filter(usuario=request.user).latest('data_inicio')
+    data_fim = passagem.data_fim
+    data_inicio = passagem.data_inicio
+    hora_atual = timezone.now().strftime('%H:%M')
+    
+    # Consultas para coletar os dados do relatório
+    cautelas = CautelaDeArmamento.objects.filter(hora_cautela__range=(data_inicio, data_fim), armeiro=request.user)
+    descautelas = RegistroDescautelamento.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
+    cautela_de_municoes = CautelaDeMunicoes.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
+    descautelas_ca = DescautelasCa.objects.filter(data_descautelamento__range=(data_inicio, data_fim), armeiro=request.user)
+    
+    # Obter itens disponíveis
+    itens_por_categoria = obter_itens_disponiveis()
+    
+    # Gerar o conteúdo HTML com todos os dados
+    html_content = render_to_string('passagem_de_servico/relatorio.html', {
+        'usuario': request.user,
+        'hora_atual': hora_atual,
+        'nome_substituto': passagem.nome_substituto,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'cautelas': cautelas,
+        'cautela_municoes': cautela_de_municoes,
+        'descautelas': descautelas,
+        'descautelas_ca': descautelas_ca,
+        'itens_por_categoria': itens_por_categoria,
+    })
+    
+    # Caminho para salvar o arquivo PDF
+    pdf_file_path = os.path.join(settings.BASE_DIR, 'relatorios', f'relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.pdf')
+    
+    # Usando WeasyPrint para converter HTML em PDF
+    html = HTML(string=html_content)
+    
+    # Configurar margens e formato da página A4
+    html.write_pdf(pdf_file_path, stylesheets=[settings.BASE_DIR + '/static/css/styles.css'], 
+                   presentational_hints=True, 
+                   zoom=1, 
+                   # Definindo as margens conforme solicitado
+                   options={"margin-top": "1cm", "margin-right": "1cm", "margin-bottom": "1cm", "margin-left": "1cm"})
+    
+    # Retornar o PDF gerado
+    with open(pdf_file_path, 'rb') as f:
+        pdf_content = f.read()
+    
+    # Retornar o PDF como resposta
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="relatorio_{data_fim.strftime("%Y%m%d_%H%M%S")}.pdf"'
+    
+    return response
+
+
 def listar_cautelas(request):
     # Obtém todas as instâncias de CautelaDeArmamento do banco de dados
     cautelas = CautelaDeArmamento.objects.all()
 
+
 # Renderiza os dados no template
     return render(request, 'passagem_de_servico/listar_amas_cauteladas.html', {'cautelas': cautelas})
+
 

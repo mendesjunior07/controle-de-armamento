@@ -206,51 +206,57 @@
 
     <h3 class="fw-bold mt-5 mb-4">MATERIAL DISPONÍVEL NA RESERVA</h3>
 
-    {% for categoria, itens in itens_por_categoria.items %}
-    <div class="section mb-4">
-      <h4 class="fw-bold">{{ categoria }}</h4>
-      <div class="table-responsive">
-        <table class="table table-striped table-hover">
-          <thead>
-            <tr>
-              <th scope="col">Descrição</th>
-              <th scope="col">Marca</th>
-              <th scope="col">Modelo</th>
-              <th scope="col">Calibre</th>
-              <th scope="col">Nº Arma</th>
-              <th scope="col">Nº PMMA</th>
-              <th scope="col">Localização</th>
-              <th scope="col">Estado de Conservação</th>
-              <th scope="col">Observação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in itens %}
-            <tr>
-              <td>{{ item.descricao_completa }}</td>
-              <td>{{ item.marca }}</td>
-              <td>{{ item.modelo }}</td>
-              <td>{{ item.cal }}</td>
-              <td>{{ item.num_arma }}</td>
-              <td>{{ item.num_pmma }}</td>
-              <td>{{ item.localizacao }}</td>
-              <td>{{ item.estado_conservacao }}</td>
-              <td>{{ item.observacao }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="9" class="text-center text-muted">
-                Nenhum item disponível nesta categoria.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-    {% empty %}
-    <p class="text-center text-muted">Nenhum material disponível na reserva.</p>
-    {% endfor %}
+    {% if material_disponivel %}
+        {% for categoria, itens in material_disponivel.items %}
+            <div class="section mb-4">
+                <h4 class="fw-bold">{{ categoria }}</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Descrição</th>
+                                <th scope="col">Marca</th>
+                                <th scope="col">Modelo</th>
+                                <th scope="col">Calibre</th>
+                                <th scope="col">Nº Arma</th>
+                                <th scope="col">Nº PMMA</th>
+                                <th scope="col">Localização</th>
+                                <th scope="col">Estado de Conservação</th>
+                                <th scope="col">Observação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in itens %}
+                                <tr>
+                                    <td>{{ item.descricao_completa }}</td>
+                                    <td>{{ item.marca }}</td>
+                                    <td>{{ item.modelo }}</td>
+                                    <td>{{ item.cal }}</td>
+                                    <td>{{ item.num_arma }}</td>
+                                    <td>{{ item.num_pmma }}</td>
+                                    <td>{{ item.localizacao }}</td>
+                                    <td>{{ item.estado_conservacao }}</td>
+                                    <td>{{ item.observacao }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">
+                                        Nenhum item disponível nesta categoria.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center text-muted">Nenhum item disponível na reserva.</p>
+        {% endfor %}
+    {% else %}
+        <p class="text-center text-muted">Nenhum item disponível na reserva.</p>
+    {% endif %}
+    
+    
 
     <div class="section my-4">
       <h3 class="fw-bold">PASSAGEM DE SERVIÇO</h3>
@@ -259,19 +265,12 @@
         todas as ordens em vigor bem como todo o material da carga da
         4ªCIA/11ºBPM {{ descautelas_ca_status }}.
       </p>
-    </div><div class="text-center mt-4">
-      <form action="/gerar_relatorio" method="post">
-          <input type="hidden" name="usuario" value="{{ usuario }}">
-          <input type="hidden" name="data_inicio" value="{{ data_inicio }}">
-          <input type="hidden" name="data_fim" value="{{ data_fim }}">
-          <input type="hidden" name="cautelas" value="{{ cautelas }}">
-          <input type="hidden" name="cautela_municoes" value="{{ cautela_municoes }}">
-          <input type="hidden" name="descautelas" value="{{ descautelas }}">
-          <input type="hidden" name="descautelas_ca" value="{{ descautelas_ca }}">
-          <input type="hidden" name="itens_por_categoria" value="{{ itens_por_categoria }}">
+      <div class="text-center mt-4">
+        <form method="POST" action="{% url 'gerar_relatorio' %}">
+          {% csrf_token %}
           <button type="submit" class="btn btn-primary">Gerar Relatório</button>
       </form>
-  </div>
+      </div>
 
     <footer class="text-center mt-5">
       <p class="text-muted">
