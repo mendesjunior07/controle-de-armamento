@@ -39,7 +39,7 @@
   </head>
   <body class="container my-4">
     <header class="text-center fs-3 fw-bold">
-      LIVRO DE CAUTELA - 13 de Novembro de 2024 às 10:27
+      LIVRO DE CAUTELA - 19 de Novembro de 2024 às 08:39
     </header>
 
     <div class="section mb-4">
@@ -70,8 +70,8 @@
         <h3 class="fw-bold">ASSUNÇÃO DO SERVIÇO</h3>
         <p class="lead">
           Parte diária do(a) mendes armeiro(a) de serviço de 24Hs do dia
-          01/10/2024 para o dia 13/11/2024,
-          as 10:27 ao CMT da 4ª CIA/11º BPM.
+          01/10/2024 para o dia 19/11/2024,
+          as 08:39 ao CMT da 4ª CIA/11º BPM.
         </p>
       </div>
     </div>
@@ -160,6 +160,7 @@
             <th scope="col">Policial</th>
             <th scope="col">Subcategoria</th>
             <th scope="col">Quantidade</th>
+            <th scope="col">Data</th>
           </tr>
         </thead>
         <tbody>
@@ -169,6 +170,7 @@
             <td>SGT PM 543/07 MENDES</td>
             <td>.40 (REAL)</td>
             <td>50</td>
+            <td>02/11/2024 08:50</td>
           </tr>
           
         </tbody>
@@ -185,6 +187,7 @@
             <th scope="col">Policial</th>
             <th scope="col">Arma, VTR, e Equipamentos</th>
             <th scope="col">Munições</th>
+            <th scope="col">Quantidade</th>
             <th scope="col">Data da Descautela</th>
           </tr>
         </thead>
@@ -196,6 +199,7 @@
             <td>FIAT UNO NIE4932 24HS 7,62 - Nº: AKA00731</td>
             <td></td>
             <td></td>
+            <td>24/10/2024</td>
           </tr>
           
           <tr>
@@ -204,6 +208,7 @@
             <td>FIAT UNO NIE4932 24HS 7,62 - Nº: AKA00731</td>
             <td></td>
             <td></td>
+            <td>24/10/2024</td>
           </tr>
           
           <tr>
@@ -212,6 +217,7 @@
             <td>FIAT UNO NIE4932 24HS 7,62 - Nº: AKA00731</td>
             <td></td>
             <td></td>
+            <td>24/10/2024</td>
           </tr>
           
           <tr>
@@ -220,6 +226,7 @@
             <td>FIAT UNO NIE4932 24HS 7,62 - Nº: AKA00731</td>
             <td></td>
             <td></td>
+            <td>24/10/2024</td>
           </tr>
           
           <tr>
@@ -228,6 +235,7 @@
             <td>FIAT UNO NIE4932 24HS 7,62 - Nº: AKA00731</td>
             <td></td>
             <td></td>
+            <td>25/10/2024</td>
           </tr>
           
           <tr>
@@ -236,6 +244,7 @@
             <td>SEFALENE   ALGEMA  - Nº: 605</td>
             <td></td>
             <td></td>
+            <td>02/11/2024</td>
           </tr>
           
           <tr>
@@ -243,7 +252,8 @@
             <td>SGT PM 543/07 MENDES</td>
             <td></td>
             <td>.40</td>
-            <td></td>
+            <td>50</td>
+            <td>02/11/2024</td>
           </tr>
           
           <tr>
@@ -251,7 +261,8 @@
             <td>SGT PM 543/07 MENDES</td>
             <td></td>
             <td>.40</td>
-            <td></td>
+            <td>990</td>
+            <td>02/11/2024</td>
           </tr>
           
           <tr>
@@ -259,7 +270,8 @@
             <td>SGT PM 543/07 MENDES</td>
             <td></td>
             <td>.40</td>
-            <td></td>
+            <td>50</td>
+            <td>02/11/2024</td>
           </tr>
           
           <tr>
@@ -267,7 +279,8 @@
             <td>SGT PM 543/07 MENDES</td>
             <td></td>
             <td>.40</td>
-            <td></td>
+            <td>50</td>
+            <td>02/11/2024</td>
           </tr>
           
         </tbody>
@@ -483,11 +496,8 @@
         4ªCIA/11ºBPM .
       </p>
       <div class="text-center mt-4">
-        <form method="POST" action="/gerar_relatorio/">
-          
-          <button type="submit" class="btn btn-primary">Gerar Relatório</button>
-      </form>
-      </div>
+        <button id="copy-whatsapp" class="btn btn-success">Copiar para WhatsApp</button>
+    </div>
 
     <footer class="text-center mt-5">
       <p class="text-muted">
@@ -495,40 +505,79 @@
         Maranhão
       </p>
     </footer>
+    <script>
+      document.getElementById("whatsapp-link").addEventListener("click", function() {
+        // Defina o conteúdo que você quer enviar
+        let texto = "Seu texto aqui para ser enviado pelo WhatsApp.\nPor exemplo, detalhes do relatório:\n- Item 1\n- Item 2\n- Data: 15/10/2023";
+        let textoEncoded = encodeURIComponent(texto);
+        
+        // Gere o link para abrir no WhatsApp
+        let whatsappLink = `https://api.whatsapp.com/send?text=${textoEncoded}`;
+        
+        // Redirecione o link para o WhatsApp
+        window.open(whatsappLink, '_blank');
+      });
+    </script>
+    <script>
+      document.getElementById("copy-whatsapp").addEventListener("click", function() {
+        // Defina o conteúdo que você quer copiar
+        let texto = "Seu texto aqui para ser copiado para o WhatsApp.\nPor exemplo, detalhes do relatório:\n- Item 1\n- Item 2\n- Data: 15/10/2023";
+    
+        // Crie um elemento textarea temporário para realizar a cópia
+        let textarea = document.createElement("textarea");
+        textarea.value = texto;
+    
+        // Adicione o textarea à página (fora da tela)
+        document.body.appendChild(textarea);
+    
+        // Selecione o conteúdo do textarea
+        textarea.select();
+        textarea.setSelectionRange(0, 99999); // Para dispositivos móveis
+    
+        // Copie o texto para a área de transferência
+        document.execCommand("copy");
+    
+        // Remova o textarea da página
+        document.body.removeChild(textarea);
+    
+        // Alerta o usuário que o texto foi copiado (opcional)
+        alert("Texto copiado para o WhatsApp!");
+      });
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
       document.getElementById("form-relatorio").addEventListener("submit", function(event) {
         event.preventDefault();  // Previne o envio tradicional do formulário
-
+    
         // Obtém o token CSRF
         var csrf_token = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
+    
         // Criação do objeto FormData para enviar os dados do formulário
         var formData = new FormData(this); // 'this' é o formulário
-
+    
         // Adiciona o CSRF token no cabeçalho da requisição
         var headers = new Headers();
         headers.append('X-CSRFToken', csrf_token);
-
+    
         // Configura a requisição AJAX
         fetch("/gerar_relatorio/", {
-          method: 'POST',
-          body: formData,
-          headers: headers,
+            method: 'POST',
+            body: formData,
+            headers: headers,
         })
         .then(response => response.blob()) // Para obter o conteúdo binário (PDF)
         .then(blob => {
-          // Cria um link temporário para o PDF
-          var link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = 'relatorio_passagem_servico.pdf'; // Nome do arquivo
-          link.click(); // Faz o download
+            // Cria um link temporário para o PDF
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'relatorio_passagem_servico.pdf'; // Nome do arquivo
+            link.click(); // Faz o download
         })
         .catch(error => {
-          console.error('Erro:', error);
+            console.error('Erro:', error);
         });
-      });
+    });
     </script>
   </body>
 </html>

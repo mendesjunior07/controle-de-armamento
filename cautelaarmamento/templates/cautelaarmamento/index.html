@@ -3,4 +3,150 @@
 {% block content %}
 <h1>Index</h1>
 <p>Bem-vindo, {{username}}!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Cautela</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Título -->
+        <div class="row mb-4">
+            <div class="col text-center">
+                <h1 class="display-5">Sistema de Cautela</h1>
+                <p class="lead">Gerencie cautelas, devoluções e relatórios de forma eficiente.</p>
+            </div>
+        </div>
+
+        <!-- Resumo (Cards) -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Cautelas Ativas</h5>
+                        <p class="card-text h2">{{ cautelas_ativas }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Itens Pendentes</h5>
+                        <p class="card-text h2">{{ itens_pendentes }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Em Manutenção</h5>
+                        <p class="card-text h2">{{ em_manutencao }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Alertas Ativos</h5>
+                        <p class="card-text h2">{{ alertas|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="row mb-4">
+            <div class="col">
+                {% for alerta in alertas %}
+                <div class="alert alert-{{ alerta.type }} d-flex justify-content-between align-items-center">
+                    {{ alerta.msg }}: <span class="badge bg-secondary">{{ alerta.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Acesso Rápido -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <a href="#" class="btn btn-primary btn-block">
+                    <i class="fas fa-file-alt"></i> Solicitação de Cautela
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="#" class="btn btn-secondary btn-block">
+                    <i class="fas fa-undo"></i> Devolução de Itens
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="#" class="btn btn-warning btn-block">
+                    <i class="fas fa-tools"></i> Equipamentos em Manutenção
+                </a>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>Histórico de Cautelas</h5>
+                <canvas id="historicoChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <h5>Uso de Munições</h5>
+                <canvas id="municaoChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Lista de Tarefas -->
+        <div class="row">
+            <div class="col">
+                <h5>Tarefas Pendentes</h5>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Finalizar cautela de Equipamento X
+                        <span class="badge bg-primary">Pendente</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Revisar manutenção do Equipamento Y
+                        <span class="badge bg-warning">Em Progresso</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts para Gráficos -->
+    <script>
+        var historicoCtx = document.getElementById('historicoChart').getContext('2d');
+        new Chart(historicoCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Policial 1', 'Policial 2', 'Policial 3'],
+                datasets: [{
+                    label: 'Cautelas',
+                    data: [12, 19, 7],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            }
+        });
+
+        var municaoCtx = document.getElementById('municaoChart').getContext('2d');
+        new Chart(municaoCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Uso de Munições',
+                    data: [30, 45, 20, 50, 35],
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                }]
+            }
+        });
+    </script>
+</body>
+</html>
+
 {% endblock %}

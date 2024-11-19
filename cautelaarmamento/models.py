@@ -209,7 +209,7 @@ class DescautelasCa(models.Model):
     hora_descautelamento = models.TimeField()
 
     def __str__(self):
-        return f"Descautela de {self.policial} em {self.data_hora_cautela}"
+        return f"Descautela de {self.nome_guerra} em {self.data_hora_cautela}"
     
 
 class PassagemDeServico(models.Model):
