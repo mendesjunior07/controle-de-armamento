@@ -17,10 +17,11 @@ SECRET_KEY = 'django-insecure-ao(k!g^#65px-roejdre3ay6mbbr!rl4r_g-hh#amsk_n30zbd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'cautela-de-armamento-e7806a505693.herokuapp.com']
+
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://8af6-177-107-31-161.ngrok-free.app',
+    'https://cautela-de-armamento-e7806a505693.herokuapp.com',
 ]
 
 CSRF_COOKIE_SECURE = False  # Defina como False em ambiente de desenvolvimento
@@ -98,17 +99,20 @@ WSGI_APPLICATION = 'base.wsgi.application'
 # }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'projeto',  # O nome do seu banco de dados PostgreSQL
-        'USER': 'postgres',  # O nome do usuário PostgreSQL
-        'PASSWORD': 'er150457',  # Sua senha do PostgreSQL
-        'HOST': 'localhost',  # Host do PostgreSQL
-        'PORT': '5432',  # Porta padrão do PostgreSQL
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'projeto',  # O nome do seu banco de dados PostgreSQL
+#         'USER': 'postgres',  # O nome do usuário PostgreSQL
+#         'PASSWORD': 'er150457',  # Sua senha do PostgreSQL
+#         'HOST': 'localhost',  # Host do PostgreSQL
+#         'PORT': '5432',  # Porta padrão do PostgreSQL
+#     }
+# }
 
+DATABASES = {
+    'default': dj_database_url.config(default='postgres://localhost:5432/projeto')
+}
 
 # DATABASES = {
 #    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
@@ -158,6 +162,8 @@ STATICFILES_DIRS = [
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+HITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = '/media/'
 
