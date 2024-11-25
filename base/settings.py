@@ -1,4 +1,5 @@
 from pathlib import Path
+import django_heroku
 import os
 import dj_database_url
 
@@ -89,10 +90,22 @@ WSGI_APPLICATION = 'base.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'projeto',  # O nome do seu banco de dados PostgreSQL
+        'USER': 'postgres',  # O nome do usuário PostgreSQL
+        'PASSWORD': 'er150457',  # Sua senha do PostgreSQL
+        'HOST': 'localhost',  # Host do PostgreSQL
+        'PORT': '5432',  # Porta padrão do PostgreSQL
     }
 }
 
@@ -137,6 +150,7 @@ APPEND_SLASH = False
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
+django_heroku.settings(locals())
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
