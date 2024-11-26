@@ -99,28 +99,21 @@ WSGI_APPLICATION = 'base.wsgi.application'
 # }
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'projeto',  # O nome do seu banco de dados PostgreSQL
-#         'USER': 'postgres',  # O nome do usuário PostgreSQL
-#         'PASSWORD': 'er150457',  # Sua senha do PostgreSQL
-#         'HOST': 'localhost',  # Host do PostgreSQL
-#         'PORT': '5432',  # Porta padrão do PostgreSQL
-#     }
-# }
-
 DATABASES = {
-    'default': dj_database_url.config(default='postgres://localhost:5432/projeto')
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'projeto',  # O nome do seu banco de dados PostgreSQL
+        'USER': 'postgres',  # O nome do usuário PostgreSQL
+        'PASSWORD': 'er150457',  # Sua senha do PostgreSQL
+        'HOST': 'localhost',  # Host do PostgreSQL
+        'PORT': '5432',  # Porta padrão do PostgreSQL
+    }
 }
 
 # DATABASES = {
-#    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+#     'default': dj_database_url.config(default='postgres://localhost:5432/projeto')
 # }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
