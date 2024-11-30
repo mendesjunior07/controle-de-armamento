@@ -792,6 +792,7 @@ def registrar_passagem(request):
         nome_substituto = request.POST.get('nomeSubstituto')
         observacoes = request.POST.get('observacoes')
         hora_atual = datetime.now().strftime('%H:%M')
+        nome_usuario = request.user.first_name  # Isso retorna o primeiro nome do usuário autenticado
 
         try:
             data_inicio = timezone.make_aware(datetime.strptime(data_inicio_str, '%Y-%m-%d'))

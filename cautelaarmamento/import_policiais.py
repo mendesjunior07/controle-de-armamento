@@ -23,49 +23,63 @@
 
 
 import pandas as pd
+import uuid  # Para gerar identificadores únicos
 from cautelaarmamento.models import Subcategoria, Categoria, User
 
 def importar_policiais(caminho_arquivo):
     # Carregar o arquivo Excel
     df = pd.read_excel(caminho_arquivo)
 
-    # Verificar se todas as colunas esperadas estão presentes
-    expected_columns = [
-        'categoria_id', 'inserido_por_id', 'marca', 'modelo', 'placa', 'chassi',
-        'ano', 'procedencia', 'fornecedor', 'aparencia_visual', 'estado_conservacao',
-        'cor', 'tamanho', 'localizacao', 'destinacao', 'situacao', 'tipo', 'cal',
-        'ct', 'num_arma', 'num_pmma', 'tombo', 'gr', 'data_vencimento', 'observacao'
-    ]
-    missing_columns = [col for col in expected_columns if col not in df.columns]
-    if missing_columns:
-        raise ValueError(f"Colunas ausentes no Excel: {missing_columns}")
+    # Obter as colunas existentes no DataFrame
+    existing_columns = df.columns
 
+    # Tratar valores ausentes em colunas de texto
+    text_columns = [
+        'marca', 'modelo', 'placa', 'chassi', 'procedencia', 'fornecedor',
+        'aparencia_visual', 'estado_conservacao', 'cor', 'tamanho', 'localizacao',
+        'destinacao', 'situacao', 'tipo', 'cal', 'ct', 'num_pmma', 'tombo', 'gr', 'observacao'
+    ]
+    for col in text_columns:
+        if col in existing_columns:
+            df[col] = df[col].fillna('')
+
+    # Tratar colunas numéricas individualmente
+    if 'categoria_id' in existing_columns:
+        df['categoria_id'] = df['categoria_id'].fillna(0).astype(int)  # Preenchendo com 0 e convertendo para int
+    if 'inserido_por_id' in existing_columns:
+        df['inserido_por_id'] = df['inserido_por_id'].fillna(0).astype(int)
+    if 'ano' in existing_columns:
+        df['ano'] = df['ano'].fillna(0).astype(int)
+
+    # Preenchendo campos de data com pd.NaT
+    if 'data_vencimento' in existing_columns:
+        df['data_vencimento'] = df['data_vencimento'].fillna(pd.NaT)
+
+    # Iterar sobre cada linha do DataFrame para processar os dados
     for index, row in df.iterrows():
         try:
             # Validar e buscar categoria
             categoria_id = row.get('categoria_id')
-            if pd.isnull(categoria_id) or not str(categoria_id).isdigit():
+            if categoria_id is None or categoria_id == 0:
                 print(f"Linha {index + 1}: categoria_id inválido. Ignorando...")
                 continue
             categoria = Categoria.objects.get(id=int(categoria_id))
 
             # Validar e buscar usuário
             inserido_por_id = row.get('inserido_por_id')
-            if pd.isnull(inserido_por_id) or not str(inserido_por_id).isdigit():
+            if inserido_por_id is None or inserido_por_id == 0:
                 print(f"Linha {index + 1}: inserido_por_id inválido. Ignorando...")
                 continue
             inserido_por = User.objects.get(id=int(inserido_por_id))
 
-            # Tratar valores nulos ou inválidos
+            # Tratar valores nulos ou inválidos para o campo `ano`
             ano = row.get('ano')
-            if pd.isnull(ano) or not str(ano).isdigit():
+            if ano == 0:
                 ano = None
-            else:
-                ano = int(ano)
 
             # Tratar datas inválidas
             data_vencimento = row.get('data_vencimento')
-            if pd.isnull(data_vencimento) or data_vencimento in [None, '']:
+            if pd.isnull(data_vencimento) or data_vencimento == pd.NaT:
                 data_vencimento = None
             elif isinstance(data_vencimento, str):
                 try:
@@ -75,17 +89,21 @@ def importar_policiais(caminho_arquivo):
                     data_vencimento = None
             elif isinstance(data_vencimento, pd.Timestamp):
                 data_vencimento = data_vencimento.date()
-            else:
-                print(f"Linha {index + 1}: Formato de data_vencimento não reconhecido. Ignorando...")
-                data_vencimento = None
 
-            # Verificar duplicatas
-            if Subcategoria.objects.filter(num_arma=row.get('num_arma')).exists():
-                print(f"Linha {index + 1}: Subcategoria com num_arma {row.get('num_arma')} já existe. Ignorando...")
+            # Validar campo 'num_arma' - Gerar valor se estiver vazio
+            num_arma = row.get('num_arma')
+            if pd.isnull(num_arma) or num_arma in ['', 'NaN', None]:
+                # Gerar um identificador único para `num_arma`
+                num_arma = str(uuid.uuid4())  # Gera um identificador único
+                print(f"Linha {index + 1}: Campo 'num_arma' estava vazio. Gerado valor: {num_arma}")
+
+            # Verificar duplicatas no banco de dados
+            if Subcategoria.objects.filter(num_arma=num_arma).exists():
+                print(f"Linha {index + 1}: Subcategoria com num_arma {num_arma} já existe. Ignorando...")
                 continue
 
             # Criar nova subcategoria
-            Subcategoria.objects.create(
+            subcategoria = Subcategoria(
                 marca=row.get('marca'),
                 modelo=row.get('modelo'),
                 placa=row.get('placa'),
@@ -103,7 +121,7 @@ def importar_policiais(caminho_arquivo):
                 tipo=row.get('tipo'),
                 cal=row.get('cal'),
                 ct=row.get('ct'),
-                num_arma=row.get('num_arma'),
+                num_arma=num_arma,
                 num_pmma=row.get('num_pmma'),
                 tombo=row.get('tombo'),
                 gr=row.get('gr'),
@@ -112,7 +130,9 @@ def importar_policiais(caminho_arquivo):
                 categoria=categoria,
                 inserido_por=inserido_por,
             )
-            print(f"Linha {index + 1}: Subcategoria {row.get('num_arma')} importada com sucesso!")
+            subcategoria.save()  # Salvar a nova subcategoria
+            print(f"Linha {index + 1}: Subcategoria {num_arma} importada com sucesso!")
+
         except Categoria.DoesNotExist:
             print(f"Linha {index + 1}: Categoria com ID {categoria_id} não encontrada.")
         except User.DoesNotExist:

@@ -44,8 +44,8 @@ class Subcategoria(models.Model):
     # Dados do Veículo/Material
     marca = models.CharField(max_length=100, blank=True, null=True)  # Marca do veículo/arma
     modelo = models.CharField(max_length=100, blank=True, null=True)  # Modelo do veículo/arma
-    placa = models.CharField(max_length=20, blank=True, null=True, unique=False)  # Placa do veículo (se aplicável)
-    chassi = models.CharField(max_length=100, blank=True, null=True, unique=True)  # Chassi do veículo (se aplicável)
+    placa = models.CharField(max_length=20, blank=True, null=True)  # Placa do veículo (se aplicável)
+    chassi = models.CharField(max_length=100, blank=True, null=True)  # Chassi do veículo (se aplicável)
     ano = models.PositiveIntegerField(blank=True, null=True)  # Ano de fabricação
 
     # Procedência e Fornecedor
@@ -67,7 +67,7 @@ class Subcategoria(models.Model):
     tipo = models.CharField(max_length=50, blank=True, null=True)  # Tipo do material (arma, veículo, etc.)
     cal = models.CharField(max_length=50, blank=True, null=True)  # Calibre (se aplicável)
     ct = models.CharField(max_length=50, blank=True, null=True)  # Certificado Técnico (se aplicável)
-    num_arma = models.CharField(max_length=100, verbose_name="Nº ARMA", blank=True, null=True, unique=True)  # Número da arma
+    num_arma = models.CharField(max_length=100, verbose_name="Nº ARMA", blank=True, null=True)  # Número da arma
     num_pmma = models.CharField(max_length=100, verbose_name="Nº PMMA", blank=True, null=True)  # Número PMMA
     tombo = models.CharField(max_length=100, blank=True, null=True)  # Número de tombo
     gr = models.CharField(max_length=50, verbose_name="GR", blank=True, null=True)  # Guia de Remessa ou campo específico
