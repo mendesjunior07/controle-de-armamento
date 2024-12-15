@@ -20,7 +20,7 @@ Cautela de Armamento
     subcategoriaSelect.innerHTML = '<option value="">Selecione uma Subcategoria</option>';
 
     if (categoriaId) {
-        fetch(`/subcategorias/${categoriaId}/?situacao=disponivel`)
+        fetch(`/subcategorias_armamento/<int:categoria_id>/?situacao=disponivel`)
             .then((response) => response.json())
             .then((data) => {
                 console.log(data);
@@ -142,12 +142,11 @@ Cautela de Armamento
   <form method="POST" id="main-form" class="needs-validation" novalidate>
     {% csrf_token %}
     <div class="mb-3">
-      
       <label for="policial-select" class="form-label">Nome do Policial:</label>
       <select id="mySelect" name="policial" class="form-select select2" required>
         <option value="">Selecione um Policial</option>
         {% for policial in policiais %}
-        <option value="{{ policial.id }}">{{ policial.nome_completo }}</option>
+          <option value="{{ policial.id }}">{{ policial.nome_completo }}</option>
         {% endfor %}
       </select>
       <div class="invalid-feedback">Por favor, selecione um policial.</div>

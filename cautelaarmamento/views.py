@@ -90,43 +90,6 @@ def cautela_de_armamento_view(request):
         subcategorias_municao = request.POST.getlist('subcategoria_municoes[]')
         quantidades_municao = request.POST.getlist('quantidade[]')
 
-############## OBTENÇÃO E VERIFICAÇÃO DOS DADOS ##########
-
-        # # Busca o policial pelo ID
-        # policial = get_object_or_404(Policial, id=policial_id)
-        # # Certifique-se de que este é o nome correto no seu modelo
-        # print(f"Policial Selecionado: {policial.nome_completo}")
-        # print(f"Tipo de Serviço: {tipo_servico}")
-
-        # # Imprime as categorias e subcategorias de armamento com nomes
-        # print("Armamento Selecionado:")
-        # for i in range(len(categorias_armamento)):
-        #     categoria_armamento = get_object_or_404(
-        #         Categoria, id=categorias_armamento[i])
-        #     subcategoria_armamento = get_object_or_404(
-        #         Subcategoria, id=subcategorias_armamento[i])
-        #     print(f"Categoria de Armamento: {categoria_armamento.nome}")
-        #     print(
-        #         f"Subcategoria de Armamento: {subcategoria_armamento.descricao_completa}")
-
-        # # Verifica se há categorias de munição válidas e imprime
-        # # Verifica se não está vazio
-        # if categorias_municao and subcategorias_municao and categorias_municao[0]:
-        #     print("Munição Selecionada:")
-        #     for i in range(len(categorias_municao)):
-        #         # Se não estiver vazio
-        #         if categorias_municao[i] and subcategorias_municao[i]:
-        #             categoria_municao = get_object_or_404(
-        #                 CategoriaMunicao, id=categorias_municao[i])
-        #             subcategoria_municao = get_object_or_404(
-        #                 SubcategoriaMunicao, id=subcategorias_municao[i])
-        #             quantidade = quantidades_municao[i]
-        #             print(f"Categoria de Munição: {categoria_municao.nome}")
-        #             print(
-        #                 f"Subcategoria de Munição: {subcategoria_municao.nome}")
-        #             print(f"Quantidade de Munição: {quantidade}")
-        # else:
-        #     print("Nenhuma Munição Selecionada")
 
 ############## VALIDAÇÃO DOS CAMPOS OBRIGATÓRIOS ##########
 
@@ -134,7 +97,7 @@ def cautela_de_armamento_view(request):
         if not policial_id or not tipo_servico:
             return JsonResponse({'error': 'Os campos Nome do Policial e Tipo de Serviço são obrigatórios.'}, status=400)
 
-        policial = get_object_or_404(Policial, id=policial_id)
+        policial = get_object_or_404(Policial, id=policial_id, autorizacao_arma=True)
         armeiro = request.user
 
 ############## PROCESSAMENTO DO ARMAMENTO ##########
@@ -297,7 +260,7 @@ def cautela_de_armamento_view(request):
 ############## EXIBIÇÃO DO FORMULÁRIO E CONTEXTO ##########
 
     # Renderiza o template de cautela
-    policiais = Policial.objects.all()
+    policiais = Policial.objects.filter(autorizacao_arma=True)
     tipos_servico = CautelaDeArmamento.SERVICO_CHOICES
     categorias_servico = Categoria.objects.all()
     subcategoria_armamento = Subcategoria.objects.all()
@@ -1284,3 +1247,39 @@ def listar_cautelas(request):
     return render(request, 'passagem_de_servico/listar_amas_cauteladas.html', {'cautelas': cautelas})
 
 
+def listar_descautela(request):
+    # Obtém todas as instâncias de CautelaDeArmamento do banco de dados
+    descautelas = RegistroDescautelamento.objects.all()
+
+    # Imprimir o dicionário no terminal
+    print({'descautelas': descautelas})
+
+    # Renderiza os dados no template
+    return render(request, 'passagem_de_servico/listar_armas_descauteladas.html', {'descautelas': descautelas})
+
+
+def materiais_alterados(request):
+    # Filtra os materiais da subcategoria cuja situação NÃO seja "disponível" ou "cautelado"
+    materiais_alterados = Subcategoria.objects.exclude(situacao='disponivel').exclude(situacao='cautelada')
+    
+    # Retorna uma resposta renderizando uma template com os dados
+    return render(request, 'manutencao_e_suporte/listar_materiais_alterados.html', {'materiais_alterados': materiais_alterados})
+
+def restaurar_status(request, material_id):
+    # Recupera o material com base no ID
+    material = get_object_or_404(Subcategoria, id=material_id)
+    
+    # Atualiza a situação do material para 'disponivel'
+    material.situacao = 'disponivel'
+    material.save()
+
+    # Redireciona para a página de materiais alterados
+    return redirect('listar_materiais_alterados')
+
+
+def verificador_de_autorizacao(request):
+    # Obtém todos os policiais
+    policiais = Policial.objects.all()
+
+    # Renderiza o template passando a lista de todos os policiais
+    return render(request, 'passagem_de_servico/verificar_autorizacao.html', {'policiais': policiais})

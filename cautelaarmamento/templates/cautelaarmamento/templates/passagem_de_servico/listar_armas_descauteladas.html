@@ -1,0 +1,61 @@
+{% extends 'base_html/base.html' %}
+
+{% block title %}
+    Lista de Cautelas de Armamento
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h2 class="mb-4">Lista Descautelas de Armamento</h2>
+
+        <!-- Campo de pesquisa -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="search" class="form-control" placeholder="Pesquisar policial, categoria ou armeiro">
+            </div>
+        </div>
+
+        <!-- Tabela Bootstrap -->
+        <table class="table table-striped table-bordered" id="cautelaTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>Policial</th>
+                    <th>Arma/VTR/Munições</th>
+                    <th>Munições</th>
+                    <th>Qnt. Munições</th>
+                    <th>Obs.:</th>
+                    <th>Data de Descautela</th>
+                    <th>Hora da Descautela</th>
+                    <th>Armeiro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for descautela in descautelas %}
+                <tr>
+                    <td>{{ descautela.policial }}</td>
+                    <td>{{ descautela.subcategoria_armamento }}</td>
+                    <td>{{ descautela.subcategoria_municao }}</td>
+                    <td>{{ descautela.quantidade_municao }}</td>
+                    <td>{{ descautela.observacao }}</td>
+                    <td>{{ descautela.data_descautelamento }}</td>
+                    <td>{{ descautela.hora_descautelamento }}</td>
+                    <td>{{ descautela.armeiro_descautela }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Adicionando script para filtrar a tabela -->
+    <script>
+        document.getElementById("search").addEventListener("keyup", function() {
+            let input = this.value.toLowerCase();
+            let rows = document.querySelectorAll("#cautelaTable tbody tr");
+
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(input) ? "" : "none";
+            });
+        });
+    </script>
+{% endblock %}

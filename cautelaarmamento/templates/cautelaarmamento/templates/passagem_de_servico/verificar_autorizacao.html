@@ -1,0 +1,74 @@
+{% extends 'base_html/base.html' %}
+
+{% block title %}
+  Lista de Policiais Autorizados
+{% endblock %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h3 class="mb-4">Lista de Policiais Autorizados a Cautela de armamento</h3>
+
+    <!-- Campo de pesquisa -->
+    <div class="mb-3">
+      <input type="text" id="searchInput" class="form-control" placeholder="Pesquisar por nome ou ID">
+    </div>
+
+    <!-- Tabela com dados dos policiais -->
+    <table class="table table-striped table-bordered">
+      <thead class="thead-dark">
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Situação</th>
+        </tr>
+      </thead>
+      <tbody id="policiaisTableBody">
+        {% for policial in policiais %}
+          <tr>
+            <td>{{ policial.id }}</td>
+            <td>{{ policial.nome_completo }}</td>
+            <td>
+              {% if policial.autorizacao_arma %}
+                <span class="badge bg-success">Autorizado</span>
+              {% else %}
+                <span class="badge bg-danger">Não Autorizado</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="3" class="text-center">Nenhum policial encontrado</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Script para filtrar a tabela -->
+  <script>
+    // Obtém o campo de pesquisa e a tabela de dados
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('policiaisTableBody');
+
+    searchInput.addEventListener('input', function() {
+      const searchTerm = searchInput.value.toLowerCase();
+
+      // Obtém todas as linhas da tabela
+      const rows = tableBody.getElementsByTagName('tr');
+
+      // Itera sobre as linhas e esconde ou mostra dependendo do termo de pesquisa
+      Array.from(rows).forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        const idCell = cells[0].textContent.toLowerCase(); // ID
+        const nameCell = cells[1].textContent.toLowerCase(); // Nome
+
+        // Verifica se o termo de pesquisa corresponde a qualquer célula de ID ou Nome
+        if (idCell.includes(searchTerm) || nameCell.includes(searchTerm)) {
+          row.style.display = '';  // Mostra a linha
+        } else {
+          row.style.display = 'none';  // Esconde a linha
+        }
+      });
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base_html/base.html' %}
+
+{% block title %}
+    Materiais com Alteração
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Lista de Materiais com Alterações</h2>
+
+    <!-- Campo de pesquisa -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="text" id="search" class="form-control" placeholder="Pesquisar policial, categoria ou armeiro">
+        </div>
+    </div>
+
+    <!-- Tabela Bootstrap -->
+    <table class="table table-striped table-bordered" id="cautelaTable">
+        <thead class="table-dark">
+            <tr>
+                <th>Descrição Completa</th>
+                <th>Estado de Conservação</th>
+                <th>Data de Vencimento</th>
+                <th>Situação</th>
+                <th>Ações</th> <!-- Coluna para o botão -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for cautela in materiais_alterados %}
+            <tr>
+                <td>{{ cautela.descricao_completa }}</td>
+                <td>{{ cautela.estado_conservacao }}</td>
+                <td>{{ cautela.data_vencimento }}</td>
+                <td>{{ cautela.situacao }}</td>
+                <td>
+                    <!-- Formulário para restaurar o status -->
+                    <form method="POST" action="{% url 'restaurar_status' cautela.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Restaurar Status</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Adicionando script para filtrar a tabela -->
+<script>
+    document.getElementById("search").addEventListener("keyup", function() {
+        let input = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#cautelaTable tbody tr");
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(input) ? "" : "none";
+        });
+    });
+</script>
+
+{% endblock %}

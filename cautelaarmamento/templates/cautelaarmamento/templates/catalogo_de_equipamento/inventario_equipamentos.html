@@ -5,43 +5,97 @@ Inventário de Equipamentos
 {% endblock %}
 
 {% block content %}
-<h1>Inventário de Equipamentos</h1>
+<h1 class="page-title">Inventário de Equipamentos</h1>
 
 {% regroup itens_disponiveis by categoria as itens_por_categoria %}
 
 {% for categoria in itens_por_categoria %}
-    <h2>Categoria: {{ categoria.grouper }}</h2>
-    <table border="1" cellpadding="10" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Calibre</th>
-                <th>Nº Arma</th>
-                <th>Nº PMMA</th>
-                <th>Localização</th>
-                <th>Estado de Conservação</th>
-                <th>Observação</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in categoria.list %}
+    <section class="category-section">
+        <h2 class="category-title">Categoria: {{ categoria.grouper }}</h2>
+        <table class="equipment-table">
+            <thead>
                 <tr>
-                    <td>{{ item.descricao_completa }}</td>
-                    <td>{{ item.marca }}</td>
-                    <td>{{ item.modelo }}</td>
-                    <td>{{ item.cal }}</td>
-                    <td>{{ item.num_arma }}</td>
-                    <td>{{ item.num_pmma }}</td>
-                    <td>{{ item.localizacao }}</td>
-                    <td>{{ item.estado_conservacao }}</td>
-                    <td>{{ item.observacao }}</td>
+                    <th>Nome</th>
+                    <th>Estado de Conservação</th>
+                    <th>Observação</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% for item in categoria.list %}
+                    <tr>
+                        <td>{{ item.descricao_completa }}</td>
+                        <td>{{ item.estado_conservacao }}</td>
+                        <td>{{ item.observacao }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 {% empty %}
-    <p>Nenhum item disponível.</p>
+    <p class="no-items">Nenhum item disponível.</p>
 {% endfor %}
+
+<!-- Estilos CSS dentro do HTML -->
+<style>
+    /* Estilo para a tabela */
+    .equipment-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .equipment-table th,
+    .equipment-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border: 1px solid #ddd;  /* Linha nas bordas */
+    }
+
+    .equipment-table th {
+        background-color: #f4f4f4;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .equipment-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .equipment-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .equipment-table th,
+        .equipment-table td {
+            text-align: center;
+            padding: 8px;
+        }
+    }
+
+    /* Título da página */
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+
+    /* Título da categoria */
+    .category-title {
+        font-size: 1.5rem;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    /* Mensagem quando não houver itens */
+    .no-items {
+        color: #666;
+        font-size: 1.2rem;
+        margin-top: 20px;
+    }
+</style>
+
 {% endblock %}

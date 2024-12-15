@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.db.models import JSONField
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxLengthValidator
 
 
 class Policial(models.Model):
@@ -13,6 +15,7 @@ class Policial(models.Model):
     lotacao = models.CharField(max_length=100)
     data_nascimento = models.DateField()
     cpf = models.CharField(max_length=14, unique=True)  # Inclui máscara de CPF se necessário
+    autorizacao_arma = models.BooleanField(default=False)  # Adiciona o campo de autorização
 
     def __str__(self):
         # Garantia de retorno consistente mesmo com valores nulos
@@ -195,22 +198,21 @@ class DescautelasCa(models.Model):
     data_hora_cautela = models.DateTimeField()
     policial = models.CharField(max_length=100)
     tipo_servico = models.CharField(max_length=50)
-    categoria_armamento = models.CharField(max_length=50, null=True)
-    subcategoria_armamento = models.CharField(max_length=50, null=True)
-    categoria_municao = models.CharField(max_length=50, null=True)
-    subcategoria_municao = models.CharField(max_length=50, null=True)
+    categoria_armamento = models.CharField(max_length=100, null=True, blank=True)
+    subcategoria_armamento = models.CharField(max_length=100, null=True, blank=True)
+    categoria_municao = models.CharField(max_length=100, null=True, blank=True)
+    subcategoria_municao = models.CharField(max_length=100, null=True, blank=True)
     quantidade_municao = models.IntegerField()
-    situacao_armamento = models.CharField(max_length=50)
-    observacao = models.TextField(blank=True, null=True)
-    observacoes = models.TextField(null=True, blank=True)  # Adicione este campo
+    situacao_armamento = models.CharField(max_length=100)  # Corrigido: apenas uma definição de max_length
+    observacao = models.TextField(blank=True, null=True)  # Removido max_length
+    observacoes = models.TextField(null=True, blank=True)  # Removido max_length
     armeiro = models.CharField(max_length=100)
     armeiro_descautela = models.CharField(max_length=100)
     data_descautelamento = models.DateField()
     hora_descautelamento = models.TimeField()
 
     def __str__(self):
-        return f"Descautela de {self.nome_guerra} em {self.data_hora_cautela}"
-    
+        return f"Descautela de {self.policial} em {self.data_hora_cautela}"
 
 class PassagemDeServico(models.Model):
     registro_cautela_id = models.IntegerField()

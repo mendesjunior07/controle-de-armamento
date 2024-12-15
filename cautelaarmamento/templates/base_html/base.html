@@ -59,13 +59,13 @@
                         <a href="{% url 'registrar_passagem' %}" class="sidebar-link">Registrar Passagem</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="{% url 'listar_amas_cauteladas' %}" class="sidebar-link">Consultar Histórico</a>
+                        <a href="{% url 'listar_armas_cauteladas' %}" class="sidebar-link">Histórico de Cautela</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">Passagem de Serviço</a>
+                        <a href="{% url 'listar_armas_descauteladas' %}" class="sidebar-link">Histórico de Descautela</a>
                     </li>
                     <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">Verificar Autorizações</a>
+                        <a href="{% url 'verificar_autorizacao' %}" class="sidebar-link">Verificar Autorizações</a>
                     </li>
                 </ul>
             </li>
@@ -152,6 +152,9 @@
                     </li>
                     <li class="sidebar-item">
                         <a href="#" class="sidebar-link">Histórico de Manutenções</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'listar_materiais_alterados' %}" class="sidebar-link">Materiais Alterados</a>
                     </li>
                 </ul>
             </li>

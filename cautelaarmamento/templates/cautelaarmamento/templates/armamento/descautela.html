@@ -179,12 +179,8 @@
             id="formDescautelarCA"
           >
             {% csrf_token %}
-            <input
-              type="hidden"
-              name="registro_id"
-              id="registroIdInputCA"
-              value=""
-            />
+            <input type="hidden" name="registro_id" id="registroIdInputCA" value="" />
+
             <div class="mb-3">
               <label for="situacaoSelectArmamento" class="form-label"
                 >Situação do Armamento</label
@@ -208,11 +204,12 @@
                 >Observações</label
               >
               <textarea
-                class="form-control"
-                id="observacaoInput"
-                name="observacao"
-                rows="3"
-                placeholder="Adicione observações, se necessário"
+              class="form-control"
+              id="observacoesInput"
+              name="observacoes"
+              rows="3"
+              placeholder="Digite suas observações aqui"
+              maxlength="50"
               ></textarea>
             </div>
             <button type="submit" class="btn btn-primary">
@@ -385,56 +382,47 @@ searchInput.addEventListener("input", function () {
     modal.show();
   }
 
-  document
-    .getElementById("btnConfirmarDescautelaSAModal")
-    .addEventListener("click", function () {
-      var form = document.getElementById("formDescautelarSAModal");
-      var formData = new FormData(form);
+  document.getElementById("btnConfirmarDescautelaSAModal").addEventListener("click", function (event) {
+    var form = document.getElementById("formDescautelarSAModal");
+    var formData = new FormData(form);
 
-      fetch("{% url 'descautelar_sa' %}", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
-        },
+    // Prevenir o envio padrão do formulário
+    event.preventDefault(); 
+
+    // Enviar a requisição para o servidor usando fetch
+    fetch("{% url 'descautelar_sa' %}", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === "success") {
+          console.log("Descautela realizada com sucesso.");
+
+          // Atualiza a página automaticamente após sucesso
+          location.reload(); // Recarregar a página
+        } else {
+          console.log("Erro na descautela:", data.message);
+        }
       })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.status === "success") {
-            console.log(
-              "Descautela realizada com sucesso. Categoria Armamento: ",
-              data.categoria_armamento
-            );
-
-            // Atualiza a página automaticamente após sucesso
-            location.reload(); // Recarregar a página
-          } else {
-            console.log("Erro na descautela:", data.message);
-          }
-        })
-        .catch((error) => console.error("Erro na requisição:", error));
-    });
+      .catch((error) => console.error("Erro na requisição:", error));
+  });
 
   // ####################################################################
   //## 2. Script para abrir o modal de Descautela de Armamento (C/A): ###
   // ####################################################################
-
-  function openDescautelarArmamentoModal(
-    registroId,
-    categoriaArmamento,
-    subcategoriaArmamento
-  ) {
+  
+  function openDescautelarArmamentoModal(registroId, categoriaArmamento, subcategoriaArmamento) {
     // Definir os valores no modal
     document.getElementById("registroIdInputCA").value = registroId;
-    document.getElementById("categoriaArmamentoModal").textContent =
-      categoriaArmamento;
-    document.getElementById("subcategoriaArmamentoModal").textContent =
-      subcategoriaArmamento;
-
+    document.getElementById("categoriaArmamentoModal").textContent = categoriaArmamento;
+    document.getElementById("subcategoriaArmamentoModal").textContent = subcategoriaArmamento;
+  
     // Abrir o modal
-    var modal = new bootstrap.Modal(
-      document.getElementById("descautelarCAModal")
-    );
+    var modal = new bootstrap.Modal(document.getElementById("descautelarCAModal"));
     modal.show();
   }
 
@@ -446,16 +434,26 @@ searchInput.addEventListener("input", function () {
     var form = event.target;
     var formData = new FormData(form);
 
-    // Construa o objeto de dados para envio
+    // Capturar o valor da observação
+    var observacoes = formData.get("observacoes");
+
+    // Adicionar os console.log para depuração
+    console.log("Observações:", observacoes);
+    console.log("Situação do Armamento:", formData.get("situacao"));
+
+    // Verificar o comprimento da observação
+    if (observacoes.length > 50) {
+      alert("A observação não pode ter mais de 50 caracteres.");
+      return;
+    }
+
     var data = {
       registro_id: formData.get("registro_id"),
       situacao: formData.get("situacao"),
-      observacao: formData.get("observacao"),
-      observacoes: formData.get("observacoes"), // Adicione esta linha
+      observacoes: observacoes,
       csrfmiddlewaretoken: formData.get("csrfmiddlewaretoken"),
     };
 
-    // Enviar a requisição para o servidor usando fetch API
     fetch(form.action, {
       method: "POST",
       headers: {
@@ -467,27 +465,20 @@ searchInput.addEventListener("input", function () {
       .then((data) => {
         if (data.success) {
           console.log("Descautela realizada com sucesso!");
-
-          // Remover a linha da tabela correspondente ao registroId
           var registroRow = document.getElementById("registro-row-" + data.registro_id);
           if (registroRow) {
-            registroRow.remove(); // Remove a linha do DOM
+            registroRow.remove();
           }
-
-          // Fechar o modal
           var modal = bootstrap.Modal.getInstance(document.getElementById("descautelarCAModal"));
           modal.hide();
-
-        } else if (data.limite_municao !== undefined) {
-          // Caso a quantidade de munição seja retornada como limite, ajustar no modal
-          document.getElementById("quantidadeMuniçãoInput").max = data.limite_municao; // Definir o limite máximo no campo correspondente
-          console.log(`Limite de munição ajustado para: ${data.limite_municao}`);
         } else {
           console.log("Erro na descautela:", data.error);
         }
       })
       .catch((error) => console.error("Erro na requisição:", error));
   });
+
+
   // ####################################################################
   //### 3. Script para abrir o modal de Descautela de Munição (C/A): ####
   // ####################################################################
@@ -516,40 +507,43 @@ searchInput.addEventListener("input", function () {
   
   // Adicionar o listener para o envio do formulário de descautela de munição
   document
-    .getElementById("formDescautelarMunicaoCA")
-    .addEventListener("submit", function (event) {
-      event.preventDefault(); // Evitar o envio padrão do formulário
-  
-      var form = event.target;
-      var formData = new FormData(form);
-  
-      // Enviar a requisição para o servidor usando fetch API
-      fetch(form.action, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
-        },
-        body: formData,
+  .getElementById("formDescautelarMunicaoCA")
+  .addEventListener("submit", function (event) {
+    event.preventDefault(); // Evitar o envio padrão do formulário
+
+    console.log("Formulário submetido!"); // Verificar se o formulário é submetido
+
+    var form = event.target;
+    var formData = new FormData(form);
+
+    // Verificar os dados do formulário
+    console.log("Form data:", formData);
+
+    fetch(form.action, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
+      },
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          console.log("Descautela realizada com sucesso!");
+          // Fechar o modal após sucesso
+          var modal = bootstrap.Modal.getInstance(
+            document.getElementById("descautelarMunicaoModal")
+          );
+          modal.hide();
+
+          // Recarregar a página para refletir as mudanças
+          location.reload();
+        } else {
+          console.log("Erro na descautela:", data.error);
+        }
       })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.success) {
-            console.log("Descautela realizada com sucesso!");
-  
-            // Fechar o modal após sucesso
-            var modal = bootstrap.Modal.getInstance(
-              document.getElementById("descautelarMunicaoModal")
-            );
-            modal.hide();
-  
-            // Recarregar a página para refletir as mudanças
-            location.reload();
-          } else {
-            console.log("Erro na descautela:", data.error);
-          }
-        })
-        .catch((error) => console.error("Erro na requisição:", error));
-    });
+      .catch((error) => console.error("Erro na requisição:", error));
+  });
   
 </script>
 {% endblock %}
