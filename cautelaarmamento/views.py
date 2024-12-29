@@ -52,8 +52,8 @@ from django.utils.html import strip_tags
 import json
 from docx.oxml import parse_xml
 from .models import PassagemDeServico
-from weasyprint import HTML
-from weasyprint.css import CSS
+# from weasyprint import HTML
+# from weasyprint.css import CSS
 import logging
 from collections import defaultdict
 from django.utils import timezone

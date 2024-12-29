@@ -1,0 +1,10 @@
+João Silva, João, Sargento, 12345678, 9876543210, 11º BPM, 1985-06-15, 123.456.789-00, Sim
+Maria Oliveira, Maria, Tenente, 87654321, 1234567890, 12º BPM, 1990-03-25, 234.567.890-12, Não
+Carlos Souza, Carlos, Cabo, 11223344, 2233445566, 13º BPM, 1982-08-09, 345.678.901-23, Sim
+Ana Costa, Ana, Soldado, 99887766, 3344556677, 14º BPM, 1995-12-30, 456.789.012-34, Não
+Pedro Almeida, Pedro, Capitão, 66778899, 4455667788, 15º BPM, 1980-01-20, 567.890.123-45, Sim
+Roberta Lima, Roberta, Major, 12348765, 5566778899, 16º BPM, 1978-07-10, 678.901.234-56, Não
+Felipe Martins, Felipe, Coronel, 23456789, 6677889900, 17º BPM, 1975-11-05, 789.012.345-67, Sim
+Luciana Pereira, Luciana, Sargento, 34567890, 7788990011, 18º BPM, 1987-02-28, 890.123.456-78, Não
+Robson Santos, Robson, Soldado, 45678901, 8899001122, 19º BPM, 1992-09-17, 901.234.567-89, Sim
+Juliana Rocha, Juliana, Tenente Coronel, 56789012, 9900112233, 20º BPM, 1984-05-14, 012.345.678-90, Não
