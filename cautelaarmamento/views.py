@@ -33,7 +33,7 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import re
 import asyncio
 from docx.shared import Inches
-from pyppeteer import launch
+# from pyppeteer import launch
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from datetime import datetime
