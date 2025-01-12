@@ -20,9 +20,11 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://cautela-de-armamento-e7806a505693.herokuapp.com',
-]
+# CSRF_TRUSTED_ORIGINS = [
+#     'https://cautela-de-armamento-e7806a505693.herokuapp.com',
+# ]
+
+CSRF_TRUSTED_ORIGINS = []
 
 CSRF_COOKIE_SECURE = False  # Defina como False em ambiente de desenvolvimento
 # Application definition
@@ -147,7 +149,6 @@ APPEND_SLASH = False
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-django_heroku.settings(locals())
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
