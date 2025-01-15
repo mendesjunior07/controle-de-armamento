@@ -1,10 +1,77 @@
+##### QUANDO FOR ACRESCENTAR OS DADOS DOS POLICIAIS #####
+
+import sys
+import os
+import pandas as pd
+
+# Adiciona o diretório raiz do projeto ao PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Define as configurações do Django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'base.settings')
+
+# Configura o Django
+import django
+django.setup()
+
+from cautelaarmamento.models import Policial
+
+caminho_arquivo = r"cautelaarmamento/policiais.xlsx"
+
+def importar_policiais(caminho_arquivo):
+    try:
+        # Lê o arquivo Excel no caminho especificado
+        df = pd.read_excel(caminho_arquivo)
+        print(f"Dados carregados do arquivo: {len(df)} registros encontrados.")
+
+        # Converte e normaliza colunas para evitar erros
+        df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
+        df['autorizacao_arma'] = df['autorizacao_arma'].fillna(False).astype(bool)
+
+        # Itera pelas linhas do DataFrame e cria os objetos
+        for _, row in df.iterrows():
+            try:
+                policial = Policial.objects.create(
+                    nome_completo=row['nome_completo'],
+                    nome_guerra=row.get('nome_guerra', None),  # Aceita valores nulos
+                    posto_graduacao=row['posto_graduacao'],
+                    matricula=row['matricula'],
+                    rgpm=row['rgpm'],
+                    lotacao=row['lotacao'],
+                    data_nascimento=row['data_nascimento'],
+                    cpf=row['cpf'],
+                    autorizacao_arma=row['autorizacao_arma']
+                )
+                print(f"Policial {policial.nome_completo} adicionado com sucesso.")
+            except Exception as e:
+                print(f"Erro ao adicionar o policial {row['nome_completo']}: {e}")
+        
+        print("Importação concluída com sucesso!")
+    except Exception as e:
+        print(f"Erro geral ao importar policiais: {e}")
+
+# Executa a importação
+if __name__ == "__main__":
+    importar_policiais(caminho_arquivo)
+
+
+
+# import os
+# import django
 # import pandas as pd
+
+# # Configure o Django
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "controle_de_armamento.settings")  # Substitua pelo seu nome de projeto
+# django.setup()
+
+# # Agora, você pode importar o modelo
 # from cautelaarmamento.models import Policial  # Substitua pelo nome correto do seu app
 
-# caminho_arquivo = r"cautelaarmamento\policiais.xlsx"
+# # Caminho do arquivo
+# caminho_arquivo = r"cautelaarmamento/policiais.xlsx"
 
 # def importar_policiais(caminho_arquivo):
-#     # Lê o arquivo Excel no caminho especificado
+#     # Lê o arquivo Excel
 #     df = pd.read_excel(caminho_arquivo)
 
 #     # Itera pelas linhas do DataFrame e cria os objetos
@@ -21,41 +88,8 @@
 #         )
 #     print("Importação concluída com sucesso!")
 
-
-import os
-import django
-import pandas as pd
-
-# Configure o Django
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "controle_de_armamento.settings")  # Substitua pelo seu nome de projeto
-django.setup()
-
-# Agora, você pode importar o modelo
-from cautelaarmamento.models import Policial  # Substitua pelo nome correto do seu app
-
-# Caminho do arquivo
-caminho_arquivo = r"cautelaarmamento/policiais.xlsx"
-
-def importar_policiais(caminho_arquivo):
-    # Lê o arquivo Excel
-    df = pd.read_excel(caminho_arquivo)
-
-    # Itera pelas linhas do DataFrame e cria os objetos
-    for _, row in df.iterrows():
-        Policial.objects.create(
-            nome_completo=row['nome_completo'],
-            nome_guerra=row.get('nome_guerra', None),  # Aceita valores nulos
-            posto_graduacao=row['posto_graduacao'],
-            matricula=row['matricula'],
-            rgpm=row['rgpm'],
-            lotacao=row['lotacao'],
-            data_nascimento=row['data_nascimento'],
-            cpf=row['cpf']
-        )
-    print("Importação concluída com sucesso!")
-
-# Execute a função
-importar_policiais(caminho_arquivo)
+# # Execute a função
+# importar_policiais(caminho_arquivo)
 
 
 
