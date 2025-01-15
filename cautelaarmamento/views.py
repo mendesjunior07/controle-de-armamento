@@ -25,6 +25,7 @@ from docx import Document
 from .models import CautelaDeArmamento, PassagemDeServico, User
 from django.shortcuts import render
 import os
+from django.utils.html import format_html
 import base64
 from docx.oxml.ns import nsmap
 from django.conf import settings
@@ -49,6 +50,8 @@ from django.core.mail import send_mail
 from django.contrib import messages
 from django.db import IntegrityError
 from django.utils.html import strip_tags
+from html import escape
+from django.utils.html import format_html
 import json
 from docx.oxml import parse_xml
 from .models import PassagemDeServico
