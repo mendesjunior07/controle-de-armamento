@@ -1,5 +1,61 @@
 ##### QUANDO FOR ACRESCENTAR OS DADOS DOS POLICIAIS #####
 
+# import sys
+# import os
+# import pandas as pd
+
+# # Adiciona o diretório raiz do projeto ao PYTHONPATH
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# # Define as configurações do Django
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'base.settings')
+
+# # Configura o Django
+# import django
+# django.setup()
+
+# from cautelaarmamento.models import Policial
+
+# caminho_arquivo = r"cautelaarmamento/policiais.xlsx"
+
+# def importar_policiais(caminho_arquivo):
+#     try:
+#         # Lê o arquivo Excel no caminho especificado
+#         df = pd.read_excel(caminho_arquivo)
+#         print(f"Dados carregados do arquivo: {len(df)} registros encontrados.")
+
+#         # Converte e normaliza colunas para evitar erros
+#         df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
+#         df['autorizacao_arma'] = df['autorizacao_arma'].fillna(False).astype(bool)
+
+#         # Itera pelas linhas do DataFrame e cria os objetos
+#         for _, row in df.iterrows():
+#             try:
+#                 policial = Policial.objects.create(
+#                     nome_completo=row['nome_completo'],
+#                     nome_guerra=row.get('nome_guerra', None),  # Aceita valores nulos
+#                     posto_graduacao=row['posto_graduacao'],
+#                     matricula=row['matricula'],
+#                     rgpm=row['rgpm'],
+#                     lotacao=row['lotacao'],
+#                     data_nascimento=row['data_nascimento'],
+#                     cpf=row['cpf'],
+#                     autorizacao_arma=row['autorizacao_arma']
+#                 )
+#                 print(f"Policial {policial.nome_completo} adicionado com sucesso.")
+#             except Exception as e:
+#                 print(f"Erro ao adicionar o policial {row['nome_completo']}: {e}")
+        
+#         print("Importação concluída com sucesso!")
+#     except Exception as e:
+#         print(f"Erro geral ao importar policiais: {e}")
+
+# # Executa a importação
+# if __name__ == "__main__":
+#     importar_policiais(caminho_arquivo)
+
+#######################################################################################
+
 import sys
 import os
 import pandas as pd
@@ -14,46 +70,71 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'base.settings')
 import django
 django.setup()
 
-from cautelaarmamento.models import Policial
+from cautelaarmamento.models import Subcategoria  # Atualize 'app.models' para o nome real da sua aplicação e modelo
 
-caminho_arquivo = r"cautelaarmamento/policiais.xlsx"
+caminho_arquivo = r"cautelaarmamento/subcategorias.xlsx"  # Caminho do arquivo Excel contendo os dados
 
-def importar_policiais(caminho_arquivo):
+def importar_subcategorias(caminho_arquivo):
     try:
         # Lê o arquivo Excel no caminho especificado
         df = pd.read_excel(caminho_arquivo)
         print(f"Dados carregados do arquivo: {len(df)} registros encontrados.")
 
-        # Converte e normaliza colunas para evitar erros
-        df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
-        df['autorizacao_arma'] = df['autorizacao_arma'].fillna(False).astype(bool)
-
+        # Itera pelas linhas do DataFrame e cria os objetos
+# Itera pelas linhas do DataFrame e cria os objetos
         # Itera pelas linhas do DataFrame e cria os objetos
         for _, row in df.iterrows():
             try:
-                policial = Policial.objects.create(
-                    nome_completo=row['nome_completo'],
-                    nome_guerra=row.get('nome_guerra', None),  # Aceita valores nulos
-                    posto_graduacao=row['posto_graduacao'],
-                    matricula=row['matricula'],
-                    rgpm=row['rgpm'],
-                    lotacao=row['lotacao'],
-                    data_nascimento=row['data_nascimento'],
-                    cpf=row['cpf'],
-                    autorizacao_arma=row['autorizacao_arma']
+                # Tratamento do campo `ano`
+                raw_ano = row.get('ano')
+                ano = None if pd.isna(raw_ano) else int(raw_ano)
+
+                # Tratamento do campo `data_vencimento`
+                raw_data_vencimento = row.get('data_vencimento')
+                data_vencimento = pd.to_datetime(raw_data_vencimento, errors='coerce')
+                data_vencimento = None if pd.isna(data_vencimento) else data_vencimento
+
+                # Criação do objeto
+                subcategoria = Subcategoria.objects.create(
+                    marca=row.get('marca'),
+                    modelo=row.get('modelo'),
+                    placa=row.get('placa'),
+                    chassi=row.get('chassi'),
+                    ano=ano,  # Passa o valor tratado
+                    procedencia=row.get('procedencia'),
+                    fornecedor=row.get('fornecedor'),
+                    aparencia_visual=row.get('aparencia_visual'),
+                    estado_conservacao=row.get('estado_conservacao'),
+                    cor=row.get('cor'),
+                    tamanho=row.get('tamanho'),
+                    localizacao=row.get('localizacao'),
+                    destinacao=row.get('destinacao'),
+                    situacao=row.get('situacao', 'disponivel'),
+                    tipo=row.get('tipo'),
+                    cal=row.get('cal'),
+                    ct=row.get('ct'),
+                    num_arma=row.get('num_arma'),
+                    num_pmma=row.get('num_pmma'),
+                    tombo=row.get('tombo'),
+                    gr=row.get('gr'),
+                    data_vencimento=data_vencimento,  # Passa o valor tratado
+                    observacao=row.get('observacao'),
+                    categoria_id=row.get('categoria_id'),  # Certifique-se de que o ID da categoria seja fornecido
+                    inserido_por_id=row.get('inserido_por_id')  # Certifique-se de que o ID do usuário seja fornecido
                 )
-                print(f"Policial {policial.nome_completo} adicionado com sucesso.")
+                print(f"Subcategoria {subcategoria.descricao_completa} adicionada com sucesso.")
             except Exception as e:
-                print(f"Erro ao adicionar o policial {row['nome_completo']}: {e}")
-        
+                print(f"Erro ao adicionar a subcategoria: {e}")
+
+
+
         print("Importação concluída com sucesso!")
     except Exception as e:
-        print(f"Erro geral ao importar policiais: {e}")
+        print(f"Erro geral ao importar subcategorias: {e}")
 
 # Executa a importação
 if __name__ == "__main__":
-    importar_policiais(caminho_arquivo)
-
+    importar_subcategorias(caminho_arquivo)
 
 
 # import os
