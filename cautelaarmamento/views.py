@@ -878,8 +878,8 @@ def registrar_passagem(request):
 
         # Ajustar a largura de cada coluna no cabeçalho
         hdr_cells[0].width = Inches(0.2)  # Largura da coluna 'ID'
-        hdr_cells[1].width = Inches(3.0)  # Largura da coluna 'Policial'
-        hdr_cells[2].width = Inches(8.0)  # Largura da coluna 'Subcategoria'
+        hdr_cells[1].width = Inches(4.0)  # Largura da coluna 'Policial'
+        hdr_cells[2].width = Inches(7.0)  # Largura da coluna 'Subcategoria'
         hdr_cells[3].width = Inches(2.0)  # Largura da coluna 'Data da Cautela'
 
         # Preencher a tabela com os dados de 'cautelas_queryset'
@@ -974,15 +974,15 @@ def registrar_passagem(request):
         hdr_cells[0].text = 'ID'
         hdr_cells[1].text = 'Policial'
         hdr_cells[2].text = 'Subcategoria Armamento'  # Agora estamos usando o campo subcategoria_armamento
-        hdr_cells[3].text = 'Quantidade'
-        hdr_cells[4].text = 'Data/Hora'
+        # hdr_cells[3].text = 'Quantidade'
+        hdr_cells[3].text = 'Data/Hora'
 
         # Ajustar a largura de cada coluna no cabeçalho
         hdr_cells[0].width = Inches(0.2)  # Largura da coluna 'ID'
         hdr_cells[1].width = Inches(3.0)  # Largura da coluna 'Policial'
         hdr_cells[2].width = Inches(5.0)  # Largura da coluna 'Subcategoria'
+        # hdr_cells[3].width = Inches(1.0)  # Largura da coluna 'Data da Cautela'
         hdr_cells[3].width = Inches(1.0)  # Largura da coluna 'Data da Cautela'
-        hdr_cells[4].width = Inches(1.0)  # Largura da coluna 'Data da Cautela'
         
         # Preencher a tabela com os dados de 'descautelas'
         for cautela in descautelas_queryset:
@@ -1017,7 +1017,7 @@ def registrar_passagem(request):
 
         # Adicionar a segunda tabela "Cautela de Munições"
         # Título para a tabela de Cautela de Munições
-        doc.add_paragraph('DESCAUTELAS C/A', style='Título 12')  # Título acima da tabela de munições
+        doc.add_paragraph('Descautela C/A', style='Título 12')  # Título acima da tabela de munições
 
         # Criar a tabela
         table = doc.add_table(rows=1, cols=7)  # Adicionando uma coluna a mais para 'hora_descautelamento'
