@@ -33,6 +33,7 @@ from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import re
 import asyncio
+import comtypes.client
 from docx.shared import Inches
 # from pyppeteer import launch
 from django.template.loader import render_to_string
@@ -55,8 +56,8 @@ from django.utils.html import format_html
 import json
 from docx.oxml import parse_xml
 from .models import PassagemDeServico
-# from weasyprint import HTML
-# from weasyprint.css import CSS
+from weasyprint import HTML
+from weasyprint.css import CSS
 import logging
 from collections import defaultdict
 from django.utils import timezone
@@ -842,6 +843,7 @@ def registrar_passagem(request):
 
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
+            
 #############################################################
 
         # Garantir que os dados recebidos não sejam None
@@ -877,8 +879,8 @@ def registrar_passagem(request):
         hdr_cells[3].text = 'Data da Cautela'
 
         # Ajustar a largura de cada coluna no cabeçalho
-        hdr_cells[0].width = Inches(0.2)  # Largura da coluna 'ID'
-        hdr_cells[1].width = Inches(4.0)  # Largura da coluna 'Policial'
+        hdr_cells[0].width = Inches(0.5)  # Largura da coluna 'ID'
+        hdr_cells[1].width = Inches(3.5)  # Largura da coluna 'Policial'
         hdr_cells[2].width = Inches(7.0)  # Largura da coluna 'Subcategoria'
         hdr_cells[3].width = Inches(2.0)  # Largura da coluna 'Data da Cautela'
 
@@ -891,15 +893,29 @@ def registrar_passagem(request):
             row_cells[3].text = cautela.hora_cautela.strftime("%d/%m/%Y %H:%M")
 
             # Ajustar a largura de cada célula para cada linha adicionada
-            row_cells[0]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="200" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[1]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="3000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[2]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="8000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[3]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="2000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[0].width = Inches(0.5)
+            row_cells[1].width = Inches(3.5)
+            row_cells[2].width = Inches(7.0)
+            row_cells[3].width = Inches(2.0)
+
+            # Definir a borda de cada célula para ter uma linha visível
+            for cell in row_cells:
+                tc = cell._element
+            tcPr = tc.get_or_add_tcPr()
+            tcBorders = parse_xml(
+            r'<w:tcBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+            r'  <w:top w:val="single" w:sz="4" />'
+            r'  <w:left w:val="single" w:sz="4" />'
+            r'  <w:bottom w:val="single" w:sz="4" />'
+            r'  <w:right w:val="single" w:sz="4" />'
+            r'</w:tcBorders>'
+            )
+            tcPr.append(tcBorders)
 
         # Adicionar bordas a todas as células da tabela
         for row in table.rows:
             for cell in row.cells:
-                # Definir a borda de cada célula para ter uma linha visível
+            # Definir a borda de cada célula para ter uma linha visível
                 tc = cell._element
                 tcPr = tc.get_or_add_tcPr()
                 tcBorders = parse_xml(
@@ -1142,13 +1158,30 @@ def registrar_passagem(request):
         # Salvar o arquivo .docx modificado (sobrescreve ou cria um novo)
         doc.save('relatorios/RELATORIO1.docx')
 
+        # Inicializa a aplicação do Word
+        word = comtypes.client.CreateObject('Word.Application')
+        doc = word.Documents.Open(docx_path)
+        
+        # Salva como PDF
+        doc.SaveAs(pdf_path, FileFormat=17)  # 17 é o código para PDF no Word
+        doc.Close()
+        word.Quit()
 
+        # Caminho do arquivo DOCX e o caminho do PDF
+        docx_path = 'relatorios/RELATORIO1.docx'
+        pdf_path = 'relatorios/RELATORIO1.pdf'
+
+        # Chama a função para salvar como PDF
+        # Define the function salvar_como_pdf
+        def salvar_como_pdf(docx_path, pdf_path):
+            word = comtypes.client.CreateObject('Word.Application')
+            doc = word.Documents.Open(docx_path)
+            doc.SaveAs(pdf_path, FileFormat=17)  # 17 is the code for PDF format
+            doc.Close()
+            word.Quit()
+
+        salvar_como_pdf(docx_path, pdf_path)
 ######################################################
-
-
-
-
-
 
         # Retornar o arquivo HTML como resposta
         with open(file_path, 'r', encoding='utf-8') as f:
