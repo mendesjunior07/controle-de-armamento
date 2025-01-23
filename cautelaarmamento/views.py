@@ -21,6 +21,7 @@
 # ##################################################################
 
 from .models import PassagemDeServico, CautelaDeArmamento, RegistroDescautelamento
+import pypandoc
 from docx import Document
 from .models import CautelaDeArmamento, PassagemDeServico, User
 from django.shortcuts import render
@@ -33,7 +34,6 @@ from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import re
 import asyncio
-import comtypes.client
 from docx.shared import Inches
 # from pyppeteer import launch
 from django.template.loader import render_to_string
@@ -58,8 +58,10 @@ from docx.oxml import parse_xml
 from .models import PassagemDeServico
 from weasyprint import HTML
 from weasyprint.css import CSS
+from docx2pdf import convert
 import logging
 from collections import defaultdict
+import subprocess
 from django.utils import timezone
 from .models import (
     Categoria,
@@ -871,6 +873,7 @@ def registrar_passagem(request):
         doc.add_paragraph('Tabela de Cautelas', style='Título 12')  # Título acima da tabela, 'Heading 2'
 
         table = doc.add_table(rows=1, cols=4)
+
         # Cabeçalhos da tabela
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = 'ID'
@@ -878,11 +881,28 @@ def registrar_passagem(request):
         hdr_cells[2].text = 'Subcategoria'
         hdr_cells[3].text = 'Data da Cautela'
 
-        # Ajustar a largura de cada coluna no cabeçalho
-        hdr_cells[0].width = Inches(0.5)  # Largura da coluna 'ID'
-        hdr_cells[1].width = Inches(3.5)  # Largura da coluna 'Policial'
-        hdr_cells[2].width = Inches(7.0)  # Largura da coluna 'Subcategoria'
-        hdr_cells[3].width = Inches(2.0)  # Largura da coluna 'Data da Cautela'
+        # Ajustando a largura de cada coluna
+        # A soma total das larguras não pode ultrapassar 6.5 polegadas (a largura padrão de uma página A4)
+        table_width = 8.0  # largura total da tabela (em polegadas)
+
+        # Proporção para ajustar as larguras das colunas
+        col1_width = 0.5  # Largura da coluna 'ID' (em polegadas)
+        col2_width = 2.0  # Largura da coluna 'Policial' (em polegadas)
+        col3_width = 3.5  # Largura da coluna 'Subcategoria' (em polegadas)
+        col4_width = 1.5  # Largura da coluna 'Data da Cautela' (em polegadas)
+
+        # Definir as larguras das colunas de forma proporcional
+        table.columns[0].width = Inches(col1_width)
+        table.columns[1].width = Inches(col2_width)
+        table.columns[2].width = Inches(col3_width)
+        table.columns[3].width = Inches(col4_width)
+
+        # Verificar se a soma das larguras não ultrapassa 6.5 polegadas
+        total_width = col1_width + col2_width + col3_width + col4_width
+        if total_width > table_width:
+            print(f"A soma das larguras das colunas ({total_width} polegadas) ultrapassa a largura da página ({table_width} polegadas). Ajuste as larguras das colunas.")
+        else:
+            print(f"As larguras das colunas estão dentro do limite da página. Soma total: {total_width} polegadas.")
 
         # Preencher a tabela com os dados de 'cautelas_queryset'
         for cautela in cautelas_queryset:
@@ -892,30 +912,30 @@ def registrar_passagem(request):
             row_cells[2].text = str(cautela.subcategoria)
             row_cells[3].text = cautela.hora_cautela.strftime("%d/%m/%Y %H:%M")
 
-            # Ajustar a largura de cada célula para cada linha adicionada
-            row_cells[0].width = Inches(0.5)
-            row_cells[1].width = Inches(3.5)
-            row_cells[2].width = Inches(7.0)
-            row_cells[3].width = Inches(2.0)
+            # Ajustando a largura de cada célula para cada linha adicionada
+            row_cells[0]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="500" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[1]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="2500" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[2]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="5000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[3]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="2000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
 
             # Definir a borda de cada célula para ter uma linha visível
             for cell in row_cells:
                 tc = cell._element
-            tcPr = tc.get_or_add_tcPr()
-            tcBorders = parse_xml(
-            r'<w:tcBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-            r'  <w:top w:val="single" w:sz="4" />'
-            r'  <w:left w:val="single" w:sz="4" />'
-            r'  <w:bottom w:val="single" w:sz="4" />'
-            r'  <w:right w:val="single" w:sz="4" />'
-            r'</w:tcBorders>'
-            )
-            tcPr.append(tcBorders)
+                tcPr = tc.get_or_add_tcPr()
+                tcBorders = parse_xml(
+                    r'<w:tcBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+                    r'  <w:top w:val="single" w:sz="4" />'
+                    r'  <w:left w:val="single" w:sz="4" />'
+                    r'  <w:bottom w:val="single" w:sz="4" />'
+                    r'  <w:right w:val="single" w:sz="4" />'
+                    r'</w:tcBorders>'
+                )
+                tcPr.append(tcBorders)
 
         # Adicionar bordas a todas as células da tabela
         for row in table.rows:
             for cell in row.cells:
-            # Definir a borda de cada célula para ter uma linha visível
+                # Definir a borda de cada célula para ter uma linha visível
                 tc = cell._element
                 tcPr = tc.get_or_add_tcPr()
                 tcBorders = parse_xml(
@@ -935,6 +955,7 @@ def registrar_passagem(request):
 
         # Criar a tabela
         table = doc.add_table(rows=1, cols=4)
+
         # Cabeçalhos da tabela
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = 'ID'
@@ -942,12 +963,28 @@ def registrar_passagem(request):
         hdr_cells[2].text = 'Subcategoria'
         hdr_cells[3].text = 'Quantidade'
 
+        # Ajustando a largura de cada coluna
+        # A soma total das larguras não pode ultrapassar 6.5 polegadas (a largura padrão de uma página A4)
+        table_width = 8.0  # largura total da tabela (em polegadas)
 
-        # Ajustar a largura de cada coluna no cabeçalho
-        hdr_cells[0].width = Inches(0.2)  # Largura da coluna 'ID'
-        hdr_cells[1].width = Inches(3.0)  # Largura da coluna 'Policial'
-        hdr_cells[2].width = Inches(8.0)  # Largura da coluna 'Subcategoria'
-        hdr_cells[3].width = Inches(2.0)  # Largura da coluna 'Data da Cautela'
+        # Proporção para ajustar as larguras das colunas
+        col1_width = 0.5  # Largura da coluna 'ID' (em polegadas)
+        col2_width = 2.0  # Largura da coluna 'Policial' (em polegadas)
+        col3_width = 3.5  # Largura da coluna 'Subcategoria' (em polegadas)
+        col4_width = 1.5  # Largura da coluna 'Quantidade' (em polegadas)
+
+        # Definindo as larguras das colunas
+        table.columns[0].width = Inches(col1_width)
+        table.columns[1].width = Inches(col2_width)
+        table.columns[2].width = Inches(col3_width)
+        table.columns[3].width = Inches(col4_width)
+
+        # Verificar se a soma das larguras não ultrapassa 6.5 polegadas
+        total_width = col1_width + col2_width + col3_width + col4_width
+        if total_width > table_width:
+            print(f"A soma das larguras das colunas ({total_width} polegadas) ultrapassa a largura da página ({table_width} polegadas). Ajuste as larguras das colunas.")
+        else:
+            print(f"As larguras das colunas estão dentro do limite da página. Soma total: {total_width} polegadas.")
 
         # Preencher a tabela com os dados de 'cautela_municoes'
         for cautela in cautelas_de_municoes_queryset:
@@ -957,15 +994,15 @@ def registrar_passagem(request):
             row_cells[2].text = str(cautela.subcategoria)
             row_cells[3].text = str(cautela.quantidade)
 
-            # Ajustar a largura de cada célula para cada linha adicionada
+            # Ajustar a largura de cada célula para cada linha adicionada (se necessário)
             row_cells[0]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="200" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
             row_cells[1]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="3000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
             row_cells[2]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="8000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
             row_cells[3]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="2000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            
+
+        # Definir a borda de cada célula para ter uma linha visível
         for row in table.rows:
             for cell in row.cells:
-                # Definir a borda de cada célula para ter uma linha visível
                 tc = cell._element
                 tcPr = tc.get_or_add_tcPr()
                 tcBorders = parse_xml(
@@ -978,9 +1015,9 @@ def registrar_passagem(request):
                 )
                 tcPr.append(tcBorders)
 
-        # Adicionar a segunda tabela "Cautela de Munições"
-        # Título para a tabela de Cautela de Munições
-        doc.add_paragraph('Descautelas S/A', style='Título 12')  # Título acima da tabela de munições
+
+        # Adicionar a segunda tabela "Descautelas S/A"
+        doc.add_paragraph('Descautelas S/A', style='Título 12')  # Título acima da tabela de descautelas
 
         # Criar a tabela
         table = doc.add_table(rows=1, cols=5)  # Adicionando uma coluna a mais para 'hora_descautelamento'
@@ -990,16 +1027,29 @@ def registrar_passagem(request):
         hdr_cells[0].text = 'ID'
         hdr_cells[1].text = 'Policial'
         hdr_cells[2].text = 'Subcategoria Armamento'  # Agora estamos usando o campo subcategoria_armamento
-        # hdr_cells[3].text = 'Quantidade'
-        hdr_cells[3].text = 'Data/Hora'
+        hdr_cells[3].text = 'Quantidade'
+        hdr_cells[4].text = 'Data/Hora'  # Nova coluna para hora de descautelamento
 
-        # Ajustar a largura de cada coluna no cabeçalho
-        hdr_cells[0].width = Inches(0.2)  # Largura da coluna 'ID'
-        hdr_cells[1].width = Inches(3.0)  # Largura da coluna 'Policial'
-        hdr_cells[2].width = Inches(5.0)  # Largura da coluna 'Subcategoria'
-        # hdr_cells[3].width = Inches(1.0)  # Largura da coluna 'Data da Cautela'
-        hdr_cells[3].width = Inches(1.0)  # Largura da coluna 'Data da Cautela'
-        
+        # Definir as larguras das colunas
+        col1_width = Inches(0.5)  # Largura da coluna 'ID'
+        col2_width = Inches(1.8)  # Largura da coluna 'Policial'
+        col3_width = Inches(3.0)  # Largura da coluna 'Subcategoria Armamento' (ajustada)
+        col4_width = Inches(1.2)  # Largura da coluna 'Quantidade' (ajustada)
+        col5_width = Inches(1.0)  # Largura da coluna 'Data/Hora'
+
+        # Calcular a largura total e garantir que não ultrapasse os limites
+        total_width = col1_width + col2_width + col3_width + col4_width + col5_width
+        if total_width > Inches(8.0):  # Ajuste para não ultrapassar a largura da página
+            col3_width = Inches(2.0)  # Ajuste de largura da coluna 'Subcategoria Armamento'
+            col4_width = Inches(1.0)  # Ajuste de largura da coluna 'Quantidade'
+
+        # Aplicar as larguras para as colunas
+        table.columns[0].width = col1_width
+        table.columns[1].width = col2_width
+        table.columns[2].width = col3_width
+        table.columns[3].width = col4_width
+        table.columns[4].width = col5_width
+
         # Preencher a tabela com os dados de 'descautelas'
         for cautela in descautelas_queryset:
             row_cells = table.add_row().cells
@@ -1010,15 +1060,15 @@ def registrar_passagem(request):
             row_cells[4].text = str(cautela.data_descautelamento)  # Usando a hora de descautelamento
 
             # Ajustar a largura de cada célula para cada linha adicionada
-            row_cells[0]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="200" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[1]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="3000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[2]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="5000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[3]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="1000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[4]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="1000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            
+            row_cells[0]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col1_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[1]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col2_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[2]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col3_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[3]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col4_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[4]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col5_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+
+        # Definir a borda de cada célula para ter uma linha visível
         for row in table.rows:
             for cell in row.cells:
-                # Definir a borda de cada célula para ter uma linha visível
                 tc = cell._element
                 tcPr = tc.get_or_add_tcPr()
                 tcBorders = parse_xml(
@@ -1030,6 +1080,9 @@ def registrar_passagem(request):
                     r'</w:tcBorders>'
                 )
                 tcPr.append(tcBorders)
+
+
+
 
         # Adicionar a segunda tabela "Cautela de Munições"
         # Título para a tabela de Cautela de Munições
@@ -1048,15 +1101,39 @@ def registrar_passagem(request):
         hdr_cells[5].text = 'Situação'
         hdr_cells[6].text = 'Observação'
 
-        # Ajustar a largura de cada coluna no cabeçalho
-        hdr_cells[0].width = Inches(0.2)  # Largura da coluna 'ID'
-        hdr_cells[1].width = Inches(3.0)  # Largura da coluna 'Policial'
-        hdr_cells[2].width = Inches(5.0)  # Largura da coluna 'Armamento'
-        hdr_cells[3].width = Inches(1.0)  # Largura da coluna 'Munição'
-        hdr_cells[4].width = Inches(1.0)  # Largura da coluna 'Quant. Munição'
-        hdr_cells[5].width = Inches(2.0)  # Largura da coluna 'Situação' 
-        hdr_cells[6].width = Inches(2.0)  # Largura da coluna 'Observação'          
-         
+        # Definir as larguras das colunas considerando as margens da página
+        col1_width = Inches(0.5)  # Largura da coluna 'ID'
+        col2_width = Inches(2.0)  # Largura da coluna 'Policial'
+        col3_width = Inches(3.0)  # Largura da coluna 'Armamento'
+        col4_width = Inches(1.2)  # Largura da coluna 'Munição'
+        col5_width = Inches(1.0)  # Largura da coluna 'Quant. Munição'
+        col6_width = Inches(1.2)  # Largura da coluna 'Situação'
+        col7_width = Inches(1.5)  # Largura da coluna 'Observação'
+
+        # Calcular a largura total e garantir que não ultrapasse os limites da página
+        total_width = col1_width + col2_width + col3_width + col4_width + col5_width + col6_width + col7_width
+        max_width = Inches(6.5)  # Largura útil da página (ajustar conforme as margens do documento)
+
+        # Ajustar as larguras se necessário para garantir que a soma total não ultrapasse a largura útil
+        if total_width > max_width:  # Ajuste para não ultrapassar a largura da página
+            factor = max_width / total_width  # Fator de escala para ajustar a largura das colunas
+            col1_width *= factor
+            col2_width *= factor
+            col3_width *= factor
+            col4_width *= factor
+            col5_width *= factor
+            col6_width *= factor
+            col7_width *= factor
+
+            # Aplicar as larguras para as colunas, convertendo os valores para int
+            table.columns[0].width = int(col1_width * 1440)  # Multiplica por 1440 para converter para twips (unidade esperada)
+            table.columns[1].width = int(col2_width * 1440)
+            table.columns[2].width = int(col3_width * 1440)
+            table.columns[3].width = int(col4_width * 1440)
+            table.columns[4].width = int(col5_width * 1440)
+            table.columns[5].width = int(col6_width * 1440)
+            table.columns[6].width = int(col7_width * 1440)
+
         # Preencher a tabela com os dados de 'descautelas'
         for cautela in descautelas_ca_queryset:
             row_cells = table.add_row().cells
@@ -1064,24 +1141,23 @@ def registrar_passagem(request):
             row_cells[1].text = str(cautela.policial)
             row_cells[2].text = str(cautela.subcategoria_armamento)  # Usando o campo correto
             row_cells[3].text = str(cautela.subcategoria_municao)  # Usando quantidade de munição
-            row_cells[4].text = str(cautela.quantidade_municao)  # Usando a hora de descautelamento
+            row_cells[4].text = str(cautela.quantidade_municao)  # Usando a quantidade de munição
             row_cells[5].text = str(cautela.situacao_armamento) 
-            row_cells[6].text = str(cautela.observacao) 
+            row_cells[6].text = str(cautela.observacao)
 
             # Ajustar a largura de cada célula para cada linha adicionada
-            row_cells[0]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="200" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[1]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="3000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[2]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="5000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[3]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="1000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[4]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="1000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[5]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="2000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            row_cells[6]._element.get_or_add_tcPr().append(parse_xml('<w:tcW w:w="2000" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
-            
-            
+            row_cells[0]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col1_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[1]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col2_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[2]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col3_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[3]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col4_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[4]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col5_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[5]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col6_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
+            row_cells[6]._element.get_or_add_tcPr().append(parse_xml(f'<w:tcW w:w="{int(col7_width * 1440)}" w:type="dxa" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"/>'))
 
+        # Definir a borda de cada célula para ter uma linha visível
         for row in table.rows:
             for cell in row.cells:
-                # Definir a borda de cada célula para ter uma linha visível
+                # Definir a borda de cada célula
                 tc = cell._element
                 tcPr = tc.get_or_add_tcPr()
                 tcBorders = parse_xml(
@@ -1094,93 +1170,68 @@ def registrar_passagem(request):
                 )
                 tcPr.append(tcBorders)
 
+        from docx.shared import Pt
+        from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
         # Adicionar o título da tabela
         titulo = doc.add_paragraph('MATERIAL DISPONÍVEL NA RESERVA', style='Título 12')
         titulo.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # Centralizar o título
 
-        # Criar a tabela com a quantidade adequada de colunas
-        table = doc.add_table(rows=1, cols=9)
+        # Criar a tabela com a quantidade adequada de colunas (apenas 3 colunas para dados)
+        table = doc.add_table(rows=1, cols=3)
 
         # Definir o estilo da tabela
         table.style = 'Table Grid'
 
-        # Cabeçalhos da tabela
+        # Cabeçalhos da tabela (somente 3 colunas)
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = 'Descrição'
-        hdr_cells[1].text = 'Marca'
-        hdr_cells[2].text = 'Modelo'
-        hdr_cells[3].text = 'Calibre'
-        hdr_cells[4].text = 'Nº Arma'
-        hdr_cells[5].text = 'Nº PMMA'
-        hdr_cells[6].text = 'Localização'
-        hdr_cells[7].text = 'Estado de Conservação'
-        hdr_cells[8].text = 'Observação'
+        hdr_cells[1].text = 'Estado de Conservação'
+        hdr_cells[2].text = 'Observação'
 
         # Preencher a tabela com os dados de 'material_disponivel'
-        for categoria, itens in itens_por_categoria.items():
-            # Adicionar uma linha para a categoria
-            categoria_row = table.add_row().cells
-            print(f"Tipo de categoria: {type(categoria)}, Valor: {categoria}")
-            categoria_row[0].text = str(categoria).upper()  # Exibir a categoria em maiúsculas
-            categoria_row[0].paragraphs[0].runs[0].bold = True  # Destacar a categoria em negrito
-            categoria_row[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
-            categoria_row[0].paragraphs[0].paragraph_format.space_before = Pt(6)
-            categoria_row[0].paragraphs[0].paragraph_format.space_after = Pt(6)
+        if itens_por_categoria:  # Verificar se há categorias
+            for categoria, itens in itens_por_categoria.items():
+                # Adicionar uma linha para a categoria (sem mesclar células)
+                categoria_row = table.add_row().cells
+                categoria_row[0].text = str(categoria).upper()  # Exibir a categoria em maiúsculas
+                categoria_row[0].paragraphs[0].runs[0].bold = True  # Destacar a categoria em negrito
+                categoria_row[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+                categoria_row[0].paragraphs[0].paragraph_format.space_before = Pt(6)
+                categoria_row[0].paragraphs[0].paragraph_format.space_after = Pt(6)
 
-            # Mesclar as células da linha da categoria
-            for i in range(1, 9):
-                categoria_row[i].merge(categoria_row[0])
-
-            # Adicionar os itens da categoria
-            for item in itens:
-                row_cells = table.add_row().cells
-                row_cells[0].text = str(item.descricao_completa)
-                row_cells[1].text = str(item.marca)
-                row_cells[2].text = str(item.modelo)
-                row_cells[3].text = str(item.cal)
-                row_cells[4].text = str(item.num_arma)
-                row_cells[5].text = str(item.num_pmma)
-                row_cells[6].text = str(item.localizacao)
-                row_cells[7].text = str(item.estado_conservacao)
-                row_cells[8].text = str(item.observacao)
-
-        # Caso não haja itens disponíveis, adicionar uma mensagem de aviso
-        if not itens_por_categoria:
+                # Adicionar os itens da categoria
+                for item in itens:
+                    row_cells = table.add_row().cells
+                    row_cells[0].text = str(item.descricao_completa)
+                    row_cells[1].text = str(item.estado_conservacao)
+                    row_cells[2].text = str(item.observacao)
+        else:
+            # Caso não haja itens disponíveis, adicionar uma mensagem de aviso
             no_item_paragraph = doc.add_paragraph('Nenhum item disponível na reserva.', style='Normal')
             no_item_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-            
-        doc.add_paragraph('Fiz ao meu substituto legal o(a) <<NOME>> ,a quem repassei todas as ordens em vigor bem como todo o material da  carga da 4ªCIA/11ºBPM conforme os dados acima', style='Normal')
+        doc.add_paragraph('Fiz ao meu substituto legal o(a) <<NOME>> ,a quem repassei todas as ordens em vigor bem como todo o material da carga da 4ªCIA/11ºBPM conforme os dados acima', style='Normal')
+
         # Substituindo os marcadores no documento
         substituir_marcadores(doc, substituicoes)
 
-        # Salvar o arquivo .docx modificado (sobrescreve ou cria um novo)
-        doc.save('relatorios/RELATORIO1.docx')
+        # Salvar o arquivo .docx modificado
+        docx_path = os.path.join(settings.BASE_DIR, 'relatorios', 'RELATORIO1.docx')
+        doc.save(docx_path)
 
-        # Inicializa a aplicação do Word
-        word = comtypes.client.CreateObject('Word.Application')
-        doc = word.Documents.Open(docx_path)
-        
-        # Salva como PDF
-        doc.SaveAs(pdf_path, FileFormat=17)  # 17 é o código para PDF no Word
-        doc.Close()
-        word.Quit()
+        # Caminho de saída do PDF
+        output_path = os.path.join(settings.BASE_DIR, 'relatorios', 'RELATORIO.pdf')
 
-        # Caminho do arquivo DOCX e o caminho do PDF
-        docx_path = 'relatorios/RELATORIO1.docx'
-        pdf_path = 'relatorios/RELATORIO1.pdf'
+        # Convertendo de .docx para .pdf usando LibreOffice no modo de linha de comando
+        try:
+            # Comando para converter .docx para .pdf usando LibreOffice
+            subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', docx_path, '--outdir', os.path.dirname(output_path)], check=True)
+            print(f"PDF gerado com sucesso: {output_path}")
+        except subprocess.CalledProcessError as e:
+            print(f"Erro ao gerar PDF: {e}")
 
-        # Chama a função para salvar como PDF
-        # Define the function salvar_como_pdf
-        def salvar_como_pdf(docx_path, pdf_path):
-            word = comtypes.client.CreateObject('Word.Application')
-            doc = word.Documents.Open(docx_path)
-            doc.SaveAs(pdf_path, FileFormat=17)  # 17 is the code for PDF format
-            doc.Close()
-            word.Quit()
 
-        salvar_como_pdf(docx_path, pdf_path)
 ######################################################
 
         # Retornar o arquivo HTML como resposta
